@@ -5,7 +5,7 @@ pkgrel=1
 
 source=("git+https://github.com/kkernick/sb.git")
 sha256sums=("SKIP")
-depends=(python findutils glibc eglinfo which xdg-dbus-proxy bubblewrap)
+depends=(python findutils glibc mesa-utils which xdg-dbus-proxy bubblewrap)
 arch=("any")
 provides=("sb")
 

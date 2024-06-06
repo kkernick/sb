@@ -1,10 +1,16 @@
 pkgbase = sb-git
-	pkgver = r5.b6d4012
+	pkgdesc = Sandbox Applications
+	pkgver = r4.a3236c3
 	pkgrel = 1
-	arch = x86_64
+	arch = any
+	depends = python
 	depends = findutils
+	depends = glibc
+	depends = mesa-utils
+	depends = which
+	depends = xdg-dbus-proxy
+	depends = bubblewrap
 	provides = sb
-	conflicts = sb
 	source = git+https://github.com/kkernick/sb.git
 	sha256sums = SKIP
 
