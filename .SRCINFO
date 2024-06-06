@@ -1,0 +1,11 @@
+pkgbase = sb-git
+	pkgver = r5.b6d4012
+	pkgrel = 1
+	arch = x86_64
+	depends = findutils
+	provides = sb
+	conflicts = sb
+	source = git+https://github.com/kkernick/sb.git
+	sha256sums = SKIP
+
+pkgname = sb-git
