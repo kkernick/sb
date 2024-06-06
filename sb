@@ -195,6 +195,8 @@ def parse():
 
 	parser.add_argument("--kf6", action="store_true", default=False, help="Give the application access to KF6 libraries, does nothing if --lib")
 
+	parser.add_argument("--rc", action="store_true", default=False, help="Give the application access to rc configuration at $XDG_CONFIG_HOME and /etc/xdg")
+
 
 	parser.add_argument("--gtk", action="store_true", default=False, help="Give the application access to GTK3/4 configuration (Implies --dri)")
 	parser.add_argument("--network", action="store_true", default=False, help="Give the application access to the network (overridden by --unshare-net")
@@ -351,6 +353,9 @@ def run_application(application, application_folder, info_name, temp, args, upda
 		if update_sof:
 			libraries |= {"/usr/lib/qt6/", "/usr/lib/qt5/", "/usr/lib/qt/"}
 			libraries |= find_libs("libQt*")
+
+	if args.rc:
+		share(command, [f"{config}/{application}rc", f"/etc/xdg/{application}rc"])
 
 	if args.gtk:
 		if args.verbose: print("Adding GTK...")
