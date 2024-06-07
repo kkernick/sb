@@ -314,6 +314,7 @@ def run_application(application, application_folder, info_name, temp, args, upda
 		home_dir = Path(data, "sb", application, "home")
 		home_dir.mkdir(parents=True, exist_ok=True)
 		command.extend(["--bind", str(home_dir), "/home"])
+		command.extend(["--bind", temp, f"{home}/.cache"])
 
 	if args.electron:
 		if args.verbose: print("Adding electron...")
