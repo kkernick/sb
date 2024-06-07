@@ -197,6 +197,7 @@ def parse():
 
 	parser.add_argument("--rc", action="store_true", default=False, help="Give the application access to rc configuration at $XDG_CONFIG_HOME and /etc/xdg")
 
+	parser.add_argument("--home", action="store_true", default=False, help="Create a permanent home directory for the application at $XDG_DATA_HOME/sb/application")
 
 	parser.add_argument("--gtk", action="store_true", default=False, help="Give the application access to GTK3/4 configuration (Implies --dri)")
 	parser.add_argument("--network", action="store_true", default=False, help="Give the application access to the network (overridden by --unshare-net")
@@ -308,6 +309,11 @@ def run_application(application, application_folder, info_name, temp, args, upda
 		"--symlink", "/usr/lib", "/lib64",
 		"--symlink", "/usr/lib", "/usr/lib64",
 	])
+	
+	if args.home:
+		home_dir = Path(data, "sb", application, "home")
+		home_dir.mkdir(parents=True, exist_ok=True)
+		command.extend(["--bind", str(home_dir), "/home"])
 
 	if args.electron:
 		if args.verbose: print("Adding electron...")
@@ -333,7 +339,6 @@ def run_application(application, application_folder, info_name, temp, args, upda
 			if args.verbose: print("/proc is needed for electron applications. Enabling...")
 			args.proc = True
 
-
 	if args.kf6:
 		if update_sof:
 			libraries |= find_libs("libKF*")
@@ -354,8 +359,7 @@ def run_application(application, application_folder, info_name, temp, args, upda
 			libraries |= {"/usr/lib/qt6/", "/usr/lib/qt5/", "/usr/lib/qt/"}
 			libraries |= find_libs("libQt*")
 
-	if args.rc:
-		share(command, [f"{config}/{application}rc", f"/etc/xdg/{application}rc"], mode="bind-try")
+	if args.rc:  f"/etc/xdg/{application}rc"], mode="bind-try")
 
 	if args.gtk:
 		if args.verbose: print("Adding GTK...")
