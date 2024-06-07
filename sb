@@ -53,7 +53,7 @@ def main(args):
 	sof_dir = Path("/tmp" if args.sof_tmpfs else environ["XDG_DATA_HOME"], "sb", args.program)
 
 	if args.lib: update_sof = False
-	else: update_sof = not sof_dir.is_dir() or args.update_libraries
+	else: update_sof = not Path(sof_dir, "usr", "lib").is_dir() or args.update_libraries
 	if update_sof: sof_dir.mkdir(parents=True, exist_ok=True)
 
 	if args.verbose: print(f"Running {application_name}")
