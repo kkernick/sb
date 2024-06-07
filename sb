@@ -309,7 +309,7 @@ def run_application(application, application_folder, info_name, temp, args, upda
 		"--symlink", "/usr/lib", "/lib64",
 		"--symlink", "/usr/lib", "/usr/lib64",
 	])
-	
+
 	if args.home:
 		home_dir = Path(data, "sb", application, "home")
 		home_dir.mkdir(parents=True, exist_ok=True)
@@ -359,7 +359,7 @@ def run_application(application, application_folder, info_name, temp, args, upda
 			libraries |= {"/usr/lib/qt6/", "/usr/lib/qt5/", "/usr/lib/qt/"}
 			libraries |= find_libs("libQt*")
 
-	if args.rc:  f"/etc/xdg/{application}rc"], mode="bind-try")
+	if args.rc: share(command, [f"/etc/xdg/{application}rc"])
 
 	if args.gtk:
 		if args.verbose: print("Adding GTK...")
