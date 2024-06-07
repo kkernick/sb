@@ -86,6 +86,8 @@ Additionally, `sb` has an `--app-dirs` folder, which specifies folders that the 
 5. `data`: `$XDG_DATA_HOME/chromium`
 6. `lib`: `/usr/lib/chromium`  (Mounted RO)
 
+However, if you would instead like to isolate the application from your home directory, you can instead pass the `--home` argument to create a unique home directory for each application in the *SOF* folder, keeping your home folder clean
+
 ## Configuration Mounts
 
 `sb` also has a few predefined switches for different applications, to ensure that needed libraries and files are within the sandbox:
