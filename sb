@@ -355,7 +355,7 @@ def run_application(application, application_folder, info_name, temp, args, upda
 			libraries |= find_libs("libQt*")
 
 	if args.rc:
-		share(command, [f"{config}/{application}rc", f"/etc/xdg/{application}rc"])
+		share(command, [f"{config}/{application}rc", f"/etc/xdg/{application}rc"], mode="bind-try")
 
 	if args.gtk:
 		if args.verbose: print("Adding GTK...")
