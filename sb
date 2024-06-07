@@ -421,6 +421,8 @@ def run_application(application, application_folder, info_name, temp, args, upda
 			if "i915" in eglinfo:
 				libraries |= find_libs("libdrm_intel*")
 				libraries |= find_libs("i915_*", path="/usr/lib/dri")
+				libraries |= find_libs("iris_*", path="/usr/lib/dri")
+
 			if "nouveau" in eglinfo:
 				libraries |= find_libs("libdrm_nouveau*")
 				libraries |= find_libs("nouveau_*", path="/usr/lib/dri")
