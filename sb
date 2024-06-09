@@ -95,6 +95,11 @@ def get_libraries(to_load, libraries=set()):
 	searched.add(to_load)
 
 	if to_load[-1] == "/": return
+
+	if "*" in to_load:
+		libraries |= find_libs(to_load, path="/usr/lib")
+		return
+
 	libraries |= {to_load}
 	for library in output(["ldd", to_load]):
 		split = library.split()
