@@ -54,7 +54,10 @@ def main(args):
 
 	if args.lib: update_sof = False
 	else: update_sof = not Path(sof_dir, "usr", "lib").is_dir() or args.update_libraries
-	if update_sof: sof_dir.mkdir(parents=True, exist_ok=True)
+
+	if update_sof:
+		if args.verbose: print("Updating SOF")
+		sof_dir.mkdir(parents=True, exist_ok=True)
 
 	if args.verbose: print(f"Running {application_name}")
 	if args.verbose: print(f"\tTemp: {temp}")
@@ -373,6 +376,11 @@ def run_application(application, application_folder, info_name, temp, args, upda
 			"/usr/share/gtk",
 			"/usr/share/glib-2.0",
 		])
+		command.extend(["--setenv", "GTK_USE_PORTAL", "1"])
+		if update_sof:
+			libraries |= find_libs("libgtk*")
+			libraries |= find_libs("libgdk*")
+			libraries |= find_libs("libgio*")
 		args.dri = True
 
 	if args.dev: command.extend(["--dev", "/dev"])
@@ -398,7 +406,7 @@ def run_application(application, application_folder, info_name, temp, args, upda
 		share(command, [
 				"/usr/share/fontconfig", "/usr/share/fonts", "/etc/fonts",
 				f"{config}/fontconfig", f"{data}/fontconfig", f"{cache}/fontconfig"
-				"/usr/share/themes", "/usr/share/color-schemes", "/usr/share/icons",
+				"/usr/share/themes", "/usr/share/color-schemes", "/usr/share/icons", "/usr/share/cursors", "/usr/share/pixmaps",
 				"/usr/share/mime", f"{data}/mime",
 				f"{data}/pixmaps",
 			])
@@ -414,15 +422,18 @@ def run_application(application, application_folder, info_name, temp, args, upda
 
 			eglinfo = check_output(["eglinfo", "-B"]).decode()
 			if "radeon" in eglinfo:
+				if args.verbose: print("Radeon DRI Detected")
 				libraries |= find_libs("libdrm_radeon*")
 				libraries |= find_libs("libdrm_amdgpu*")
 				libraries |= find_libs("radeon*", path="/usr/lib/dri")
 				libraries |= find_libs("amdgpu_*", path="/usr/lib/dri")
 			if "Intel" in eglinfo:
+				if args.verbose: print("Intel DRI Detected")
 				libraries |= find_libs("libdrm_intel*")
 				libraries |= find_libs("i915_*", path="/usr/lib/dri")
 				libraries |= find_libs("iris_*", path="/usr/lib/dri")
 			if "nouveau" in eglinfo:
+				if args.verbose: print("Nouveau DRI Detected")
 				libraries |= find_libs("libdrm_nouveau*")
 				libraries |= find_libs("nouveau_*", path="/usr/lib/dri")
 
