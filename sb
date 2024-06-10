@@ -193,11 +193,12 @@ def parse():
 	parser.add_argument("--dri", action="store_true", default=False, help="Give the application access to DRI/GPU, Vulkan, Devices, and graphical things")
 	parser.add_argument("--usr-share", action="store_true", default=False, help="Give the application access to /usr/share")
 
+	parser.add_argument("--xdg-open", action="store_true", default=False, help="Let the binary open links using xdg-open.")
+
 	parser.add_argument("--qt", action="store_true", default=False, help="Give the application access to QT libraries (Implies --dri)")
 
 	parser.add_argument("--electron", action="store_true", default=False, help="Give the application access to electron libraries (Implies --dri, --gtk)")
 	parser.add_argument("--electron-version", default=None, help="Give the application access to a specific electron version. Only if --electron")
-
 
 	parser.add_argument("--kde", action="store_true", default=False, help="Give the application access to KDE/QT configuration (Implies --dri, --qt)")
 
@@ -323,6 +324,9 @@ def run_application(application, application_folder, info_name, temp, args, upda
 		home_dir.mkdir(parents=True, exist_ok=True)
 		command.extend(["--bind", str(home_dir), "/home"])
 		command.extend(["--bind", temp, f"{home}/.cache"])
+
+	if args.xdg_open:
+		args.binaries.extend(["xdg-open", "grep", "cat", "gdbus", "sh"])
 
 	if args.electron:
 		if args.verbose: print("Adding electron...")
