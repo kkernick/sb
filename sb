@@ -158,7 +158,7 @@ def parse():
 		"--sockets",
 		action="extend",
 		nargs="*",
-		choices=["wayland", "pipewire"],
+		choices=["wayland", "pipewire", "xorg"],
 		default=["wayland"],
 		help="A list of sockets to give the application various functionality"
 	)
@@ -458,6 +458,11 @@ def run_application(application, application_folder, info_name, temp, args, upda
 			"/etc/pipewire",
 			"/usr/share/pipewire",
 		])
+
+	if "xorg" in args.sockets:
+		command.extend(["--setenv", "DISPLAY", environ["DISPLAY"]])
+		share(command, ["/tmp/.X11-unix/X0"])
+		share(command, output(["find", runtime, "-maxdepth", "1", "-name", "xauth_*"]))
 
 	if args.real_hostname: share(command, ["/etc/hostname"])
 	else: command.extend(["--hostname", "sandbox"])
