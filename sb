@@ -518,14 +518,12 @@ def run_application(application, application_folder, info_name, temp, args, upda
 				path = binary
 				binary = path.split("/")[-1]
 			else:
-				path = output(["which", binary])
-				if len(path) > 1:
-					path = path[0]
-					command.extend([
-						"--ro-bind-try", path, f"/bin/{binary}",
-						"--ro-bind-try", path, f"/usr/bin/{binary}",
-					])
-			if update_sof and type(path) is str:
+				path = output(["which", binary])[0]
+				command.extend([
+					"--ro-bind-try", path, f"/bin/{binary}",
+					"--ro-bind-try", path, f"/usr/bin/{binary}",
+				])
+			if update_sof:
 				get_libraries(path, libraries)
 
 
