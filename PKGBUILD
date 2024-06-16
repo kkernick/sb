@@ -1,11 +1,11 @@
 pkgname=sb-git
 pkgdesc="Sandbox Applications"
-pkgver=r17.e66f711
+pkgver=r18.c6f1a6f
 pkgrel=1
 
 source=("git+https://github.com/kkernick/sb.git")
 sha256sums=("SKIP")
-depends=(python findutils glibc mesa-utils which xdg-dbus-proxy bubblewrap)
+depends=(python findutils glibc mesa-utils which xdg-dbus-proxy bubblewrap strace)
 arch=("any")
 provides=("sb")
 

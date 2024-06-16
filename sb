@@ -44,13 +44,20 @@ def main(args):
 			f.write(buffer)
 		return
 
+
 	application_name=f"app.application.{args.program}"
 	application_folder=Path(environ["XDG_RUNTIME_DIR"], "app", application_name)
 	application_folder.mkdir(parents=True, exist_ok=True)
 	temp = TemporaryDirectory()
 	info = NamedTemporaryFile()
 
-	sof_dir = Path("/tmp" if args.sof_tmpfs else environ["XDG_DATA_HOME"], "sb", args.program)
+	path = args.program
+	if path.startswith("/"):
+		program = path.split("/")[-1]
+	else:
+		program = path
+
+	sof_dir = Path("/tmp" if args.sof_tmpfs else environ["XDG_DATA_HOME"], "sb", program)
 
 	if args.lib: update_sof = False
 	else: update_sof = not Path(sof_dir, "usr", "lib").is_dir() or args.update_libraries
@@ -73,8 +80,9 @@ def main(args):
 
 	sleep(0.1)
 
-	if args.verbose: print("Launching ", args.program)
-	run_application(args.program, application_folder, info.name, temp.name, args, update_sof, sof_dir)
+	if args.verbose:
+		print("Launching ", program, "at", path)
+	run_application(program, path, application_folder, info.name, temp.name, args, update_sof, sof_dir)
 
 
 def output(command):
@@ -215,6 +223,8 @@ def parse():
 	parser.add_argument("--file-passthrough-rw", action="store_true", default=False, help="File passthrough is done with write privileges")
 
 	parser.add_argument("--debug-shell", action="store_true", default=False, help="Launch a shell in the sandbox instead of the application")
+	parser.add_argument("--strace", action="store_true", default=False, help="Launch the application underneath strace")
+
 
 	parser.add_argument("--real-hostname", action="store_true", default=False, help="Give the application the hostname")
 	parser.add_argument("--locale", action="store_true", default=False, help="Give the application locale information")
@@ -283,7 +293,7 @@ def dbus_proxy(portals, application_folder, info_name, args):
 	Popen(command)
 
 
-def run_application(application, application_folder, info_name, temp, args, update_sof, sof_dir):
+def run_application(application, application_path, application_folder, info_name, temp, args, update_sof, sof_dir):
 
 	runtime = environ["XDG_RUNTIME_DIR"]
 	config = environ["XDG_CONFIG_HOME"]
@@ -449,7 +459,11 @@ def run_application(application, application_folder, info_name, temp, args, upda
 
 
 	if "wayland" in args.sockets:
-		share(command, [f"{runtime}/wayland-0", "/usr/share/X11/xkb"])
+		share(command, [
+			f"{runtime}/wayland-0",
+			"/usr/share/X11/xkb",
+			"/etc/xkb"
+		])
 
 	if "pipewire" in args.sockets:
 		share(command, [
@@ -509,8 +523,9 @@ def run_application(application, application_folder, info_name, temp, args, upda
 	else:
 		if args.verbose: print("Generating binaries...")
 		binaries = args.binaries
-		binaries.append(application)
+		binaries.append(application_path)
 		if args.debug_shell: binaries.append("sh")
+		if args.strace: binaries.append("strace")
 
 		for shell in args.shells: binaries.append(shell)
 		for binary in binaries:
@@ -592,7 +607,9 @@ def run_application(application, application_folder, info_name, temp, args, upda
 
 	command.extend(["--tmpfs", temp])
 	if args.debug_shell: command.append("sh")
-	else: command.append(application)
+	else:
+		if args.strace: command.append("strace")
+		command.append(application_path)
 	for argument in args.unknown: command.append(argument)
 
 	if args.verbose: print(" ".join(command))
