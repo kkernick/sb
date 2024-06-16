@@ -411,6 +411,7 @@ def run_application(application, application_folder, info_name, temp, args, upda
 			f"{data}/vulkan",
 			"/usr/share/libdrm",
 			"/usr/share/libdrm/amdgpu.ids",
+			"/sys/dev",
 		])
 		share(command, [
 				"/usr/share/fontconfig", "/usr/share/fonts", "/etc/fonts",
