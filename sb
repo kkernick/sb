@@ -44,18 +44,17 @@ def main(args):
 			f.write(buffer)
 		return
 
-
-	application_name=f"app.application.{args.program}"
-	application_folder=Path(environ["XDG_RUNTIME_DIR"], "app", application_name)
-	application_folder.mkdir(parents=True, exist_ok=True)
-	temp = TemporaryDirectory()
-	info = NamedTemporaryFile()
-
 	path = args.program
 	if path.startswith("/"):
 		program = path.split("/")[-1]
 	else:
 		program = path
+
+	application_name=f"app.application.{program}"
+	application_folder=Path(environ["XDG_RUNTIME_DIR"], "app", application_name)
+	application_folder.mkdir(parents=True, exist_ok=True)
+	temp = TemporaryDirectory()
+	info = NamedTemporaryFile()
 
 	sof_dir = Path("/tmp" if args.sof_tmpfs else environ["XDG_DATA_HOME"], "sb", program)
 
