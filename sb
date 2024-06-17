@@ -135,7 +135,9 @@ def parse():
 		"--portals",
 		action="extend",
 		nargs="*",
-		choices=["Documents", "Flatpak", "Desktop", "Notifications", "FileChooser"],
+		choices=[
+			"Documents", "Flatpak", "Desktop", "Notifications", "FileChooser", "ScreenCast", "Camera"
+		],
 		default=["Flatpak"],
 		help="A list of XDG Portals to expose to the application",
 	)
@@ -472,6 +474,9 @@ def run_application(application, application_path, application_folder, info_name
 			"/etc/pipewire",
 			"/usr/share/pipewire",
 		])
+		if update_sof:
+			libraries |= find_libs("libpipewire*")
+			libraries |= {"/usr/lib/pipewire-0.3/", "/usr/lib/spa-0.2/"}
 
 	if "xorg" in args.sockets:
 		command.extend(["--setenv", "DISPLAY", environ["DISPLAY"]])
@@ -607,7 +612,7 @@ def run_application(application, application_path, application_folder, info_name
 	command.extend(["--tmpfs", temp])
 	if args.debug_shell: command.append("sh")
 	else:
-		if args.strace: command.append("strace")
+		if args.strace: command.extend(["strace", "-fZ"])
 		command.append(application_path)
 	for argument in args.unknown: command.append(argument)
 
