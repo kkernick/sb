@@ -216,6 +216,7 @@ def parse():
 	parser.add_argument("--rc", action="store_true", default=False, help="Give the application access to rc configuration at $XDG_CONFIG_HOME and /etc/xdg")
 
 	parser.add_argument("--home", action="store_true", default=False, help="Create a permanent home directory for the application at $XDG_DATA_HOME/sb/application")
+	parser.add_argument("--cached-home", action="store_true", default=False, help="Copy the SOF home into the application's temporary RAM folder. Modifications to the home will not persist, but will be isolated from instances and faster. Applications that use profile locks, like Chrome, can run multiple instances at once.")
 
 	parser.add_argument("--gtk", action="store_true", default=False, help="Give the application access to GTK3/4 configuration (Implies --dri)")
 	parser.add_argument("--network", action="store_true", default=False, help="Give the application access to the network (overridden by --unshare-net")
@@ -333,8 +334,14 @@ def run_application(application, application_path, application_folder, info_name
 	if args.home:
 		home_dir = Path(data, "sb", application, "home")
 		home_dir.mkdir(parents=True, exist_ok=True)
-		command.extend(["--bind", str(home_dir), "/home"])
-		command.extend(["--bind", temp, f"{home}/.cache"])
+
+		if args.cached_home:
+			cache_home = TemporaryDirectory()
+			run(["cp", "-r", str(home_dir) + "/.", cache_home.name])
+			command.extend(["--bind", cache_home.name, "/home"])
+		else:
+			command.extend(["--bind", str(home_dir), "/home"])
+			command.extend(["--bind", temp, f"{home}/.cache"])
 
 	if args.xdg_open:
 		args.binaries.extend(["xdg-open", "grep", "cat", "gdbus", "sh"])
