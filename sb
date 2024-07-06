@@ -97,11 +97,14 @@ def find_libs(expression, depth=1, path="/usr/lib"):
 	return libs
 
 
-def get_libraries(to_load, libraries=set()):
+def get_libraries(to_load, libraries=set(), recursive_folders=False):
 	if to_load in searched: return
 	searched.add(to_load)
 
-	if to_load[-1] == "/": return
+	if to_load.endswith("/"):
+		if recursive_folders:
+			libraries |= find_libs("*", depth=10, path=to_load[:-1])
+		return
 
 	if "*" in to_load:
 		libraries |= find_libs(to_load, path="/usr/lib")
@@ -119,7 +122,7 @@ def get_libraries(to_load, libraries=set()):
 			lib = split[2]
 			lib = lib.replace("lib64", "lib")
 			if lib.startswith("/lib"): lib = lib[4:]
-		if lib is not None: get_libraries(lib, libraries)
+		if lib is not None: get_libraries(lib, libraries, recursive_folders)
 	return
 
 
@@ -177,7 +180,7 @@ def parse():
 
 	parser.add_argument("--lib", action="store_true", default=False, help="Mount /lib and others")
 	parser.add_argument("--libraries", action="extend", nargs="*", default=[], help="A list of libraries needed in the sandbox")
-
+	parser.add_argument("--recursive-libraries", action="store_true", default=False, help="Recursively search library folders to determine dependencies (Expensive)")
 
 	parser.add_argument("--rw", action="extend", nargs="*", default=[], help="Files/Directories the application can read and write.")
 	parser.add_argument("--ro", action="extend", nargs="*", default=[], help="Files/Directories that the application can read.")
@@ -306,7 +309,7 @@ def run_application(application, application_path, application_folder, info_name
 	if update_sof:
 		libraries = set()
 		for library in args.libraries:
-			get_libraries(library, libraries)
+			get_libraries(library, libraries, recursive_folders=args.recursive_libraries)
 
 	if args.verbose: print("Setting up...")
 	command = ["bwrap", "--new-session", "--die-with-parent"]
@@ -374,7 +377,7 @@ def run_application(application, application_path, application_folder, info_name
 		if update_sof:
 			libraries |= find_libs("libKF*")
 			libraries |= find_libs("lib*Kirigami*")
-			args.ro.append("/usr/lib/kf6")
+			libraries |= {"/usr/lib/kf6/"}
 		args.kde = True
 
 	if args.kde:
@@ -385,9 +388,9 @@ def run_application(application, application_path, application_folder, info_name
 
 	if args.qt:
 		if args.verbose: print("Adding QT...")
-		share(command, ["/usr/share/qt6", "/usr/share/qt"])
+		share(command, ["/usr/share/qt6"])
 		if update_sof:
-			libraries |= {"/usr/lib/qt6/", "/usr/lib/qt5/", "/usr/lib/qt/"}
+			libraries |= {"/usr/lib/qt6/"}
 			libraries |= find_libs("libQt*")
 
 	if args.rc: share(command, [f"/etc/xdg/{application}rc"])
@@ -551,7 +554,7 @@ def run_application(application, application_path, application_folder, info_name
 					"--ro-bind-try", path, f"/usr/bin/{binary}",
 				])
 			if update_sof:
-				get_libraries(path, libraries)
+				get_libraries(path, libraries, args.recursive_libraries)
 
 
 	if not args.lib:
@@ -576,15 +579,18 @@ def run_application(application, application_path, application_folder, info_name
 				if runtime_path.is_file() and real_path.is_file():
 					lib_path = Path(f"{str(sof_dir)}/{library}")
 					if runtime_path.is_file() and not lib_path.is_file():
-						lib_path.parents[0].mkdir(parents=True, exist_ok=True)
-						lib_path.hardlink_to(runtime_path)
-						lib_path.chmod(real_path.stat().st_mode)
+						try:
+							lib_path.parents[0].mkdir(parents=True, exist_ok=True)
+							lib_path.hardlink_to(runtime_path)
+							lib_path.chmod(real_path.stat().st_mode)
+						except Exception: pass
 
 			if args.verbose: print("Resolving depends...")
 			unsearched = libraries - searched
 			while unsearched:
+				if args.verbose: print("Unresolved Libraries:", unsearched)
 				for lib in unsearched:
-					get_libraries(lib, libraries)
+					get_libraries(lib, libraries, recursive_folders=args.recursive_libraries)
 				unsearched = libraries - searched
 
 			if args.verbose: print("Creating /lib...")
