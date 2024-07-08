@@ -250,6 +250,7 @@ def parse():
 	parser.add_argument("--sof-tmpfs", action="store_true", default=False, help="Store the SOF directory in /tmp")
 
 	parser.add_argument("--verbose", action="store_true", default=False, help="Verbose logging")
+	parser.add_argument("--dry", action="store_true", default=False, help="Don't actually run the program, but still generate SB folders. Useful to use as a startup script to create an SB folder in tempfs.")
 
 
 	args, unknown = parser.parse_known_args()
@@ -435,7 +436,7 @@ def run_application(application, application_path, application_folder, info_name
 			"/sys/dev",
 		])
 		share(command, [
-				"/usr/share/fontconfig", "/usr/share/fonts", "/etc/fonts",
+				"/usr/share/fontconfig", "/usr/share/fonts", "/etc/fonts", f"{home}/.fonts",
 				f"{config}/fontconfig", f"{data}/fontconfig", f"{cache}/fontconfig"
 				"/usr/share/themes", "/usr/share/color-schemes", "/usr/share/icons", "/usr/share/cursors", "/usr/share/pixmaps",
 				"/usr/share/mime", f"{data}/mime",
@@ -629,7 +630,8 @@ def run_application(application, application_path, application_folder, info_name
 		command.append(application_path)
 	for argument in args.unknown: command.append(argument)
 
-	if args.verbose: print(" ".join(command))
-	run(command)
+	if not args.dry:
+		if args.verbose: print(" ".join(command))
+		run(command)
 
 if __name__ == "__main__": main(parse())
