@@ -226,6 +226,7 @@ def parse():
 
 	parser.add_argument("--do-not-allow-file-passthrough", action="store_true", default=False, help="If the program is passed an argument to a file, do not expose this file to the sandbox.")
 	parser.add_argument("--file-passthrough-rw", action="store_true", default=False, help="File passthrough is done with write privileges")
+	parser.add_argument("--file-passthrough-folder", action="store_true", default=False, help="Passthrough the entire folder that a file is contained within. Useful when the program creates a temporary file in the directory for writing")
 
 	parser.add_argument("--debug-shell", action="store_true", default=False, help="Launch a shell in the sandbox instead of the application")
 	parser.add_argument("--strace", action="store_true", default=False, help="Launch the application underneath strace")
@@ -449,6 +450,7 @@ def run_application(application, application_path, application_folder, info_name
 			libraries |= find_libs("*mesa*")
 			libraries |= find_libs("*Mesa*")
 			libraries |= find_libs("libdrm")
+			libraries |= find_libs("libEGL*")
 
 			libraries |= find_libs("swrast_*", path="/usr/lib/dri")
 
@@ -621,6 +623,8 @@ def run_application(application, application_path, application_folder, info_name
 	if not args.do_not_allow_file_passthrough:
 		for argument in args.unknown:
 			if argument.startswith("/"):
+				if args.file_passthrough_folder:
+					argument = "/".join(argument.split("/")[:-1])
 				share(command, [argument], "bind-try" if args.file_passthrough_rw else "ro-bind-try")
 
 	command.extend(["--tmpfs", temp])
