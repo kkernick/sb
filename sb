@@ -452,7 +452,7 @@ def run_application(application, application_path, application_folder, info_name
 
 			libraries |= find_libs("swrast_*", path="/usr/lib/dri")
 
-			eglinfo = check_output(["eglinfo", "-B"]).decode()
+			eglinfo = check_output(["eglinfo", "-B", "-p", "wayland"]).decode()
 			if "radeon" in eglinfo:
 				if args.verbose: print("Radeon DRI Detected")
 				libraries |= find_libs("libdrm_radeon*")
