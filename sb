@@ -467,6 +467,7 @@ def run_application(application, application_path, application_folder, info_name
 				libraries |= find_libs("libdrm_intel*")
 				libraries |= find_libs("i915_*", path="/usr/lib/dri")
 				libraries |= find_libs("iris_*", path="/usr/lib/dri")
+				libraries |= find_libs("iHD_*", path="/usr/lib/dri")
 			if "nouveau" in eglinfo:
 				if args.verbose: print("Nouveau DRI Detected")
 				libraries |= find_libs("libdrm_nouveau*")
