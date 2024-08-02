@@ -12,6 +12,29 @@ searched = set()
 
 def main(args):
 
+	if args.dry_service:
+		name = args.desktop_entry if args.desktop_entry else f"{args.program}.desktop"
+		binary = f"{environ["HOME"]}/.local/bin/{name}.sh"
+
+		if not Path(binary).is_file():
+			print("Create a desktop entry first!")
+			exit(1)
+
+		service = Path(environ["XDG_CONFIG_HOME"], "systemd", "user", f"{name}.service")
+
+		with service.open("w") as file:
+			file.write("[Unit]\n")
+			file.write(f"Description=Dry run {name}\n\n")
+			file.write("[Service]\n")
+			file.write("Type=oneshot\n")
+			file.write(f"ExecStart={binary} --dry --sof-tmpfs\n\n")
+			file.write("[Install]\n")
+			file.write("WantedBy=default.target")
+
+		run(["systemctl", "daemon-reload", "--user"])
+		run(["systemctl", "enable", "--user", f"{name}.service"])
+		return
+
 	if args.make_desktop_entry:
 		exec = argv
 
@@ -56,7 +79,9 @@ def main(args):
 	temp = TemporaryDirectory()
 	info = NamedTemporaryFile()
 
-	sof_dir = Path("/tmp" if args.sof_tmpfs else environ["XDG_DATA_HOME"], "sb", program)
+	sof_dir = Path("/tmp", "sb", program)
+	if not sof_dir.is_dir() and not args.sof_tmpfs:
+		sof_dir = Path(environ["XDG_DATA_HOME"], "sb", program)
 
 	if args.lib: update_sof = False
 	else: update_sof = not Path(sof_dir, "usr", "lib").is_dir() or args.update_libraries
@@ -248,11 +273,11 @@ def parse():
 	parser.add_argument("--desktop-entry", action="store", default=None, help="The application's desktop entry, if it cannot be deduced automatically. For example, chromium.desktop")
 
 	parser.add_argument("--update-libraries", action="store_true", default=False, help="Update SOF libraries")
-	parser.add_argument("--sof-tmpfs", action="store_true", default=False, help="Store the SOF directory in /tmp")
+	parser.add_argument("--sof-tmpfs", action="store_true", default=False, help="Store the SOF directory in /tmp. If the folder exists, it will be used irregardless of this setting, this flag merely generates it if it doesn't exist.")
 
 	parser.add_argument("--verbose", action="store_true", default=False, help="Verbose logging")
 	parser.add_argument("--dry", action="store_true", default=False, help="Don't actually run the program, but still generate SB folders. Useful to use as a startup script to create an SB folder in tempfs.")
-
+	parser.add_argument("--dry-service", action="store_true", default=False, help="Create a systemd user service that runs the program dry, generating the SOF in tmpfs. The service will run with --dry --sof-tmpfs.")
 
 	args, unknown = parser.parse_known_args()
 	args.unknown = unknown
@@ -443,7 +468,7 @@ def run_application(application, application_path, application_folder, info_name
 				"/usr/share/mime", f"{data}/mime",
 				f"{data}/pixmaps",
 			])
-		command.extend(["--setenv", "XDG_SESSION_DESKTOP", environ["XDG_SESSION_DESKTOP"]])
+		if "XDG_SESSION_DESKTOP" in environ: command.extend(["--setenv", "XDG_SESSION_DESKTOP", environ["XDG_SESSION_DESKTOP"]])
 
 		if update_sof:
 			for lib in [
@@ -494,7 +519,7 @@ def run_application(application, application_path, application_folder, info_name
 			libraries |= {"/usr/lib/pipewire-0.3/", "/usr/lib/spa-0.2/"}
 
 	if "xorg" in args.sockets:
-		command.extend(["--setenv", "DISPLAY", environ["DISPLAY"]])
+		if "DISPLAY" in environ: command.extend(["--setenv", "DISPLAY", environ["DISPLAY"]])
 		share(command, ["/tmp/.X11-unix/X0"])
 		share(command, output(["find", runtime, "-maxdepth", "1", "-name", "xauth_*"]))
 
