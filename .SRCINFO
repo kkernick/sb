@@ -1,12 +1,11 @@
 pkgbase = sb-git
 	pkgdesc = Sandbox Applications
-	pkgver = r28.f890b33
+	pkgver = r29.7dfd339
 	pkgrel = 1
 	arch = any
 	depends = python
 	depends = findutils
 	depends = glibc
-	depends = mesa-utils
 	depends = which
 	depends = xdg-dbus-proxy
 	depends = bubblewrap

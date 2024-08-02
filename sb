@@ -476,27 +476,7 @@ def run_application(application, application_path, application_folder, info_name
 				"libVkLayer*", "libgbm*", "libva*",
 				]:
 					libraries |= find_libs(lib)
-
-
-			libraries |= find_libs("swrast_*", path="/usr/lib/dri")
-
-			eglinfo = check_output(["eglinfo", "-B", "-p", "wayland"]).decode()
-			if "radeon" in eglinfo:
-				if args.verbose: print("Radeon DRI Detected")
-				libraries |= find_libs("libdrm_radeon*")
-				libraries |= find_libs("libdrm_amdgpu*")
-				libraries |= find_libs("radeon*", path="/usr/lib/dri")
-				libraries |= find_libs("amdgpu_*", path="/usr/lib/dri")
-			if "Intel" in eglinfo:
-				if args.verbose: print("Intel DRI Detected")
-				libraries |= find_libs("libdrm_intel*")
-				libraries |= find_libs("i915_*", path="/usr/lib/dri")
-				libraries |= find_libs("iris_*", path="/usr/lib/dri")
-				libraries |= find_libs("iHD_*", path="/usr/lib/dri")
-			if "nouveau" in eglinfo:
-				if args.verbose: print("Nouveau DRI Detected")
-				libraries |= find_libs("libdrm_nouveau*")
-				libraries |= find_libs("nouveau_*", path="/usr/lib/dri")
+			libraries |= find_libs("*", path="/usr/lib/dri")
 
 
 	if "wayland" in args.sockets:
