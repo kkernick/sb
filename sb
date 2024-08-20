@@ -634,10 +634,12 @@ def run_application(application, application_path, application_folder, info_name
 					argument = "/".join(argument.split("/")[:-1])
 					mod = "777" if args.file_passthrough_rw else "555"
 				else:
-				  mod = "666" if args.file_passthrough_rw else "444"
+					mod = "666" if args.file_passthrough_rw else "444"
+
 				share(command, [argument], "bind-try" if args.file_passthrough_rw else "ro-bind-try")
-                if args.file_passthrough_rw:
-    				command.extend(["--chmod", mod, argument])
+
+				if args.file_passthrough_rw:
+					command.extend(["--chmod", mod, argument])
 
 	command.extend(["--tmpfs", temp])
 	if args.debug_shell: command.append("sh")
