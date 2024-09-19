@@ -562,7 +562,7 @@ def gen_command(application, application_path, application_folder, args):
 
     if update_sof:
       for lib in [
-        "libvulkan*", "libglapi*", "*mesa*", "*Mesa*", "libdrm", "libGLX*",
+        "libvulkan*", "libglapi*", "*mesa*", "*Mesa*", "libdrm", "libGLX*", "libEGL*",
         "libVkLayer*", "libgbm*", "libva*", "*egl*", "*EGL*"
         ]:
           libraries |= find_libs(lib)
@@ -602,10 +602,15 @@ def gen_command(application, application_path, application_folder, args):
       "/etc/localtime",
       "/usr/share/zoneinfo",
       "/usr/share/X11/locale",
-      "/usr/share/locale/",
+      "/usr/share/locale",
       f"{config}/plasma-localerc"
     ])
     if update_sof: args.ro.append("/usr/lib/locale/")
+    command.extend([
+      "--setenv", "LANG", environ["LANG"],
+      "--setenv", "LANGUAGE", environ["LANGUAGE"],
+    ])
+    args.binaries.append("locale")
 
   if args.hunspell: share(command, ["/usr/share/hunspell", "/usr/share/myspell"])
 
