@@ -8,641 +8,605 @@ from pathlib import Path
 from tempfile import TemporaryDirectory, NamedTemporaryFile
 from sys import argv
 
+
 searched = set()
+
 
 def main(args):
 
-	if args.dry_service:
-		name = args.desktop_entry if args.desktop_entry else f"{args.program}.desktop"
-		binary = f"{environ["HOME"]}/.local/bin/{name}.sh"
+  if args.dry_service:
+    name = args.desktop_entry if args.desktop_entry else f"{args.program}.desktop"
+    binary = f"{environ["HOME"]}/.local/bin/{name}.sh"
 
-		if not Path(binary).is_file():
-			print("Create a desktop entry first!")
-			exit(1)
+    if not Path(binary).is_file():
+      print("Create a desktop entry first!")
+      exit(1)
 
-		service = Path(environ["XDG_CONFIG_HOME"], "systemd", "user", f"{name}.service")
+    service = Path(environ["XDG_CONFIG_HOME"], "systemd", "user", f"{name}.service")
 
-		with service.open("w") as file:
-			file.write("[Unit]\n")
-			file.write(f"Description=Dry run {name}\n\n")
-			file.write("[Service]\n")
-			file.write("Type=oneshot\n")
-			file.write(f"ExecStart={binary} --dry --sof-tmpfs\n\n")
-			file.write("[Install]\n")
-			file.write("WantedBy=default.target")
+    with service.open("w") as file:
+      file.write("[Unit]\n")
+      file.write(f"Description=Dry run {name}\n\n")
+      file.write("[Service]\n")
+      file.write("Type=oneshot\n")
+      file.write(f"ExecStart={binary} --dry --sof-tmpfs\n\n")
+      file.write("[Install]\n")
+      file.write("WantedBy=default.target")
 
-		run(["systemctl", "daemon-reload", "--user"])
-		run(["systemctl", "enable", "--user", f"{name}.service"])
-		return
+    run(["systemctl", "daemon-reload", "--user"])
+    run(["systemctl", "enable", "--user", f"{name}.service"])
+    return
 
-	if args.make_desktop_entry:
-		exec = argv
+  if args.make_desktop_entry:
+    exec = argv
 
-		exec.remove("--make-desktop-entry")
+    exec.remove("--make-desktop-entry")
 
-		# Pop twice to remove it and the name itself.
-		if args.desktop_entry:
-			i = exec.index("--desktop-entry")
-			exec.pop(i); exec.pop(i)
-		exec.insert(2, '"$@"')
+    # Pop twice to remove it and the name itself.
+    if args.desktop_entry:
+      i = exec.index("--desktop-entry")
+      exec.pop(i); exec.pop(i)
+    exec.insert(2, '"$@"')
 
-		name = args.desktop_entry if args.desktop_entry else f"{args.program}.desktop"
-		exec = " ".join(exec)
-		binary = f"{environ["HOME"]}/.local/bin/{name}.sh"
-		buffer = ""
+    name = args.desktop_entry if args.desktop_entry else f"{args.program}.desktop"
+    exec = " ".join(exec)
+    binary = f"{environ["HOME"]}/.local/bin/{name}.sh"
+    buffer = ""
 
-		with open(f"/usr/share/applications/{name}", "r") as f:
-			for line in f.readlines():
-				if line.startswith("Exec="):
-					buffer += (f"Exec={binary} {" ".join(line.split()[1:])}\n")
-				else:
-					buffer += line
+    with open(f"/usr/share/applications/{name}", "r") as f:
+      for line in f.readlines():
+        if line.startswith("Exec="):
+          buffer += (f"Exec={binary} {" ".join(line.split()[1:])}\n")
+        else:
+          buffer += line
 
-		with open(binary, "w") as b:
-			b.write("#!/bin/sh\n")
-			b.write(f"{exec}")
-		run(["chmod", "+x", binary])
+    with open(binary, "w") as b:
+      b.write("#!/bin/sh\n")
+      b.write(f"{exec}")
+    run(["chmod", "+x", binary])
 
-		with open(f"{environ["XDG_DATA_HOME"]}/applications/{name}", "w") as f:
-			f.write(buffer)
-		return
+    with open(f"{environ["XDG_DATA_HOME"]}/applications/{name}", "w") as f:
+      f.write(buffer)
+    return
 
-	path = args.program
-	if path.startswith("/"):
-		program = path.split("/")[-1]
-	else:
-		program = path
+  path = args.program
+  if path.startswith("/"):
+    program = path.split("/")[-1]
+  else:
+    program = path
 
-	application_name=f"app.application.{program}"
-	application_folder=Path(environ["XDG_RUNTIME_DIR"], "app", application_name)
-	application_folder.mkdir(parents=True, exist_ok=True)
-	temp = TemporaryDirectory()
-	info = NamedTemporaryFile()
+  application_name=f"app.application.{program}"
+  application_folder=Path(environ["XDG_RUNTIME_DIR"], "app", application_name)
+  application_folder.mkdir(parents=True, exist_ok=True)
+  temp = TemporaryDirectory()
+  info = NamedTemporaryFile()
 
-	sof_dir = Path("/tmp", "sb", program)
-	if not sof_dir.is_dir() and not args.sof_tmpfs:
-		sof_dir = Path(environ["XDG_DATA_HOME"], "sb", program)
+  sof_dir = Path("/tmp", "sb", program)
+  if not sof_dir.is_dir() and not args.sof_tmpfs:
+    sof_dir = Path(environ["XDG_DATA_HOME"], "sb", program)
 
-	if args.lib: update_sof = False
-	else: update_sof = not Path(sof_dir, "usr", "lib").is_dir() or args.update_libraries
+  if args.lib: update_sof = False
+  else: update_sof = not Path(sof_dir, "usr", "lib").is_dir() or args.update_libraries
 
-	if update_sof:
-		if args.verbose: print("Updating SOF")
-		sof_dir.mkdir(parents=True, exist_ok=True)
+  if update_sof:
+    if args.verbose: print("Updating SOF")
+    sof_dir.mkdir(parents=True, exist_ok=True)
 
-	if args.verbose: print(f"Running {application_name}")
-	if args.verbose: print(f"\tTemp: {temp}")
-	if args.verbose and not args.lib: print(f"\tSOF: {sof_dir}")
+  if args.verbose: print(f"Running {application_name}")
+  if args.verbose: print(f"\tTemp: {temp}")
+  if args.verbose and not args.lib: print(f"\tSOF: {sof_dir}")
 
-	info.write(b"[Application]\n")
-	name_str=f"name={application_name}"
-	info.write(name_str.encode())
-	info.flush()
+  info.write(b"[Application]\n")
+  name_str=f"name={application_name}"
+  info.write(name_str.encode())
+  info.flush()
 
-	if args.verbose: print("Launching D-Bus Proxy")
-	dbus_proxy(args.portals, application_folder, info.name, args)
+  if args.verbose: print("Launching D-Bus Proxy")
+  dbus_proxy(args.portals, application_folder, info.name, args)
 
-	sleep(0.1)
+  sleep(0.1)
 
-	if args.verbose:
-		print("Launching ", program, "at", path)
-	run_application(program, path, application_folder, info.name, temp.name, args, update_sof, sof_dir)
+  if args.verbose:
+    print("Launching ", program, "at", path)
+  run_application(program, path, application_folder, info.name, temp.name, args, update_sof, sof_dir)
 
 
 def output(command):
-	return [out for out in run(command, stdout=PIPE).stdout.decode().split("\n") if out]
+  return [out for out in run(command, stdout=PIPE).stdout.decode().split("\n") if out]
+
 
 def find_libs(expression, depth=1, path="/usr/lib"):
-	libs = set(output([
-		"find", path,
-		"-maxdepth", str(depth), "-mindepth", str(1),
-		"-type", "f,l",
-		"-name", f"{expression}.so*"
-	]))
-	return libs
+  libs = set(output([
+    "find", path,
+    "-maxdepth", str(depth), "-mindepth", str(1),
+    "-type", "f,l",
+    "-name", f"{expression}.so*"
+  ]))
+  return libs
 
 
 def get_libraries(to_load, libraries=set(), recursive_folders=False):
-	if to_load in searched: return
-	searched.add(to_load)
+  if to_load in searched: return
+  searched.add(to_load)
 
-	if to_load.endswith("/"):
-		if recursive_folders:
-			libraries |= find_libs("*", depth=10, path=to_load[:-1])
-		return
+  if to_load.endswith("/"):
+    if recursive_folders:
+      libraries |= find_libs("*", depth=10, path=to_load[:-1])
+    return
 
-	if "*" in to_load:
-		libraries |= find_libs(to_load, path="/usr/lib")
-		return
+  if "*" in to_load:
+    libraries |= find_libs(to_load, path="/usr/lib")
+    return
 
-	libraries |= {to_load}
-	for library in output(["ldd", to_load]):
-		split = library.split()
+  libraries |= {to_load}
+  for library in output(["ldd", to_load]):
+    split = library.split()
 
-		lib = None
+    lib = None
 
-		if len(split) > 0 and split[0].startswith("/usr/lib"):
-			lib = split[0]
-		elif len(split) > 2 and split[2] != "not":
-			lib = split[2]
-			lib = lib.replace("lib64", "lib")
-			if lib.startswith("/lib"): lib = lib[4:]
-		if lib is not None: get_libraries(lib, libraries, recursive_folders)
-	return
+    if len(split) > 0 and split[0].startswith("/usr/lib"):
+      lib = split[0]
+    elif len(split) > 2 and split[2] != "not":
+      lib = split[2]
+      lib = lib.replace("lib64", "lib")
+      if lib.startswith("/lib"): lib = lib[4:]
+    if lib is not None: get_libraries(lib, libraries, recursive_folders)
+  return
 
 
 def parse():
-	parser = ArgumentParser(
-		prog="sb",
-		description="Run applications in a Sandbox",
-	)
+  parser = ArgumentParser(
+    prog="sb",
+    description="Run applications in a Sandbox",
+  )
 
-	parser.add_argument("program", help="The program to run")
+  parser.add_argument("program", help="The program to run")
 
-	parser.add_argument(
-		"--portals",
-		action="extend",
-		nargs="*",
-		choices=[
-			"Documents", "Flatpak", "Desktop", "Notifications", "FileChooser", "ScreenCast", "Camera"
-		],
-		default=["Flatpak"],
-		help="A list of XDG Portals to expose to the application",
-	)
-	parser.add_argument("--see", action="extend", nargs="*", default=[], help="A list of additional buses that the application should be able to see")
-	parser.add_argument("--talk", action="extend", nargs="*", default=[], help="A list of additional buses that the application should be able to talk over")
-	parser.add_argument("--own", action="extend", nargs="*", default=[], help="A list of additional buses that the application should be able to own")
+  parser.add_argument(
+    "--portals",
+    action="extend",
+    nargs="*",
+    choices=[
+      "Documents", "Flatpak", "Desktop", "Notifications", "FileChooser", "ScreenCast", "Camera"
+    ],
+    default=["Flatpak"],
+    help="A list of XDG Portals to expose to the application",
+  )
+  parser.add_argument("--see", action="extend", nargs="*", default=[], help="A list of additional buses that the application should be able to see")
+  parser.add_argument("--talk", action="extend", nargs="*", default=[], help="A list of additional buses that the application should be able to talk over")
+  parser.add_argument("--own", action="extend", nargs="*", default=[], help="A list of additional buses that the application should be able to own")
 
-	parser.add_argument(
-		"--share",
-		action="extend",
-		nargs="*",
-		choices=["user", "ipc", "pid", "net", "uts", "cgroup", "all", "none"],
-		default=["none"],
-		help="A list of namespaces to share with the sandbox"
-	)
+  parser.add_argument(
+    "--share",
+    action="extend",
+    nargs="*",
+    choices=["user", "ipc", "pid", "net", "uts", "cgroup", "all", "none"],
+    default=["none"],
+    help="A list of namespaces to share with the sandbox"
+  )
 
-	parser.add_argument(
-		"--capabilities",
-		action="extend",
-		nargs="*",
-		#choices=["AUDIT_CONTROL", "AUDIT_READ", "AUDIT_WRITE", "BLOCK_SUSPEND", "BPF", "CHECKPOINT_RESTORE", "CHOWN", "DAC_OVERRIDE", "DAC_READ_SEARCH", "FOWNER", "FSETID", "IPC_LOCK", "IPC_OWNER", "KILL", "LEASE", "LINUX_IMMUTABLE", "MAC_ADMIN", "MAC_OVERRIDE", "MKNOD", "NET_ADMIN", "NET_BIND_SERVICE", "NET_BROADCAST", "NET_RAW", "PERFMON", "SETGID", "SETFCAP", "SETPCAP", "SETUID", "SYS_ADMIN", "SYS_BOOT", "SYS_CHROOT", "SYS_NICE", "SYS_PAACT", "SYS_PTRACE", "SYS_RAWIO", "SYS_RESOURCE", "SYS_TIME", "SYS_TTY_CONFIG", "SYSLOG", "WAKE_ALARM"],
-		default=[],
-		help="A list of system capabilities to grant to the application"
-	)
+  parser.add_argument(
+    "--sockets",
+    action="extend",
+    nargs="*",
+    choices=["wayland", "pipewire", "xorg"],
+    default=["wayland"],
+    help="A list of sockets to give the application various functionality"
+  )
 
-	parser.add_argument(
-		"--sockets",
-		action="extend",
-		nargs="*",
-		choices=["wayland", "pipewire", "xorg"],
-		default=["wayland"],
-		help="A list of sockets to give the application various functionality"
-	)
+  parser.add_argument("--bin", action="store_true", default=False, help="Mount /bin")
+  parser.add_argument("--binaries", action="extend", nargs="*", default=[], help="A list of binaries to include in the sandbox. Does nothing if --bin")
 
-	parser.add_argument("--bin", action="store_true", default=False, help="Mount /bin")
-	parser.add_argument("--binaries", action="extend", nargs="*", default=[], help="A list of binaries to include in the sandbox. Does nothing if --bin")
+  parser.add_argument("--lib", action="store_true", default=False, help="Mount /lib and others")
+  parser.add_argument("--libraries", action="extend", nargs="*", default=[], help="A list of libraries needed in the sandbox")
+  parser.add_argument("--recursive-libraries", action="store_true", default=False, help="Recursively search library folders to determine dependencies (Expensive)")
 
-	parser.add_argument("--lib", action="store_true", default=False, help="Mount /lib and others")
-	parser.add_argument("--libraries", action="extend", nargs="*", default=[], help="A list of libraries needed in the sandbox")
-	parser.add_argument("--recursive-libraries", action="store_true", default=False, help="Recursively search library folders to determine dependencies (Expensive)")
+  parser.add_argument("--rw", action="extend", nargs="*", default=[], help="Files/Directories the application can read and write.")
+  parser.add_argument("--ro", action="extend", nargs="*", default=[], help="Files/Directories that the application can read.")
 
-	parser.add_argument("--rw", action="extend", nargs="*", default=[], help="Files/Directories the application can read and write.")
-	parser.add_argument("--ro", action="extend", nargs="*", default=[], help="Files/Directories that the application can read.")
+  parser.add_argument(
+    "--app-dirs",
+    action="extend",
+    nargs="*",
+    default=[],
+    choices=["config", "cache", "etc", "share", "data", "lib"],
+    help="Directories the application owns",
+  )
 
-	parser.add_argument(
-		"--app-dirs",
-		action="extend",
-		nargs="*",
-		default=[],
-		choices=["config", "cache", "etc", "share", "data", "lib"],
-		help="Directories the application owns",
-	)
+  parser.add_argument("--enable-namespaces", action="store_true", default=False, help="Enable user namespace support within the sandbox")
 
-	parser.add_argument("--enable-namespaces", action="store_true", default=False, help="Enable user namespace support within the sandbox")
+  parser.add_argument("--dev", action="store_true", default=False, help="Mount the /dev filesystem")
+  parser.add_argument("--devices", action="extend", nargs="*", default=[], help="A list of devices to include in the sandbox")
+  parser.add_argument("--proc", action="store_true", default=False, help="Mount the /proc filesystem")
+  parser.add_argument("--etc", action="store_true", default=False, help="Mount the /etc folder")
+  parser.add_argument("--sys", action="store_true", default=False, help="Mount the /sys folder")
+  parser.add_argument("--dri", action="store_true", default=False, help="Give the application access to DRI/GPU, Vulkan, Devices, and graphical things")
+  parser.add_argument("--usr-share", action="store_true", default=False, help="Give the application access to /usr/share")
 
-	parser.add_argument("--dev", action="store_true", default=False, help="Mount the /dev filesystem")
-	parser.add_argument("--devices", action="extend", nargs="*", default=[], help="A list of devices to include in the sandbox")
+  parser.add_argument("--qt", action="store_true", default=False, help="Give the application access to QT libraries (Implies --dri)")
 
-	parser.add_argument("--proc", action="store_true", default=False, help="Mount the /proc filesystem")
-	parser.add_argument("--etc", action="store_true", default=False, help="Mount the /etc folder")
-	parser.add_argument("--sys", action="store_true", default=False, help="Mount the /sys folder")
-	parser.add_argument("--dri", action="store_true", default=False, help="Give the application access to DRI/GPU, Vulkan, Devices, and graphical things")
-	parser.add_argument("--usr-share", action="store_true", default=False, help="Give the application access to /usr/share")
+  parser.add_argument("--electron", action="store_true", default=False, help="Give the application access to electron libraries (Implies --dri, --gtk)")
+  parser.add_argument("--electron-version", default=None, help="Give the application access to a specific electron version. Only if --electron")
 
-	parser.add_argument("--xdg-open", action="store_true", default=False, help="Let the binary open links using xdg-open.")
+  parser.add_argument("--kde", action="store_true", default=False, help="Give the application access to KDE/QT configuration (Implies --dri, --qt)")
+  parser.add_argument("--kf6", action="store_true", default=False, help="Give the application access to KF6 libraries, does nothing if --lib")
 
-	parser.add_argument("--qt", action="store_true", default=False, help="Give the application access to QT libraries (Implies --dri)")
+  parser.add_argument("--home", action="store_true", default=False, help="Create a permanent home directory for the application at $XDG_DATA_HOME/sb/application")
+  parser.add_argument("--cached-home", action="store_true", default=False, help="Copy the SOF home into the application's temporary RAM folder. Modifications to the home will not persist, but will be isolated from instances and faster. Applications that use profile locks, like Chrome, can run multiple instances at once.")
 
-	parser.add_argument("--electron", action="store_true", default=False, help="Give the application access to electron libraries (Implies --dri, --gtk)")
-	parser.add_argument("--electron-version", default=None, help="Give the application access to a specific electron version. Only if --electron")
+  parser.add_argument("--gtk", action="store_true", default=False, help="Give the application access to GTK3/4 configuration (Implies --dri)")
+  parser.add_argument("--network", action="store_true", default=False, help="Give the application access to the network (overridden by --unshare-net")
 
-	parser.add_argument("--kde", action="store_true", default=False, help="Give the application access to KDE/QT configuration (Implies --dri, --qt)")
+  parser.add_argument("--do-not-allow-file-passthrough", action="store_true", default=False, help="If the program is passed an argument to a file, do not expose this file to the sandbox.")
+  parser.add_argument("--file-passthrough-rw", action="store_true", default=False, help="File passthrough is done with write privileges")
+  parser.add_argument("--file-passthrough-folder", action="store_true", default=False, help="Passthrough the entire folder that a file is contained within. Useful when the program creates a temporary file in the directory for writing")
 
-	parser.add_argument("--kf6", action="store_true", default=False, help="Give the application access to KF6 libraries, does nothing if --lib")
-
-	parser.add_argument("--rc", action="store_true", default=False, help="Give the application access to rc configuration at $XDG_CONFIG_HOME and /etc/xdg")
-
-	parser.add_argument("--home", action="store_true", default=False, help="Create a permanent home directory for the application at $XDG_DATA_HOME/sb/application")
-	parser.add_argument("--cached-home", action="store_true", default=False, help="Copy the SOF home into the application's temporary RAM folder. Modifications to the home will not persist, but will be isolated from instances and faster. Applications that use profile locks, like Chrome, can run multiple instances at once.")
-
-	parser.add_argument("--gtk", action="store_true", default=False, help="Give the application access to GTK3/4 configuration (Implies --dri)")
-	parser.add_argument("--network", action="store_true", default=False, help="Give the application access to the network (overridden by --unshare-net")
-
-	parser.add_argument("--do-not-allow-file-passthrough", action="store_true", default=False, help="If the program is passed an argument to a file, do not expose this file to the sandbox.")
-	parser.add_argument("--file-passthrough-rw", action="store_true", default=False, help="File passthrough is done with write privileges")
-	parser.add_argument("--file-passthrough-folder", action="store_true", default=False, help="Passthrough the entire folder that a file is contained within. Useful when the program creates a temporary file in the directory for writing")
-
-	parser.add_argument("--debug-shell", action="store_true", default=False, help="Launch a shell in the sandbox instead of the application")
-	parser.add_argument("--strace", action="store_true", default=False, help="Launch the application underneath strace")
+  parser.add_argument("--debug-shell", action="store_true", default=False, help="Launch a shell in the sandbox instead of the application")
+  parser.add_argument("--strace", action="store_true", default=False, help="Launch the application underneath strace")
 
 
-	parser.add_argument("--real-hostname", action="store_true", default=False, help="Give the application the hostname")
-	parser.add_argument("--locale", action="store_true", default=False, help="Give the application locale information")
+  parser.add_argument("--real-hostname", action="store_true", default=False, help="Give the application the hostname")
+  parser.add_argument("--locale", action="store_true", default=False, help="Give the application locale information")
 
-	parser.add_argument("--shells",
-		action="extend",
-		default=[],
-		nargs="*",
-		choices=["sh", "bash", "zsh"],
-		help="Give the application shell access."
-	)
+  parser.add_argument("--make-desktop-entry", action="store_true", default=False, help="Create a desktop entry for the application.")
+  parser.add_argument("--desktop-entry", action="store", default=None, help="The application's desktop entry, if it cannot be deduced automatically. For example, chromium.desktop")
 
+  parser.add_argument("--update-libraries", action="store_true", default=False, help="Update SOF libraries")
+  parser.add_argument("--sof-tmpfs", action="store_true", default=False, help="Store the SOF directory in /tmp. If the folder exists, it will be used irregardless of this setting, this flag merely generates it if it doesn't exist.")
 
-	parser.add_argument("--make-desktop-entry", action="store_true", default=False, help="Create a desktop entry for the application.")
-	parser.add_argument("--desktop-entry", action="store", default=None, help="The application's desktop entry, if it cannot be deduced automatically. For example, chromium.desktop")
+  parser.add_argument("--verbose", action="store_true", default=False, help="Verbose logging")
+  parser.add_argument("--dry", action="store_true", default=False, help="Don't actually run the program, but still generate SB folders. Useful to use as a startup script to create an SB folder in tempfs.")
+  parser.add_argument("--dry-service", action="store_true", default=False, help="Create a systemd user service that runs the program dry, generating the SOF in tmpfs. The service will run with --dry --sof-tmpfs.")
 
-	parser.add_argument("--update-libraries", action="store_true", default=False, help="Update SOF libraries")
-	parser.add_argument("--sof-tmpfs", action="store_true", default=False, help="Store the SOF directory in /tmp. If the folder exists, it will be used irregardless of this setting, this flag merely generates it if it doesn't exist.")
-
-	parser.add_argument("--verbose", action="store_true", default=False, help="Verbose logging")
-	parser.add_argument("--dry", action="store_true", default=False, help="Don't actually run the program, but still generate SB folders. Useful to use as a startup script to create an SB folder in tempfs.")
-	parser.add_argument("--dry-service", action="store_true", default=False, help="Create a systemd user service that runs the program dry, generating the SOF in tmpfs. The service will run with --dry --sof-tmpfs.")
-
-	args, unknown = parser.parse_known_args()
-	args.unknown = unknown
-	if args.verbose: print(args)
-	return args
+  args, unknown = parser.parse_known_args()
+  args.unknown = unknown
+  if args.verbose: print(args)
+  return args
 
 
 def share(command: list, paths: list, mode = "ro-bind-try"):
-	for path in paths:
-		if "::" in path:
-			try:
-				path, mod = path.split("::")
-				command.extend(["--chmod", mod, path])
-			except Exception: pass
-		command.extend([f"--{mode}", path, path])
+  for path in paths:
+    if "::" in path:
+      try:
+        path, mod = path.split("::")
+        command.extend(["--chmod", mod, path])
+      except Exception: pass
+    command.extend([f"--{mode}", path, path])
 
 
 def dbus_proxy(portals, application_folder, info_name, args):
-	command = ["bwrap"]
-	command.extend([
-		"--new-session",
-		"--symlink", "/usr/lib64", "/lib64",
-		"--ro-bind", "/usr/lib", "/usr/lib",
-		"--ro-bind", "/usr/lib64", "/usr/lib64",
-		"--ro-bind", "/usr/bin", "/usr/bin",
-		"--clearenv",
-		"--bind", environ["XDG_RUNTIME_DIR"], environ["XDG_RUNTIME_DIR"],
-		"--ro-bind", info_name, "/.flatpak-info",
-		"--die-with-parent",
-		"--",
-		"xdg-dbus-proxy",
-		environ["DBUS_SESSION_BUS_ADDRESS"],
-		f"{application_folder}/bus",
-		"--filter",
-		"--log",
-		'--call="org.freedesktop.portal.Desktop=org.freedesktop.portal.Settings.Read@/org/freedesktop/portal/desktop"',
-		'--broadcast="org.freedesktop.portal.Desktop=org.freedesktop.portal.Settings.SettingChanged@/org/freedesktop/portal/desktop"'
-	])
-	command.extend([f'--talk=org.freedesktop.portal.{portal}' for portal in portals])
-	command.extend([f'--see={portal}' for portal in args.see])
-	command.extend([f'--talk={portal}' for portal in args.talk])
-	command.extend([f'--own={portal}' for portal in args.own])
+  command = ["bwrap"]
+  command.extend([
+    "--new-session",
+    "--symlink", "/usr/lib64", "/lib64",
+    "--ro-bind", "/usr/lib", "/usr/lib",
+    "--ro-bind", "/usr/lib64", "/usr/lib64",
+    "--ro-bind", "/usr/bin", "/usr/bin",
+    "--clearenv",
+    "--bind", environ["XDG_RUNTIME_DIR"], environ["XDG_RUNTIME_DIR"],
+    "--ro-bind", info_name, "/.flatpak-info",
+    "--die-with-parent",
+    "--",
+    "xdg-dbus-proxy",
+    environ["DBUS_SESSION_BUS_ADDRESS"],
+    f"{application_folder}/bus",
+    "--filter",
+    '--call="org.freedesktop.portal.Desktop=org.freedesktop.portal.Settings.Read@/org/freedesktop/portal/desktop"',
+    '--broadcast="org.freedesktop.portal.Desktop=org.freedesktop.portal.Settings.SettingChanged@/org/freedesktop/portal/desktop"'
+  ])
+  command.extend([f'--talk=org.freedesktop.portal.{portal}' for portal in portals])
+  command.extend([f'--see={portal}' for portal in args.see])
+  command.extend([f'--talk={portal}' for portal in args.talk])
+  command.extend([f'--own={portal}' for portal in args.own])
 
-	if args.verbose: print(" ".join(command))
-	Popen(command)
+  if args.verbose:
+    print(" ".join(command))
+    command.extend(["--log"])
+  Popen(command)
 
 
 def run_application(application, application_path, application_folder, info_name, temp, args, update_sof, sof_dir):
 
-	runtime = environ["XDG_RUNTIME_DIR"]
-	config = environ["XDG_CONFIG_HOME"]
-	cache = environ["XDG_CACHE_HOME"]
-	data = environ["XDG_DATA_HOME"]
-	home = environ["HOME"]
+  runtime = environ["XDG_RUNTIME_DIR"]
+  config = environ["XDG_CONFIG_HOME"]
+  cache = environ["XDG_CACHE_HOME"]
+  data = environ["XDG_DATA_HOME"]
+  home = environ["HOME"]
 
-	if update_sof:
-		libraries = set()
-		for library in args.libraries:
-			get_libraries(library, libraries, recursive_folders=args.recursive_libraries)
+  if update_sof:
+    libraries = set()
+    for library in args.libraries:
+      get_libraries(library, libraries, recursive_folders=args.recursive_libraries)
 
-	if args.verbose: print("Setting up...")
-	command = ["bwrap", "--new-session", "--die-with-parent"]
-	command.extend([
-		"--ro-bind-try", info_name, "/.flatpak-info",
-		"--ro-bind-try", info_name, f"{runtime}/flatpak-info",
-		"--dir", runtime,
-		"--chmod", "0700", runtime,
-		"--ro-bind-try", f"{application_folder}/bus", f"{runtime}/bus",
-		"--bind-try", f"{runtime}/doc", f"{runtime}/doc",
-	])
-	share(command, ["/run/dbus"])
+  if args.verbose: print("Setting up...")
+  command = ["bwrap", "--new-session", "--die-with-parent"]
+  command.extend([
+    "--ro-bind-try", info_name, "/.flatpak-info",
+    "--ro-bind-try", info_name, f"{runtime}/flatpak-info",
+    "--dir", runtime,
+    "--chmod", "0700", runtime,
+    "--ro-bind-try", f"{application_folder}/bus", f"{runtime}/bus",
+    "--bind-try", f"{runtime}/doc", f"{runtime}/doc",
+  ])
+  share(command, ["/run/dbus"])
 
-	if args.lib:
-		share(command, ["/usr/lib"])
-	else:
-		command.extend(["--dir", "/usr/lib"])
-	share(command, ["/etc/ld.so.preload", "/etc/ld.so.cache"])
-	command.extend([
-		"--symlink", "/usr/lib", "/lib",
-		"--symlink", "/usr/lib", "/lib64",
-		"--symlink", "/usr/lib", "/usr/lib64",
-	])
+  if args.lib:
+    share(command, ["/usr/lib"])
+  else:
+    command.extend(["--dir", "/usr/lib"])
+  share(command, ["/etc/ld.so.preload", "/etc/ld.so.cache"])
+  command.extend([
+    "--symlink", "/usr/lib", "/lib",
+    "--symlink", "/usr/lib", "/lib64",
+    "--symlink", "/usr/lib", "/usr/lib64",
+  ])
 
-	if args.home:
-		home_dir = Path(data, "sb", application, "home")
-		home_dir.mkdir(parents=True, exist_ok=True)
+  if args.home:
+    home_dir = Path(data, "sb", application, "home")
+    home_dir.mkdir(parents=True, exist_ok=True)
 
-		if args.cached_home:
-			cache_home = TemporaryDirectory()
-			run(["cp", "-r", str(home_dir) + "/.", cache_home.name])
-			command.extend(["--bind", cache_home.name, "/home"])
-		else:
-			command.extend(["--bind", str(home_dir), "/home"])
-			command.extend(["--bind", temp, f"{home}/.cache"])
+    if args.cached_home:
+      cache_home = TemporaryDirectory()
+      run(["cp", "-r", str(home_dir) + "/.", cache_home.name])
+      command.extend(["--bind", cache_home.name, "/home"])
+    else:
+      command.extend(["--bind", str(home_dir), "/home"])
+      command.extend(["--bind", temp, f"{home}/.cache"])
 
-	if args.xdg_open:
-		args.binaries.extend(["xdg-open", "grep", "cat", "gdbus", "sh"])
+  if args.electron:
+    if args.verbose: print("Adding electron...")
 
-	if args.electron:
-		if args.verbose: print("Adding electron...")
+    # NSS junk
+    if update_sof:
+      libraries |= {"/usr/lib/libsoftokn3.so", "/usr/lib/libfreeblpriv3.so", "/usr/lib/libsensors.so.5", "/usr/lib/libnssckbi.so"}
 
-		# NSS junk
-		if update_sof:
-			libraries |= {"/usr/lib/libsoftokn3.so", "/usr/lib/libfreeblpriv3.so", "/usr/lib/libsensors.so.5", "/usr/lib/libnssckbi.so"}
+    share(command, ["/sys/block", "/sys/dev"])
+    share(command, ["/dev/null", "/dev/urandom", "/dev/shm"], "dev-bind")
 
-		share(command, ["/sys/block", "/sys/dev"])
-		share(command, ["/dev/null", "/dev/urandom", "/dev/shm"], "dev-bind")
+    if args.electron_version:
+      # Extend existing args so they can be handled.
+      args.binaries.extend([
+        f"/usr/lib/electron{args.electron_version}/electron",
+        f"/usr/bin/electron{args.electron_version}",
+      ])
+      args.ro.append(f"/usr/lib/electron{args.electron_version}")
 
-		if args.electron_version:
-			# Extend existing args so they can be handled.
-			args.binaries.extend([
-				f"/usr/lib/electron{args.electron_version}/electron",
-				f"/usr/bin/electron{args.electron_version}",
-			])
-			args.ro.append(f"/usr/lib/electron{args.electron_version}")
+    args.dri = True
+    args.gtk = True
+    if not args.proc:
+      if args.verbose: print("/proc is needed for electron applications. Enabling...")
+      args.proc = True
 
-		args.dri = True
-		args.gtk = True
-		if not args.proc:
-			if args.verbose: print("/proc is needed for electron applications. Enabling...")
-			args.proc = True
+  if args.kf6:
+    if update_sof:
+      libraries |= find_libs("libKF*")
+      libraries |= find_libs("lib*Kirigami*")
+      libraries |= {"/usr/lib/kf6/"}
+    args.kde = True
+    share(command, [f"/etc/xdg/{application}rc"])
 
-	if args.kf6:
-		if update_sof:
-			libraries |= find_libs("libKF*")
-			libraries |= find_libs("lib*Kirigami*")
-			libraries |= {"/usr/lib/kf6/"}
-		args.kde = True
+  if args.kde:
+    if args.verbose: print("Adding KDE...")
+    share(command, [f"{config}/kdedefaults", f"{config}/breezerc", f"{config}/kcminputrc", f"{config}/kdeglobals", f"{config}/kwinrc", f"{config}/xmlgui5"])
+    args.dri = True
+    args.qt = True
 
-	if args.kde:
-		if args.verbose: print("Adding KDE...")
-		share(command, [f"{config}/kdedefaults", f"{config}/breezerc", f"{config}/kcminputrc", f"{config}/kdeglobals", f"{config}/kwinrc", f"{config}/xmlgui5"])
-		args.dri = True
-		args.qt = True
+  if args.qt:
+    if args.verbose: print("Adding QT...")
+    share(command, ["/usr/share/qt6"])
+    if update_sof:
+      libraries |= {"/usr/lib/qt6/"}
+      libraries |= find_libs("libQt*")
 
-	if args.qt:
-		if args.verbose: print("Adding QT...")
-		share(command, ["/usr/share/qt6"])
-		if update_sof:
-			libraries |= {"/usr/lib/qt6/"}
-			libraries |= find_libs("libQt*")
+  if args.gtk:
+    if args.verbose: print("Adding GTK...")
+    share(command, [
+      f"{home}/.gtkrc-2.0", f"{config}/gtkrc", f"{config}/gtkrc-2.0",
+      f"{config}/gtk-2.0", f"{config}/gtk-3.0", f"{config}/gtk-4.0",
+      "/usr/share/gtk-2.0",
+      "/usr/share/gtk-3.0",
+      "/usr/share/gtk-4.0",
+      "/usr/share/gtk",
+      "/usr/share/glib-2.0",
+    ])
+    command.extend(["--setenv", "GTK_USE_PORTAL", "1"])
+    if update_sof:
+      libraries |= find_libs("libgtk*")
+      libraries |= find_libs("libgdk*")
+      libraries |= find_libs("libgio*")
+    args.dri = True
 
-	if args.rc: share(command, [f"/etc/xdg/{application}rc"])
+  if args.dev: command.extend(["--dev", "/dev"])
+  for device in args.devices: share(command, [device], "dev-bind-try")
 
-	if args.gtk:
-		if args.verbose: print("Adding GTK...")
-		share(command, [
-			f"{home}/.gtkrc-2.0", f"{config}/gtkrc", f"{config}/gtkrc-2.0",
-			f"{config}/gtk-2.0", f"{config}/gtk-3.0", f"{config}/gtk-4.0",
-			"/usr/share/gtk-2.0",
-			"/usr/share/gtk-3.0",
-			"/usr/share/gtk-4.0",
-			"/usr/share/gtk",
-			"/usr/share/glib-2.0",
-		])
-		command.extend(["--setenv", "GTK_USE_PORTAL", "1"])
-		if update_sof:
-			libraries |= find_libs("libgtk*")
-			libraries |= find_libs("libgdk*")
-			libraries |= find_libs("libgio*")
-		args.dri = True
+  if args.proc: command.extend(["--proc", "/proc"])
+  if args.etc: share(command, ["/etc"])
+  if args.usr_share: share(command, ["/usr/share"])
+  if args.sys: share(command, ["/sys"], "dev-bind-try")
 
-	if args.dev: command.extend(["--dev", "/dev"])
-	for device in args.devices: share(command, [device], "dev-bind-try")
+  if args.dri:
+    if args.verbose: print("Adding DRI...")
+    command.extend(["--dev-bind-try", "/dev/dri", "/dev/dri"])
+    share(command, [
+      "/sys/devices",
+      "/etc/vulkan",
+      "/usr/share/glvnd",
+      "/usr/share/vulkan",
+      f"{data}/vulkan",
+      "/usr/share/libdrm",
+      "/usr/share/libdrm/amdgpu.ids",
+      "/sys/dev",
+    ])
+    share(command, [
+        "/usr/share/fontconfig", "/usr/share/fonts", "/etc/fonts", f"{home}/.fonts",
+        f"{config}/fontconfig", f"{data}/fontconfig", f"{cache}/fontconfig"
+        "/usr/share/themes", "/usr/share/color-schemes", "/usr/share/icons", "/usr/share/cursors", "/usr/share/pixmaps",
+        "/usr/share/mime", f"{data}/mime",
+        f"{data}/pixmaps",
+      ])
+    if "XDG_SESSION_DESKTOP" in environ: command.extend(["--setenv", "XDG_SESSION_DESKTOP", environ["XDG_SESSION_DESKTOP"]])
 
-	if args.proc: command.extend(["--proc", "/proc"])
-	if args.etc: share(command, ["/etc"])
-	if args.usr_share: share(command, ["/usr/share"])
-	if args.sys: share(command, ["/sys"], "dev-bind-try")
-
-	if args.dri:
-		if args.verbose: print("Adding DRI...")
-		command.extend(["--dev-bind-try", "/dev/dri", "/dev/dri"])
-		share(command, [
-			"/sys/devices",
-			"/etc/vulkan",
-			"/usr/share/glvnd",
-			"/usr/share/vulkan",
-			f"{data}/vulkan",
-			"/usr/share/libdrm",
-			"/usr/share/libdrm/amdgpu.ids",
-			"/sys/dev",
-		])
-		share(command, [
-				"/usr/share/fontconfig", "/usr/share/fonts", "/etc/fonts", f"{home}/.fonts",
-				f"{config}/fontconfig", f"{data}/fontconfig", f"{cache}/fontconfig"
-				"/usr/share/themes", "/usr/share/color-schemes", "/usr/share/icons", "/usr/share/cursors", "/usr/share/pixmaps",
-				"/usr/share/mime", f"{data}/mime",
-				f"{data}/pixmaps",
-			])
-		if "XDG_SESSION_DESKTOP" in environ: command.extend(["--setenv", "XDG_SESSION_DESKTOP", environ["XDG_SESSION_DESKTOP"]])
-
-		if update_sof:
-			for lib in [
-				"libvulkan*", "libglapi*", "*mesa*", "*Mesa*", "libdrm", "libEGL*", "libGLX*",
-				"libVkLayer*", "libgbm*", "libva*",
-				]:
-					libraries |= find_libs(lib)
-			libraries |= find_libs("*", path="/usr/lib/dri")
+    if update_sof:
+      for lib in [
+        "libvulkan*", "libglapi*", "*mesa*", "*Mesa*", "libdrm", "libEGL*", "libGLX*",
+        "libVkLayer*", "libgbm*", "libva*",
+        ]:
+          libraries |= find_libs(lib)
+      libraries |= find_libs("*", path="/usr/lib/dri")
 
 
-	if "wayland" in args.sockets:
-		share(command, [
-			f"{runtime}/wayland-0",
-			"/usr/share/X11/xkb",
-			"/etc/xkb"
-		])
+  if "wayland" in args.sockets:
+    share(command, [
+      f"{runtime}/wayland-0",
+      "/usr/share/X11/xkb",
+      "/etc/xkb"
+    ])
 
-	if "pipewire" in args.sockets:
-		share(command, [
-			f"{runtime}/pipewire-0",
-			f"{runtime}/pulse",
-			f"{config}/pulse"
-			"/etc/pipewire",
-			"/usr/share/pipewire",
-		])
-		if update_sof:
-			libraries |= find_libs("libpipewire*")
-			libraries |= {"/usr/lib/pipewire-0.3/", "/usr/lib/spa-0.2/"}
+  if "pipewire" in args.sockets:
+    share(command, [
+      f"{runtime}/pipewire-0",
+      f"{runtime}/pulse",
+      f"{config}/pulse"
+      "/etc/pipewire",
+      "/usr/share/pipewire",
+    ])
+    if update_sof:
+      libraries |= find_libs("libpipewire*")
+      libraries |= {"/usr/lib/pipewire-0.3/", "/usr/lib/spa-0.2/"}
 
-	if "xorg" in args.sockets:
-		if "DISPLAY" in environ: command.extend(["--setenv", "DISPLAY", environ["DISPLAY"]])
-		share(command, ["/tmp/.X11-unix/X0"])
-		share(command, output(["find", runtime, "-maxdepth", "1", "-name", "xauth_*"]))
+  if "xorg" in args.sockets:
+    if "DISPLAY" in environ: command.extend(["--setenv", "DISPLAY", environ["DISPLAY"]])
+    share(command, ["/tmp/.X11-unix/X0"])
+    share(command, output(["find", runtime, "-maxdepth", "1", "-name", "xauth_*"]))
 
-	if args.real_hostname: share(command, ["/etc/hostname"])
-	else: command.extend(["--hostname", "sandbox"])
+  if args.real_hostname: share(command, ["/etc/hostname"])
+  else: command.extend(["--hostname", "sandbox"])
 
-	if args.locale:
-		share(command, ["/etc/locale.conf", "/etc/localtime", "/usr/share/zoneinfo", "/usr/share/X11/locale", "/usr/share/locale/"])
-		if update_sof: args.ro.append("/usr/lib/locale/")
+  if args.locale:
+    share(command, ["/etc/locale.conf", "/etc/localtime", "/usr/share/zoneinfo", "/usr/share/X11/locale", "/usr/share/locale/"])
+    if update_sof: args.ro.append("/usr/lib/locale/")
 
-	if args.shells: share(command, ["/etc/passwd", "/etc/shells"])
-	if "bash" in args.shells:
-		share(command, ["/etc/bash.bash_logout", "/etc/bash.bashrc"])
-	if "zsh" in args.shells:
-		share(command, ["/usr/share/zsh", "/etc/zsh", f"{home}/.zshrc"])
+  if args.share == "none": command.append("--unshare-all")
+  elif args.share != "all":
+    for shared in ["user", "ipc", "pid", "net", "uts", "cgroup"]:
+      if shared not in args.share:
+        command.append(f"--unshare-{shared}")
+  if "net" in args.share:
+    if "--unshare-all" in command:
+      command.append("--share-net")
+    share(command, [
+      "/etc/gai.conf", "/etc/hosts.conf", "/etc/hosts", "/etc/nsswitch.conf", "/etc/resolv.conf", "/etc/gnutls/config",
+      "/etc/ca-certificates", "/usr/share/ca-certificates/",
+      "/etc/pki", "/usr/share/pki",
+      "/etc/ssl", "/usr/share/ssl",
+    ])
 
-	for capability in args.capabilities:
-		if not capability.startswith("CAP_"): capability = f"CAP_{capability}"
-		command.extend(["--cap-add", capability])
+  if not args.enable_namespaces:
+    command.append("--disable-userns")
+    if "--unshare-user" not in command:
+      command.append("--unshare-user")
 
-	if args.share == "none": command.append("--unshare-all")
-	elif args.share != "all":
-		for shared in ["user", "ipc", "pid", "net", "uts", "cgroup"]:
-			if shared not in args.share:
-				command.append(f"--unshare-{shared}")
-	if "net" in args.share:
-		if "--unshare-all" in command:
-			command.append("--share-net")
-		share(command, [
-			"/etc/gai.conf", "/etc/hosts.conf", "/etc/hosts", "/etc/nsswitch.conf", "/etc/resolv.conf", "/etc/gnutls/config",
-			"/etc/ca-certificates", "/usr/share/ca-certificates/",
-			"/etc/pki", "/usr/share/pki",
-			"/etc/ssl", "/usr/share/ssl",
-		])
-
-	if not args.enable_namespaces:
-		command.append("--disable-userns")
-		if "--unshare-user" not in command:
-			command.append("--unshare-user")
-
-	if args.bin:
-		if args.verbose: print("Adding binaries...")
-		command.extend(["--ro-bind-try", "/usr/bin", "/bin",])
-		share(command, ["/usr/bin"])
-	else:
-		if args.verbose: print("Generating binaries...")
-		binaries = args.binaries
-		binaries.append(application_path)
-		if args.debug_shell: binaries.append("sh")
-		if args.strace: binaries.append("strace")
-
-		for shell in args.shells: binaries.append(shell)
-		for binary in binaries:
-			if binary.startswith("/"):
-				command.extend(["--ro-bind-try", binary, binary])
-				path = binary
-				binary = path.split("/")[-1]
-			else:
-				path = output(["which", binary])[0]
-				command.extend([
-					"--ro-bind-try", path, f"/bin/{binary}",
-					"--ro-bind-try", path, f"/usr/bin/{binary}",
-				])
-			if update_sof:
-				get_libraries(path, libraries, args.recursive_libraries)
+  if args.bin:
+    if args.verbose: print("Adding binaries...")
+    command.extend(["--ro-bind-try", "/usr/bin", "/bin",])
+    share(command, ["/usr/bin"])
+  else:
+    if args.verbose: print("Generating binaries...")
+    binaries = args.binaries
+    binaries.append(application_path)
+    if args.debug_shell: binaries.append("sh")
+    if args.strace: binaries.append("strace")
+    for binary in binaries:
+      if binary.startswith("/"):
+        command.extend(["--ro-bind-try", binary, binary])
+        path = binary
+        binary = path.split("/")[-1]
+      else:
+        path = output(["which", binary])[0]
+        command.extend([
+          "--ro-bind-try", path, f"/bin/{binary}",
+          "--ro-bind-try", path, f"/usr/bin/{binary}",
+        ])
+      if update_sof:
+        get_libraries(path, libraries, args.recursive_libraries)
 
 
-	if not args.lib:
-		if update_sof:
-			if args.verbose: print("Determining library dependencies...")
-			runtime_lib = Path("/tmp" if args.sof_tmpfs else data, "sb", "shared")
-			runtime_lib.mkdir(parents=True, exist_ok=True)
+  if not args.lib:
+    if update_sof:
+      if args.verbose: print("Determining library dependencies...")
+      runtime_lib = Path("/tmp" if args.sof_tmpfs else data, "sb", "shared")
+      runtime_lib.mkdir(parents=True, exist_ok=True)
 
-			def write_to_cache(library, runtime_path, real_path):
-				if not runtime_path.is_file():
-					runtime_path.parents[0].mkdir(parents=True, exist_ok=True)
-					try:
-						runtime_path.open("wb").write(real_path.open("rb").read())
-						runtime_path.chmod(real_path.stat().st_mode)
-					except PermissionError:
-						print("Permission Denied: ", str(real_path))
-						return
-					except FileNotFoundError:
-						print("File not found:", str(real_path), "This is fine")
-						return
+      def write_to_cache(library, runtime_path, real_path):
+        if not runtime_path.is_file():
+          runtime_path.parents[0].mkdir(parents=True, exist_ok=True)
+          try:
+            runtime_path.open("wb").write(real_path.open("rb").read())
+            runtime_path.chmod(real_path.stat().st_mode)
+          except PermissionError:
+            print("Permission Denied: ", str(real_path))
+            return
+          except FileNotFoundError:
+            print("File not found:", str(real_path), "This is fine")
+            return
 
-				if runtime_path.is_file() and real_path.is_file():
-					lib_path = Path(f"{str(sof_dir)}/{library}")
-					if runtime_path.is_file() and not lib_path.is_file():
-						try:
-							lib_path.parents[0].mkdir(parents=True, exist_ok=True)
-							lib_path.hardlink_to(runtime_path)
-							lib_path.chmod(real_path.stat().st_mode)
-						except Exception: pass
+        if runtime_path.is_file() and real_path.is_file():
+          lib_path = Path(f"{str(sof_dir)}/{library}")
+          if runtime_path.is_file() and not lib_path.is_file():
+            try:
+              lib_path.parents[0].mkdir(parents=True, exist_ok=True)
+              lib_path.hardlink_to(runtime_path)
+              lib_path.chmod(real_path.stat().st_mode)
+            except Exception: pass
 
-			if args.verbose: print("Resolving depends...")
-			unsearched = libraries - searched
-			while unsearched:
-				if args.verbose: print("Unresolved Libraries:", unsearched)
-				for lib in unsearched:
-					get_libraries(lib, libraries, recursive_folders=args.recursive_libraries)
-				unsearched = libraries - searched
+      if args.verbose: print("Resolving depends...")
+      unsearched = libraries - searched
+      while unsearched:
+        if args.verbose: print("Unresolved Libraries:", unsearched)
+        for lib in unsearched:
+          get_libraries(lib, libraries, recursive_folders=args.recursive_libraries)
+        unsearched = libraries - searched
 
-			if args.verbose: print("Creating /lib...")
-			sof_dir.mkdir(parents=True, exist_ok=True)
-			for library in libraries:
-				real_path = Path(library)
+      if args.verbose: print("Creating /lib...")
+      sof_dir.mkdir(parents=True, exist_ok=True)
+      for library in libraries:
+        real_path = Path(library)
 
-				runtime_path = Path(f"{runtime_lib}/{library}")
-				if not real_path.is_dir():
-					write_to_cache(library, runtime_path, real_path)
-				elif real_path.is_dir():
-					for sub in output(["find", real_path, "-type", "f"]):
-						if sub: write_to_cache(sub, Path(f"{runtime_lib}/{sub}"), Path(sub))
-			print("Done")
-		command.extend(["--bind", f"{str(sof_dir)}/usr/lib", "/usr/lib"])
+        runtime_path = Path(f"{runtime_lib}/{library}")
+        if not real_path.is_dir():
+          write_to_cache(library, runtime_path, real_path)
+        elif real_path.is_dir():
+          for sub in output(["find", real_path, "-type", "f"]):
+            if sub: write_to_cache(sub, Path(f"{runtime_lib}/{sub}"), Path(sub))
+      print("Done")
+    command.extend(["--bind", f"{str(sof_dir)}/usr/lib", "/usr/lib"])
 
-	if "config" in args.app_dirs: share(command, [f"{config}/{application}"], "bind-try")
-	if "cache" in args.app_dirs: share(command, [f"{cache}/{application}"], "bind-try")
-	if "share" in args.app_dirs: share(command, [f"/usr/share/{application}"], "bind-try")
-	if "data" in args.app_dirs: share(command, [f"{data}/{application}"], "bind-try")
-	if "etc" in args.app_dirs: share(command, [f"/etc/{application}"], "bind-try")
-	if "lib" in args.app_dirs: share(command, [f"/usr/lib/{application}"])
+  if "config" in args.app_dirs: share(command, [f"{config}/{application}"], "bind-try")
+  if "cache" in args.app_dirs: share(command, [f"{cache}/{application}"], "bind-try")
+  if "share" in args.app_dirs: share(command, [f"/usr/share/{application}"], "bind-try")
+  if "data" in args.app_dirs: share(command, [f"{data}/{application}"], "bind-try")
+  if "etc" in args.app_dirs: share(command, [f"/etc/{application}"], "bind-try")
+  if "lib" in args.app_dirs: share(command, [f"/usr/lib/{application}"])
 
-	for path in args.rw: share(command, [path], "bind-try")
-	for path in args.ro: share(command, [path])
+  for path in args.rw: share(command, [path], "bind-try")
+  for path in args.ro: share(command, [path])
 
-	if not args.do_not_allow_file_passthrough:
-		for argument in args.unknown:
-			if argument.startswith("/"):
-				if args.file_passthrough_folder:
-					argument = "/".join(argument.split("/")[:-1])
-				share(command, [argument], "bind-try" if args.file_passthrough_rw else "ro-bind-try")
+  if not args.do_not_allow_file_passthrough:
+    for argument in args.unknown:
+      if argument.startswith("/"):
+        if args.file_passthrough_folder:
+          argument = "/".join(argument.split("/")[:-1])
+        share(command, [argument], "bind-try" if args.file_passthrough_rw else "ro-bind-try")
 
-	command.extend(["--tmpfs", temp])
-	if args.debug_shell: command.append("sh")
-	else:
-		if args.strace: command.extend(["strace", "-fZ"])
-		command.append(application_path)
-	for argument in args.unknown: command.append(argument)
+  command.extend(["--tmpfs", temp])
+  if args.debug_shell: command.append("sh")
+  else:
+    if args.strace: command.extend(["strace", "-fZ"])
+    command.append(application_path)
+  for argument in args.unknown: command.append(argument)
 
-	if not args.dry:
-		if args.verbose: print(" ".join(command))
-		run(command)
+  if not args.dry:
+    if args.verbose: print(" ".join(command))
+    run(command)
 
 if __name__ == "__main__": main(parse())
