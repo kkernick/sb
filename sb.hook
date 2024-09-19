@@ -1,7 +1,7 @@
 [Trigger]
 Type = Path
 Operation = Upgrade
-Target = /usr/lib/*
+Target = usr/lib/*
 
 [Action]
 Description = Updating The SB Library Cache
