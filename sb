@@ -559,8 +559,8 @@ def gen_command(application, application_path, application_folder, args):
 
     if update_sof:
       for lib in [
-        "libvulkan*", "libglapi*", "*mesa*", "*Mesa*", "libdrm", "libEGL*", "libGLX*",
-        "libVkLayer*", "libgbm*", "libva*",
+        "libvulkan*", "libglapi*", "*mesa*", "*Mesa*", "libdrm", "libGLX*",
+        "libVkLayer*", "libgbm*", "libva*", "*egl*", "*EGL*"
         ]:
           libraries |= find_libs(lib)
       libraries |= find_libs("*", path="/usr/lib/dri")
