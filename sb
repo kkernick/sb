@@ -7,9 +7,16 @@ from time import sleep
 from pathlib import Path
 from tempfile import TemporaryDirectory, NamedTemporaryFile
 from sys import argv
+from hashlib import new
 
+runtime = environ["XDG_RUNTIME_DIR"]
+config = environ["XDG_CONFIG_HOME"]
+cache = environ["XDG_CACHE_HOME"]
+data = environ["XDG_DATA_HOME"]
+home = environ["HOME"]
 
 searched = set()
+libraries = set()
 
 
 def parse():
@@ -118,19 +125,18 @@ def parse():
 
   args, unknown = parser.parse_known_args()
   args.unknown = unknown
-  if args.verbose: print(args)
   return args
 
 
 def dry_service(args):
   name = args.desktop_entry if args.desktop_entry else f"{args.program}.desktop"
-  binary = f"{environ["HOME"]}/.local/bin/{name}.sh"
+  binary = f"{home}/.local/bin/{name}.sh"
 
   if not Path(binary).is_file():
     print("Create a desktop entry first!")
     exit(1)
 
-  service = Path(environ["XDG_CONFIG_HOME"], "systemd", "user", f"{name}.service")
+  service = Path(config, "systemd", "user", f"{name}.service")
 
   with service.open("w") as file:
     file.write("[Unit]\n")
@@ -158,7 +164,7 @@ def desktop_entry(args):
 
   name = args.desktop_entry if args.desktop_entry else f"{args.program}.desktop"
   exec = " ".join(exec)
-  binary = f"{environ["HOME"]}/.local/bin/{name}.sh"
+  binary = f"{home}/.local/bin/{name}.sh"
   buffer = ""
 
   with open(f"/usr/share/applications/{name}", "r") as f:
@@ -173,12 +179,13 @@ def desktop_entry(args):
     b.write(f"{exec}")
   run(["chmod", "+x", binary])
 
-  with open(f"{environ["XDG_DATA_HOME"]}/applications/{name}", "w") as f:
+  with open(f"{data}/applications/{name}", "w") as f:
     f.write(buffer)
   return
 
 
 def main(args):
+  global libraries
 
   if args.dry_service: dry_service(args)
   if args.make_desktop_entry: desktop_entry(args)
@@ -190,25 +197,13 @@ def main(args):
     program = path
 
   application_name=f"app.application.{program}"
-  application_folder=Path(environ["XDG_RUNTIME_DIR"], "app", application_name)
+  application_folder=Path(runtime, "app", application_name)
   application_folder.mkdir(parents=True, exist_ok=True)
   temp = TemporaryDirectory()
   info = NamedTemporaryFile()
 
-  sof_dir = Path("/tmp", "sb", program)
-  if not sof_dir.is_dir() and not args.sof_tmpfs:
-    sof_dir = Path(environ["XDG_DATA_HOME"], "sb", program)
-
-  if args.lib: update_sof = False
-  else: update_sof = not Path(sof_dir, "usr", "lib").is_dir() or args.update_libraries
-
-  if update_sof:
-    if args.verbose: print("Updating SOF")
-    sof_dir.mkdir(parents=True, exist_ok=True)
-
   if args.verbose: print(f"Running {application_name}")
   if args.verbose: print(f"\tTemp: {temp}")
-  if args.verbose and not args.lib: print(f"\tSOF: {sof_dir}")
 
   info.write(b"[Application]\n")
   name_str=f"name={application_name}"
@@ -222,7 +217,7 @@ def main(args):
 
   if args.verbose:
     print("Launching ", program, "at", path)
-  run_application(program, path, application_folder, info.name, temp.name, args, update_sof, sof_dir)
+  run_application(program, path, application_folder, info.name, temp.name, args)
 
 
 def output(command): return [out for out in run(command, stdout=PIPE).stdout.decode().split("\n") if out]
@@ -267,6 +262,60 @@ def get_libraries(to_load, libraries=set(), recursive_folders=False):
   return
 
 
+def setup_lib(args, sof_dir, lib_cache, update_sof):
+  if args.update_libraries or not sof_dir.is_dir():
+    if update_sof:
+      if args.verbose: print("Determining library dependencies...")
+      unsearched = libraries - searched
+      while unsearched:
+        if args.verbose: print("Unresolved Libraries:", unsearched)
+        for lib in unsearched:
+          get_libraries(lib, libraries, recursive_folders=args.recursive_libraries)
+        unsearched = libraries - searched
+
+    with lib_cache.open("w") as cache:
+      for lib in libraries:
+        cache.write(lib)
+        cache.write(" ")
+
+    if args.verbose: print("Creating /lib...")
+    runtime_lib = Path("/tmp", "sb", "shared")
+    runtime_lib.mkdir(parents=True, exist_ok=True)
+    sof_dir.mkdir(parents=True, exist_ok=True)
+    for library in libraries:
+      real_path = Path(library)
+
+      runtime_path = Path(f"{runtime_lib}/{library}")
+      if not real_path.is_dir():
+        write_to_cache(library, runtime_path, real_path, sof_dir)
+      elif real_path.is_dir():
+        for sub in output(["find", real_path, "-type", "f"]):
+          if sub: write_to_cache(sub, Path(f"{runtime_lib}/{sub}"), Path(sub), sof_dir)
+
+
+def write_to_cache(library, runtime_path, real_path, sof_dir):
+  if not runtime_path.is_file():
+    runtime_path.parents[0].mkdir(parents=True, exist_ok=True)
+    try:
+      runtime_path.open("wb").write(real_path.open("rb").read())
+      runtime_path.chmod(real_path.stat().st_mode)
+    except PermissionError:
+      print("Permission Denied: ", str(real_path))
+      return
+    except FileNotFoundError:
+      print("File not found:", str(real_path), "This is fine")
+      return
+
+  if runtime_path.is_file() and real_path.is_file():
+    lib_path = Path(f"{str(sof_dir)}/{library}")
+    if runtime_path.is_file() and not lib_path.is_file():
+      try:
+        lib_path.parents[0].mkdir(parents=True, exist_ok=True)
+        lib_path.hardlink_to(runtime_path)
+        lib_path.chmod(real_path.stat().st_mode)
+      except Exception: pass
+
+
 def share(command: list, paths: list, mode = "ro-bind-try"):
   for path in paths:
     command.extend([f"--{mode}", path, path])
@@ -281,7 +330,7 @@ def dbus_proxy(portals, application_folder, info_name, args):
     "--ro-bind", "/usr/lib64", "/usr/lib64",
     "--ro-bind", "/usr/bin", "/usr/bin",
     "--clearenv",
-    "--bind", environ["XDG_RUNTIME_DIR"], environ["XDG_RUNTIME_DIR"],
+    "--bind", runtime, runtime,
     "--ro-bind", info_name, "/.flatpak-info",
     "--die-with-parent",
     "--",
@@ -303,15 +352,75 @@ def dbus_proxy(portals, application_folder, info_name, args):
   Popen(command)
 
 
-def run_application(application, application_path, application_folder, info_name, temp, args, update_sof, sof_dir):
-  runtime = environ["XDG_RUNTIME_DIR"]
-  config = environ["XDG_CONFIG_HOME"]
-  cache = environ["XDG_CACHE_HOME"]
-  data = environ["XDG_DATA_HOME"]
-  home = environ["HOME"]
+def run_application(application, application_path, application_folder, info_name, temp, args):
+  command = gen_command(application, application_path, application_folder, info_name, args)
+
+  sof_dir =  Path("/tmp", "sb", application)
+  local_dir =  Path(data, "sb", application)
+  lib_cache = Path(local_dir, "lib.cache")
+  cmd_cache = Path(local_dir, "cmd.cache")
+
+
+  if args.home:
+    home_dir = Path(local_dir, "home")
+    home_dir.mkdir(parents=True, exist_ok=True)
+    if args.cached_home:
+      cache_home = TemporaryDirectory()
+      run(["cp", "-r", str(home_dir) + "/.", cache_home.name])
+      command.extend(["--bind", cache_home.name, "/home"])
+    else:
+      command.extend(["--bind", str(home_dir), "/home"])
+      command.extend(["--bind", temp, f"{home}/.cache"])
+
+  command.extend(["--tmpfs", temp])
+
+  if not args.do_not_allow_file_passthrough:
+    for argument in args.unknown:
+      if argument.startswith("/"):
+        if args.file_passthrough_folder:
+          argument = "/".join(argument.split("/")[:-1])
+        share(command, [argument], "bind-try" if args.file_passthrough_rw else "ro-bind-try")
+
+  if args.debug_shell: command.append("sh")
+  else:
+    if args.strace: command.extend(["strace", "-fZ"])
+    command.append(application_path)
+  for argument in args.unknown: command.append(argument)
+
+  if not args.dry:
+    if args.verbose: print(" ".join(command))
+    run(command)
+
+
+def gen_command(application, application_path, application_folder, info_name, args):
+  global libraries, searched
+  sof_dir =  Path("/tmp", "sb", application)
+  local_dir =  Path(data, "sb", application)
+  lib_cache = Path(local_dir, "lib.cache")
+  cmd_cache = Path(local_dir, "cmd.cache")
+
+  h = new("SHA256")
+  h.update("".join(argv).encode())
+  hash = h.hexdigest()
+
+  update_sof = args.update_libraries
+  if not update_sof:
+    if not sof_dir.is_dir():
+      if lib_cache.is_file():
+        if args.verbose: print("Using cached library definitions")
+        libraries = set([library for library in lib_cache.open("r").read().split(" ")])
+      else:
+        update_sof = True
+
+  if cmd_cache.is_file():
+    with cmd_cache.open("r") as file:
+      info = file.read().split("\n")
+      cached = info[0]
+      if hash == cached and sof_dir.is_dir():
+        if args.verbose: print("Using cached command")
+        return info[1].split(" ")
 
   if update_sof:
-    libraries = set()
     for library in args.libraries:
       get_libraries(library, libraries, recursive_folders=args.recursive_libraries)
 
@@ -337,18 +446,6 @@ def run_application(application, application_path, application_folder, info_name
     "--symlink", "/usr/lib", "/lib64",
     "--symlink", "/usr/lib", "/usr/lib64",
   ])
-
-  if args.home:
-    home_dir = Path(data, "sb", application, "home")
-    home_dir.mkdir(parents=True, exist_ok=True)
-
-    if args.cached_home:
-      cache_home = TemporaryDirectory()
-      run(["cp", "-r", str(home_dir) + "/.", cache_home.name])
-      command.extend(["--bind", cache_home.name, "/home"])
-    else:
-      command.extend(["--bind", str(home_dir), "/home"])
-      command.extend(["--bind", temp, f"{home}/.cache"])
 
   if args.electron:
     if args.verbose: print("Adding electron...")
@@ -529,53 +626,7 @@ def run_application(application, application_path, application_folder, info_name
 
 
   if not args.lib:
-    if update_sof:
-      if args.verbose: print("Determining library dependencies...")
-      runtime_lib = Path("/tmp" if args.sof_tmpfs else data, "sb", "shared")
-      runtime_lib.mkdir(parents=True, exist_ok=True)
-
-      def write_to_cache(library, runtime_path, real_path):
-        if not runtime_path.is_file():
-          runtime_path.parents[0].mkdir(parents=True, exist_ok=True)
-          try:
-            runtime_path.open("wb").write(real_path.open("rb").read())
-            runtime_path.chmod(real_path.stat().st_mode)
-          except PermissionError:
-            print("Permission Denied: ", str(real_path))
-            return
-          except FileNotFoundError:
-            print("File not found:", str(real_path), "This is fine")
-            return
-
-        if runtime_path.is_file() and real_path.is_file():
-          lib_path = Path(f"{str(sof_dir)}/{library}")
-          if runtime_path.is_file() and not lib_path.is_file():
-            try:
-              lib_path.parents[0].mkdir(parents=True, exist_ok=True)
-              lib_path.hardlink_to(runtime_path)
-              lib_path.chmod(real_path.stat().st_mode)
-            except Exception: pass
-
-      if args.verbose: print("Resolving depends...")
-      unsearched = libraries - searched
-      while unsearched:
-        if args.verbose: print("Unresolved Libraries:", unsearched)
-        for lib in unsearched:
-          get_libraries(lib, libraries, recursive_folders=args.recursive_libraries)
-        unsearched = libraries - searched
-
-      if args.verbose: print("Creating /lib...")
-      sof_dir.mkdir(parents=True, exist_ok=True)
-      for library in libraries:
-        real_path = Path(library)
-
-        runtime_path = Path(f"{runtime_lib}/{library}")
-        if not real_path.is_dir():
-          write_to_cache(library, runtime_path, real_path)
-        elif real_path.is_dir():
-          for sub in output(["find", real_path, "-type", "f"]):
-            if sub: write_to_cache(sub, Path(f"{runtime_lib}/{sub}"), Path(sub))
-      print("Done")
+    setup_lib(args, sof_dir, lib_cache, update_sof)
     command.extend(["--bind", f"{str(sof_dir)}/usr/lib", "/usr/lib"])
 
   if "config" in args.app_dirs: share(command, [f"{config}/{application}"], "bind-try")
@@ -588,22 +639,12 @@ def run_application(application, application_path, application_folder, info_name
   for path in args.rw: share(command, [path], "bind-try")
   for path in args.ro: share(command, [path])
 
-  if not args.do_not_allow_file_passthrough:
-    for argument in args.unknown:
-      if argument.startswith("/"):
-        if args.file_passthrough_folder:
-          argument = "/".join(argument.split("/")[:-1])
-        share(command, [argument], "bind-try" if args.file_passthrough_rw else "ro-bind-try")
+  with cmd_cache.open("w") as file:
+    file.write(hash)
+    file.write("\n")
+    file.write(" ".join(command))
 
-  command.extend(["--tmpfs", temp])
-  if args.debug_shell: command.append("sh")
-  else:
-    if args.strace: command.extend(["strace", "-fZ"])
-    command.append(application_path)
-  for argument in args.unknown: command.append(argument)
+  return command
 
-  if not args.dry:
-    if args.verbose: print(" ".join(command))
-    run(command)
 
 if __name__ == "__main__": main(parse())
