@@ -353,13 +353,17 @@ def dbus_proxy(portals, application_folder, info_name, args):
 
 
 def run_application(application, application_path, application_folder, info_name, temp, args):
-  command = gen_command(application, application_path, application_folder, info_name, args)
+  command = gen_command(application, application_path, application_folder, args)
 
   sof_dir =  Path("/tmp", "sb", application)
   local_dir =  Path(data, "sb", application)
   lib_cache = Path(local_dir, "lib.cache")
   cmd_cache = Path(local_dir, "cmd.cache")
 
+  command.extend([
+    "--ro-bind-try", info_name, "/.flatpak-info",
+    "--ro-bind-try", info_name, f"{runtime}/flatpak-info"
+  ])
 
   if args.home:
     home_dir = Path(local_dir, "home")
@@ -392,7 +396,7 @@ def run_application(application, application_path, application_folder, info_name
     run(command)
 
 
-def gen_command(application, application_path, application_folder, info_name, args):
+def gen_command(application, application_path, application_folder, args):
   global libraries, searched
   sof_dir =  Path("/tmp", "sb", application)
   local_dir =  Path(data, "sb", application)
@@ -416,7 +420,7 @@ def gen_command(application, application_path, application_folder, info_name, ar
     with cmd_cache.open("r") as file:
       info = file.read().split("\n")
       cached = info[0]
-      if hash == cached and sof_dir.is_dir():
+      if hash == cached and sof_dir.is_dir() and not args.update_libraries:
         if args.verbose: print("Using cached command")
         return info[1].split(" ")
 
@@ -427,8 +431,6 @@ def gen_command(application, application_path, application_folder, info_name, ar
   if args.verbose: print("Setting up...")
   command = ["bwrap", "--new-session", "--die-with-parent"]
   command.extend([
-    "--ro-bind-try", info_name, "/.flatpak-info",
-    "--ro-bind-try", info_name, f"{runtime}/flatpak-info",
     "--dir", runtime,
     "--chmod", "0700", runtime,
     "--ro-bind-try", f"{application_folder}/bus", f"{runtime}/bus",
