@@ -1,6 +1,6 @@
 pkgname=sb-git
 pkgdesc="Sandbox Applications"
-pkgver=r39.8889836
+pkgver=r40.97afccc
 pkgrel=1
 
 source=("git+https://github.com/kkernick/sb.git")
@@ -20,6 +20,6 @@ package() {
     install -Dm755 "$binary" "$pkgdir/usr/bin/$binary"
   done
   for service in sb.service; do
-    install -Dm755 "$service" "$pkgdir/usr/lib/systemd/user/$binary"
+    install -Dm755 "$service" "$pkgdir/usr/lib/systemd/user/$service"
   done
 }
