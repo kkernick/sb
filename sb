@@ -110,7 +110,10 @@ def parse():
 
 
   parser.add_argument("--real-hostname", action="store_true", default=False, help="Give the application the hostname")
+
   parser.add_argument("--locale", action="store_true", default=False, help="Give the application locale information")
+
+  parser.add_argument("--hunspell", action="store_true", default=False, help="Give the application dictionaries")
 
   parser.add_argument("--make-desktop-entry", action="store_true", default=False, help="Create a desktop entry for the application.")
   parser.add_argument("--desktop-entry", action="store", default=None, help="The application's desktop entry, if it cannot be deduced automatically. For example, chromium.desktop")
@@ -263,7 +266,7 @@ def setup_lib(args, sof_dir, lib_cache, update_sof):
     sof_dir.mkdir(parents=True, exist_ok=True)
     for library in libraries:
       if not library.startswith("/usr/lib") and not library.startswith("/usr/bin"):
-        print(f"Ignoring invalid library: {library}")
+        if args.verbose: print(f"Ignoring invalid library: {library}")
         continue
 
       real_path = Path(library)
@@ -596,6 +599,8 @@ def gen_command(application, application_path, application_folder, args):
   if args.locale:
     share(command, ["/etc/locale.conf", "/etc/localtime", "/usr/share/zoneinfo", "/usr/share/X11/locale", "/usr/share/locale/"])
     if update_sof: args.ro.append("/usr/lib/locale/")
+
+  if args.hunspell: share(command, ["/usr/share/hunspell", "/usr/share/myspell"])
 
   if args.share == "none": command.append("--unshare-all")
   elif args.share != "all":
