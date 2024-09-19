@@ -321,8 +321,8 @@ def dbus_proxy(portals, application_folder, info_name, args):
     environ["DBUS_SESSION_BUS_ADDRESS"],
     f"{application_folder}/bus",
     "--filter",
-    '--call="org.freedesktop.portal.Desktop=org.freedesktop.portal.Settings.Read@/org/freedesktop/portal/desktop"',
-    '--broadcast="org.freedesktop.portal.Desktop=org.freedesktop.portal.Settings.SettingChanged@/org/freedesktop/portal/desktop"'
+    '--call=org.freedesktop.portal.Desktop=org.freedesktop.portal.Settings.Read@/org/freedesktop/portal/desktop',
+    '--broadcast=org.freedesktop.portal.Desktop=org.freedesktop.portal.Settings.SettingChanged@/org/freedesktop/portal/desktop',
   ])
   command.extend([f'--talk=org.freedesktop.portal.{portal}' for portal in portals])
   command.extend([f'--see={portal}' for portal in args.see])
