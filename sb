@@ -283,6 +283,10 @@ def setup_lib(args, sof_dir, lib_cache, update_sof):
     runtime_lib.mkdir(parents=True, exist_ok=True)
     sof_dir.mkdir(parents=True, exist_ok=True)
     for library in libraries:
+      if not library.startswith("/usr/lib") and not library.startswith("/usr/bin"):
+        print(f"Ignoring invalid library: {library}")
+        continue
+
       real_path = Path(library)
 
       runtime_path = Path(f"{runtime_lib}/{library}")
@@ -408,11 +412,12 @@ def gen_command(application, application_path, application_folder, args):
   hash = h.hexdigest()
 
   update_sof = args.update_libraries
-  if not update_sof:
+  if update_sof is False:
     if not sof_dir.is_dir():
       if lib_cache.is_file():
         if args.verbose: print("Using cached library definitions")
         libraries = set([library for library in lib_cache.open("r").read().split(" ")])
+        if args.verbose: print(libraries)
       else:
         update_sof = True
 
