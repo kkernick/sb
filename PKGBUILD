@@ -1,6 +1,6 @@
 pkgname=sb-git
 pkgdesc="Sandbox Applications"
-pkgver=r38.9cca79f
+pkgver=r39.8889836
 pkgrel=1
 
 source=("git+https://github.com/kkernick/sb.git")
@@ -10,13 +10,16 @@ arch=("any")
 provides=("sb")
 
 pkgver() {
-	cd $srcdir/sb
-	printf "r%s.%s" "$(git rev-list --count HEAD)" "$(git rev-parse --short=7 HEAD)"
+  cd $srcdir/sb
+  printf "r%s.%s" "$(git rev-list --count HEAD)" "$(git rev-parse --short=7 HEAD)"
 }
 
 package() {
-	cd $srcdir/sb
-	for binary in sb; do
-		install -Dm755 "$binary" "$pkgdir/usr/bin/$binary"
-	done
+  cd $srcdir/sb
+  for binary in sb sb-startup; do
+    install -Dm755 "$binary" "$pkgdir/usr/bin/$binary"
+  done
+  for service in sb.service; do
+    install -Dm755 "$service" "$pkgdir/usr/lib/systemd/user/$binary"
+  done
 }

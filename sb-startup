@@ -1,0 +1,7 @@
+#!/bin/bash
+
+LOCAL_BIN=$HOME/.local/bin
+
+for profile in $(ls $HOME/.local/bin/*.sb); do
+  exec $profile --dry --startup
+done

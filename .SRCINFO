@@ -1,6 +1,6 @@
 pkgbase = sb-git
 	pkgdesc = Sandbox Applications
-	pkgver = r38.9cca79f
+	pkgver = r39.8889836
 	pkgrel = 1
 	arch = any
 	depends = python

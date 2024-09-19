@@ -1,0 +1,9 @@
+[Unit]
+Description = Dry Run SB profiles
+
+[Service]
+Type=oneshot
+ExecStart=sb-startup
+
+[Install]
+WantedBy=default.target
