@@ -1,6 +1,6 @@
 pkgname=sb-git
 pkgdesc="Sandbox Applications"
-pkgver=r41.af2c506
+pkgver=r42.9f3f7e3
 pkgrel=1
 
 source=("git+https://github.com/kkernick/sb.git")
@@ -21,5 +21,8 @@ package() {
   done
   for service in sb.service; do
     install -Dm755 "$service" "$pkgdir/usr/lib/systemd/user/$service"
+  done
+  for hook in sb.hook; do
+    install -Dm755 "$hook" "$pkgdir/usr/share/libalpm/hooks/$hook"
   done
 }

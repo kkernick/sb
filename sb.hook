@@ -1,0 +1,9 @@
+[Trigger]
+Type = Path
+Operation = Upgrade
+Target = /usr/lib/*
+
+[Action]
+Description = Updating The SB Library Cache
+When = PostTransaction
+Exec = /usr/bin/sb-refresh
