@@ -12,148 +12,6 @@ from sys import argv
 searched = set()
 
 
-def main(args):
-
-  if args.dry_service:
-    name = args.desktop_entry if args.desktop_entry else f"{args.program}.desktop"
-    binary = f"{environ["HOME"]}/.local/bin/{name}.sh"
-
-    if not Path(binary).is_file():
-      print("Create a desktop entry first!")
-      exit(1)
-
-    service = Path(environ["XDG_CONFIG_HOME"], "systemd", "user", f"{name}.service")
-
-    with service.open("w") as file:
-      file.write("[Unit]\n")
-      file.write(f"Description=Dry run {name}\n\n")
-      file.write("[Service]\n")
-      file.write("Type=oneshot\n")
-      file.write(f"ExecStart={binary} --dry --sof-tmpfs\n\n")
-      file.write("[Install]\n")
-      file.write("WantedBy=default.target")
-
-    run(["systemctl", "daemon-reload", "--user"])
-    run(["systemctl", "enable", "--user", f"{name}.service"])
-    return
-
-  if args.make_desktop_entry:
-    exec = argv
-
-    exec.remove("--make-desktop-entry")
-
-    # Pop twice to remove it and the name itself.
-    if args.desktop_entry:
-      i = exec.index("--desktop-entry")
-      exec.pop(i); exec.pop(i)
-    exec.insert(2, '"$@"')
-
-    name = args.desktop_entry if args.desktop_entry else f"{args.program}.desktop"
-    exec = " ".join(exec)
-    binary = f"{environ["HOME"]}/.local/bin/{name}.sh"
-    buffer = ""
-
-    with open(f"/usr/share/applications/{name}", "r") as f:
-      for line in f.readlines():
-        if line.startswith("Exec="):
-          buffer += (f"Exec={binary} {" ".join(line.split()[1:])}\n")
-        else:
-          buffer += line
-
-    with open(binary, "w") as b:
-      b.write("#!/bin/sh\n")
-      b.write(f"{exec}")
-    run(["chmod", "+x", binary])
-
-    with open(f"{environ["XDG_DATA_HOME"]}/applications/{name}", "w") as f:
-      f.write(buffer)
-    return
-
-  path = args.program
-  if path.startswith("/"):
-    program = path.split("/")[-1]
-  else:
-    program = path
-
-  application_name=f"app.application.{program}"
-  application_folder=Path(environ["XDG_RUNTIME_DIR"], "app", application_name)
-  application_folder.mkdir(parents=True, exist_ok=True)
-  temp = TemporaryDirectory()
-  info = NamedTemporaryFile()
-
-  sof_dir = Path("/tmp", "sb", program)
-  if not sof_dir.is_dir() and not args.sof_tmpfs:
-    sof_dir = Path(environ["XDG_DATA_HOME"], "sb", program)
-
-  if args.lib: update_sof = False
-  else: update_sof = not Path(sof_dir, "usr", "lib").is_dir() or args.update_libraries
-
-  if update_sof:
-    if args.verbose: print("Updating SOF")
-    sof_dir.mkdir(parents=True, exist_ok=True)
-
-  if args.verbose: print(f"Running {application_name}")
-  if args.verbose: print(f"\tTemp: {temp}")
-  if args.verbose and not args.lib: print(f"\tSOF: {sof_dir}")
-
-  info.write(b"[Application]\n")
-  name_str=f"name={application_name}"
-  info.write(name_str.encode())
-  info.flush()
-
-  if args.verbose: print("Launching D-Bus Proxy")
-  dbus_proxy(args.portals, application_folder, info.name, args)
-
-  sleep(0.1)
-
-  if args.verbose:
-    print("Launching ", program, "at", path)
-  run_application(program, path, application_folder, info.name, temp.name, args, update_sof, sof_dir)
-
-
-def output(command):
-  return [out for out in run(command, stdout=PIPE).stdout.decode().split("\n") if out]
-
-
-def find_libs(expression, depth=1, path="/usr/lib"):
-  libs = set(output([
-    "find", path,
-    "-maxdepth", str(depth), "-mindepth", str(1),
-    "-type", "f,l",
-    "-name", f"{expression}.so*"
-  ]))
-  return libs
-
-
-def get_libraries(to_load, libraries=set(), recursive_folders=False):
-  if to_load in searched: return
-  searched.add(to_load)
-
-  if to_load.endswith("/"):
-    if recursive_folders:
-      libraries |= find_libs("*", depth=10, path=to_load[:-1])
-    return
-
-  if "*" in to_load:
-    libraries |= find_libs(to_load, path="/usr/lib")
-    return
-
-  libraries |= {to_load}
-  for library in output(["ldd", to_load]):
-    split = library.split()
-
-    lib = None
-
-    if len(split) > 0 and split[0].startswith("/usr/lib"):
-      lib = split[0]
-    elif len(split) > 2 and split[2] != "not":
-      lib = split[2]
-      lib = lib.replace("lib64", "lib")
-      if lib.startswith("/lib"): lib = lib[4:]
-    if lib is not None: get_libraries(lib, libraries, recursive_folders)
-  return
-
-
 def parse():
   parser = ArgumentParser(
     prog="sb",
@@ -264,13 +122,153 @@ def parse():
   return args
 
 
+def dry_service(args):
+  name = args.desktop_entry if args.desktop_entry else f"{args.program}.desktop"
+  binary = f"{environ["HOME"]}/.local/bin/{name}.sh"
+
+  if not Path(binary).is_file():
+    print("Create a desktop entry first!")
+    exit(1)
+
+  service = Path(environ["XDG_CONFIG_HOME"], "systemd", "user", f"{name}.service")
+
+  with service.open("w") as file:
+    file.write("[Unit]\n")
+    file.write(f"Description=Dry run {name}\n\n")
+    file.write("[Service]\n")
+    file.write("Type=oneshot\n")
+    file.write(f"ExecStart={binary} --dry --sof-tmpfs\n\n")
+    file.write("[Install]\n")
+    file.write("WantedBy=default.target")
+
+  run(["systemctl", "daemon-reload", "--user"])
+  run(["systemctl", "enable", "--user", f"{name}.service"])
+  return
+
+
+def desktop_entry(args):
+  exec = argv
+  exec.remove("--make-desktop-entry")
+
+  # Pop twice to remove it and the name itself.
+  if args.desktop_entry:
+    i = exec.index("--desktop-entry")
+    exec.pop(i); exec.pop(i)
+  exec.insert(2, '"$@"')
+
+  name = args.desktop_entry if args.desktop_entry else f"{args.program}.desktop"
+  exec = " ".join(exec)
+  binary = f"{environ["HOME"]}/.local/bin/{name}.sh"
+  buffer = ""
+
+  with open(f"/usr/share/applications/{name}", "r") as f:
+    for line in f.readlines():
+      if line.startswith("Exec="):
+        buffer += (f"Exec={binary} {" ".join(line.split()[1:])}\n")
+      else:
+        buffer += line
+
+  with open(binary, "w") as b:
+    b.write("#!/bin/sh\n")
+    b.write(f"{exec}")
+  run(["chmod", "+x", binary])
+
+  with open(f"{environ["XDG_DATA_HOME"]}/applications/{name}", "w") as f:
+    f.write(buffer)
+  return
+
+
+def main(args):
+
+  if args.dry_service: dry_service(args)
+  if args.make_desktop_entry: desktop_entry(args)
+
+  path = args.program
+  if path.startswith("/"):
+    program = path.split("/")[-1]
+  else:
+    program = path
+
+  application_name=f"app.application.{program}"
+  application_folder=Path(environ["XDG_RUNTIME_DIR"], "app", application_name)
+  application_folder.mkdir(parents=True, exist_ok=True)
+  temp = TemporaryDirectory()
+  info = NamedTemporaryFile()
+
+  sof_dir = Path("/tmp", "sb", program)
+  if not sof_dir.is_dir() and not args.sof_tmpfs:
+    sof_dir = Path(environ["XDG_DATA_HOME"], "sb", program)
+
+  if args.lib: update_sof = False
+  else: update_sof = not Path(sof_dir, "usr", "lib").is_dir() or args.update_libraries
+
+  if update_sof:
+    if args.verbose: print("Updating SOF")
+    sof_dir.mkdir(parents=True, exist_ok=True)
+
+  if args.verbose: print(f"Running {application_name}")
+  if args.verbose: print(f"\tTemp: {temp}")
+  if args.verbose and not args.lib: print(f"\tSOF: {sof_dir}")
+
+  info.write(b"[Application]\n")
+  name_str=f"name={application_name}"
+  info.write(name_str.encode())
+  info.flush()
+
+  if args.verbose: print("Launching D-Bus Proxy")
+  dbus_proxy(args.portals, application_folder, info.name, args)
+
+  sleep(0.1)
+
+  if args.verbose:
+    print("Launching ", program, "at", path)
+  run_application(program, path, application_folder, info.name, temp.name, args, update_sof, sof_dir)
+
+
+def output(command): return [out for out in run(command, stdout=PIPE).stdout.decode().split("\n") if out]
+
+
+def find_libs(expression, depth=1, path="/usr/lib"):
+  libs = set(output([
+    "find", path,
+    "-maxdepth", str(depth), "-mindepth", str(1),
+    "-type", "f,l",
+    "-name", f"{expression}.so*"
+  ]))
+  return libs
+
+
+def get_libraries(to_load, libraries=set(), recursive_folders=False):
+  if to_load in searched: return
+  searched.add(to_load)
+
+  if to_load.endswith("/"):
+    if recursive_folders:
+      libraries |= find_libs("*", depth=10, path=to_load[:-1])
+    return
+
+  if "*" in to_load:
+    libraries |= find_libs(to_load, path="/usr/lib")
+    return
+
+  libraries |= {to_load}
+  for library in output(["ldd", to_load]):
+    split = library.split()
+
+    lib = None
+
+    if len(split) > 0 and split[0].startswith("/usr/lib"):
+      lib = split[0]
+    elif len(split) > 2 and split[2] != "not":
+      lib = split[2]
+      lib = lib.replace("lib64", "lib")
+      if lib.startswith("/lib"): lib = lib[4:]
+    if lib is not None: get_libraries(lib, libraries, recursive_folders)
+  return
+
+
 def share(command: list, paths: list, mode = "ro-bind-try"):
   for path in paths:
-    if "::" in path:
-      try:
-        path, mod = path.split("::")
-        command.extend(["--chmod", mod, path])
-      except Exception: pass
     command.extend([f"--{mode}", path, path])
 
 
@@ -306,7 +304,6 @@ def dbus_proxy(portals, application_folder, info_name, args):
 
 
 def run_application(application, application_path, application_folder, info_name, temp, args, update_sof, sof_dir):
-
   runtime = environ["XDG_RUNTIME_DIR"]
   config = environ["XDG_CONFIG_HOME"]
   cache = environ["XDG_CACHE_HOME"]
