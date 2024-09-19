@@ -4,3 +4,4 @@ for profile in $(ls $HOME/.local/bin/*.sb); do
   $profile --dry --update-libraries &
 done
 wait
+rm -fr /tmp/sb
