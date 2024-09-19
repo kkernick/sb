@@ -363,13 +363,16 @@ def run_application(application, application_path, application_folder, info_name
   command.extend(gen_command(application, application_path, application_folder, args))
 
   enclave_contents = {}
-  fine_enclave = None
+  file_enclave = None
   if not args.do_not_allow_file_passthrough:
-    file_enclave = TemporaryDirectory()
-    command.extend(["--bind", file_enclave.name, "/enclave"])
     for argument in args.unknown:
-      if argument.startswith("/") and Path(argument).is_dir():
-        share(command, [argument], mode = "bind-try" if args.file_passthrough_rw else "ro-bind-try")
+      if argument.startswith("/"):
+        path = Path(argument)
+        if path.is_dir():
+          share(command, [argument], mode = "bind-try" if args.file_passthrough_rw else "ro-bind-try")
+        elif path.is_file() and file_enclave is None:
+          file_enclave = TemporaryDirectory()
+          command.extend(["--bind", file_enclave.name, "/enclave"])
 
 
   if args.debug_shell: command.append("sh")
