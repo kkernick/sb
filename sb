@@ -104,7 +104,6 @@ def parse():
 
   parser.add_argument("--do-not-allow-file-passthrough", action="store_true", default=False, help="If the program is passed an argument to a file, do not expose this file to the sandbox.")
   parser.add_argument("--file-passthrough-rw", action="store_true", default=False, help="File passthrough is done with write privileges")
-  parser.add_argument("--file-passthrough-folder", action="store_true", default=False, help="Passthrough the entire folder that a file is contained within. Useful when the program creates a temporary file in the directory for writing")
 
   parser.add_argument("--debug-shell", action="store_true", default=False, help="Launch a shell in the sandbox instead of the application")
   parser.add_argument("--strace", action="store_true", default=False, help="Launch the application underneath strace")
@@ -337,8 +336,7 @@ def dbus_proxy(portals, application_folder, info_name, args):
 
 
 def run_application(application, application_path, application_folder, info_name, temp, args):
-  command = gen_command(application, application_path, application_folder, args)
-
+  command = ["bwrap", "--new-session", "--die-with-parent"]
   sof_dir =  Path("/tmp", "sb", application)
   local_dir =  Path(data, "sb", application)
   lib_cache = Path(local_dir, "lib.cache")
@@ -362,22 +360,50 @@ def run_application(application, application_path, application_folder, info_name
 
   command.extend(["--tmpfs", temp])
 
+  command.extend(gen_command(application, application_path, application_folder, args))
+
+  enclave_contents = {}
+  fine_enclave = None
   if not args.do_not_allow_file_passthrough:
+    file_enclave = TemporaryDirectory()
+    command.extend(["--bind", file_enclave.name, "/enclave"])
     for argument in args.unknown:
-      if argument.startswith("/"):
-        if args.file_passthrough_folder:
-          argument = "/".join(argument.split("/")[:-1])
-        share(command, [argument], "bind-try" if args.file_passthrough_rw else "ro-bind-try")
+      if argument.startswith("/") and Path(argument).is_dir():
+        share(command, [argument], mode = "bind-try" if args.file_passthrough_rw else "ro-bind-try")
+
 
   if args.debug_shell: command.append("sh")
   else:
     if args.strace: command.extend(["strace", "-fZ"])
     command.append(application_path)
-  for argument in args.unknown: command.append(argument)
+
+
+  if file_enclave:
+    for argument in args.unknown:
+      if argument.startswith("/"):
+        file = Path(argument)
+        if file.is_dir():
+          command.append(argument)
+        elif file.is_file():
+          enclave_file = Path(file_enclave.name, file.name)
+          if args.verbose: print(f"Adding {argument} to file enclave")
+
+          enclave_contents[enclave_file.resolve()] = file.resolve()
+          enclave_file.open("wb").write(file.open("rb").read())
+
+          run(["chmod", "666", enclave_file.resolve()])
+          command.append(f"/enclave/{file.name}")
+      else:
+        command.append(argument)
 
   if not args.dry:
     if args.verbose: print(" ".join(command))
     run(command)
+
+  if args.file_passthrough_rw:
+    for file, dest in enclave_contents.items():
+      if args.verbose: print(f"Updating {dest} from file enclave")
+      Path(dest).open("wb").write(Path(file).open("rb").read())
 
 
 def gen_command(application, application_path, application_folder, args):
@@ -414,7 +440,7 @@ def gen_command(application, application_path, application_folder, args):
       get_libraries(library, libraries, recursive_folders=args.recursive_libraries)
 
   if args.verbose: print("Setting up...")
-  command = ["bwrap", "--new-session", "--die-with-parent"]
+  command = []
   command.extend([
     "--dir", runtime,
     "--chmod", "0700", runtime,
@@ -468,7 +494,7 @@ def gen_command(application, application_path, application_folder, args):
 
   if args.kde:
     if args.verbose: print("Adding KDE...")
-    share(command, [f"{config}/kdedefaults", f"{config}/breezerc", f"{config}/kcminputrc", f"{config}/kdeglobals", f"{config}/kwinrc", f"{config}/xmlgui5"])
+    share(command, [f"{config}/kdedefaults", f"{config}/breezerc", f"{config}/kcminputrc", f"{config}/kdeglobals", f"{config}/kwinrc", f"{config}/xmlgui5", f"{config}/kde.org", f"{config}/Trolltech.conf"])
     args.dri = True
     args.qt = True
 
