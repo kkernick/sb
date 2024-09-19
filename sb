@@ -500,7 +500,7 @@ def gen_command(application, application_path, application_folder, args):
 
   if args.kde:
     if args.verbose: print("Adding KDE...")
-    share(command, [f"{config}/kdedefaults", f"{config}/breezerc", f"{config}/kcminputrc", f"{config}/kdeglobals", f"{config}/kwinrc", f"{config}/xmlgui5", f"{config}/kde.org", f"{config}/Trolltech.conf"])
+    share(command, [f"{config}/kdedefaults", f"{config}/breezerc", f"{config}/kcminputrc", f"{config}/kdeglobals", f"{config}/kwinrc", f"{config}/xmlgui5", f"{config}/Trolltech.conf"])
     args.dri = True
     args.qt = True
 
@@ -597,7 +597,14 @@ def gen_command(application, application_path, application_folder, args):
   else: command.extend(["--hostname", "sandbox"])
 
   if args.locale:
-    share(command, ["/etc/locale.conf", "/etc/localtime", "/usr/share/zoneinfo", "/usr/share/X11/locale", "/usr/share/locale/"])
+    share(command, [
+      "/etc/locale.conf",
+      "/etc/localtime",
+      "/usr/share/zoneinfo",
+      "/usr/share/X11/locale",
+      "/usr/share/locale/",
+      f"{config}/plasma-localerc"
+    ])
     if update_sof: args.ro.append("/usr/lib/locale/")
 
   if args.hunspell: share(command, ["/usr/share/hunspell", "/usr/share/myspell"])
