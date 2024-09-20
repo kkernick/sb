@@ -66,6 +66,8 @@ def parse():
   parser.add_argument("--libraries", action="extend", nargs="*", default=[], help="A list of libraries needed in the sandbox")
   parser.add_argument("--recursive-libraries", action="store_true", default=False, help="Recursively search library folders to determine dependencies (Expensive)")
 
+  parser.add_argument("--env", action="extend", nargs="*", default=[], help="ENV=VALUE pairs to pass to the sandbox.")
+
   parser.add_argument("--rw", action="extend", nargs="*", default=[], help="Files/Directories the application can read and write.")
   parser.add_argument("--ro", action="extend", nargs="*", default=[], help="Files/Directories that the application can read.")
 
@@ -93,6 +95,8 @@ def parse():
   parser.add_argument("--electron", action="store_true", default=False, help="Give the application access to electron libraries (Implies --dri, --gtk)")
   parser.add_argument("--electron-version", default=None, help="Give the application access to a specific electron version. Only if --electron")
 
+  parser.add_argument("--python", default=None, help="Pass through the specified version of python, IE 3.12")
+
   parser.add_argument("--kde", action="store_true", default=False, help="Give the application access to KDE/QT configuration (Implies --dri, --qt)")
   parser.add_argument("--kf6", action="store_true", default=False, help="Give the application access to KF6 libraries, does nothing if --lib")
 
@@ -119,14 +123,11 @@ def parse():
   parser.add_argument("--desktop-entry", action="store", default=None, help="The application's desktop entry, if it cannot be deduced automatically. For example, chromium.desktop")
 
   parser.add_argument("--update-libraries", action="store_true", default=False, help="Update SOF libraries")
-  parser.add_argument("--sof-tmpfs", action="store_true", default=False, help="Store the SOF directory in /tmp. If the folder exists, it will be used irregardless of this setting, this flag merely generates it if it doesn't exist.")
 
   parser.add_argument("--verbose", action="store_true", default=False, help="Verbose logging")
 
   parser.add_argument("--dry", action="store_true", default=False, help="Dry run a program, establishing the SOF folder, but don't run it.")
-
   parser.add_argument("--startup", action="store_true", default=False, help="DO NOT USE.")
-
   parser.add_argument("--dry-startup", action="store_true", default=False, help="Tell the systemd startup script that this program should be run on start.")
 
   args, unknown = parser.parse_known_args()
@@ -246,6 +247,8 @@ def get_libraries(to_load, libraries=set(), recursive_folders=False):
 
 def setup_lib(args, sof_dir, lib_cache, update_sof):
   if args.update_libraries or not sof_dir.is_dir():
+    if not sof_dir.is_dir():
+      sof_dir.mkdir(parents=True, exist_ok=True)
     if update_sof:
       if args.verbose: print("Determining library dependencies...")
       unsearched = libraries - searched
@@ -342,6 +345,8 @@ def run_application(application, application_path, application_folder, info_name
   command = ["bwrap", "--new-session", "--die-with-parent"]
   sof_dir =  Path("/tmp", "sb", application)
   local_dir =  Path(data, "sb", application)
+  if not local_dir.is_dir(): local_dir.mkdir(parents=True)
+
   lib_cache = Path(local_dir, "lib.cache")
   cmd_cache = Path(local_dir, "cmd.cache")
 
@@ -466,6 +471,15 @@ def gen_command(application, application_path, application_folder, args):
     "--symlink", "/usr/lib", "/usr/lib64",
   ])
 
+  if args.python:
+    version = f"python{args.python}"
+    args.binaries.extend([version, "python"])
+    if update_sof:
+      libraries |= {
+        f"lib{version}.so",
+        f"/usr/lib/{version}/"
+      }
+
   if args.electron:
     if args.verbose: print("Adding electron...")
 
@@ -506,9 +520,9 @@ def gen_command(application, application_path, application_folder, args):
 
   if args.qt:
     if args.verbose: print("Adding QT...")
-    share(command, ["/usr/share/qt6"])
+    share(command, ["/usr/share/qt6", "/usr/share/qt6"])
     if update_sof:
-      libraries |= {"/usr/lib/qt6/"}
+      libraries |= {"/usr/lib/qt6/", "/usr/lib/qt5/", "/usr/lib/qt/"}
       libraries |= find_libs("libQt*")
     args.dri = True
 
@@ -628,6 +642,10 @@ def gen_command(application, application_path, application_folder, args):
       "/etc/pki", "/usr/share/pki",
       "/etc/ssl", "/usr/share/ssl",
     ])
+
+  for variable in args.env:
+    split = variable.split("=")
+    command.extend(["--setenv", split[0], "=".join(split[1:])])
 
   if not args.enable_namespaces:
     command.append("--disable-userns")
