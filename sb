@@ -371,8 +371,11 @@ def run_application(application, application_path, application_folder, info_name
   command.extend(gen_command(application, application_path, application_folder, args))
 
   enclave_contents = {}
+  unknown = []
   file_enclave = None
-  if not args.do_not_allow_file_passthrough:
+  if args.do_not_allow_file_passthrough:
+    unknown = args.unknown
+  else:
     for argument in args.unknown:
       if argument.startswith("/"):
         path = Path(argument)
@@ -381,7 +384,7 @@ def run_application(application, application_path, application_folder, info_name
         elif path.is_file() and file_enclave is None:
           file_enclave = TemporaryDirectory()
           command.extend(["--bind", file_enclave.name, "/enclave"])
-
+      else: unknown.append(argument)
 
   if args.debug_shell: command.append("sh")
   else:
@@ -404,8 +407,8 @@ def run_application(application, application_path, application_folder, info_name
 
           run(["chmod", "666", enclave_file.resolve()])
           command.append(f"/enclave/{file.name}")
-      else:
-        command.append(argument)
+
+  for argument in unknown: command.append(argument)
 
   if not args.dry:
     if args.verbose: print(" ".join(command))
