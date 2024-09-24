@@ -29,7 +29,6 @@ Additionally, any arbitrary bus can be specified through the `--see`, `--talk`, 
 Most of `bubblewrap`'s native functionality also exists in `sb`, including:
 
 * `--share` to share system namespaces such as `cgroup` or `net`. `--network` exists as a separate flag to ensure the application has relevant network files as well. Unlike `bwrap`, these are default unshared unless specifically told otherwise.
-* `--capabilities` permits privileged users within the sandbox to perform elevated capabilities, such as `CAP_SYS_ADMIN` for chromium's `setuid` sandbox.
 * `--sockets` can be used to passthrough the Wayland and Pipewire socket, granting graphics and sound respectively. No Xorg, sorry.
 * `--enable-namespaces` allows for user namespace support in the sandbox, such as for chromium's non-`setuid` sandbox.
 
@@ -65,9 +64,10 @@ If `--lib` is not specified, `sb` will utilize *SOF* to try and automatically de
 
 When this tree is generated, we cannot just pass all of these files to `bwrap` directly, as it not only has an upper limit on arguments, but also slows the program down to a crawl. Additionally, this process is not instant, taking about ~10 seconds for larger programs like `chromium`, so `sb` *caches* the libraries.
 
-By default, `sb` will store every library needed by any application it runs in `$XDG_DATA_HOME/sb/shared`. Then, for each application, hardlinks are made to its own individual folder; this ensures that at a *maximum*, the `shared` folder will never be larger than your `/lib` folder, which is usually only a couple of GB (Your file explorer may lie and say its bigger). Once the library has been cached, repeated launches of the application will be as quick as loading the `/lib` directory directly. However, since the files in `shared` are copied, you may need to periodically update the cache after an update. Use `--update-libraries` when calling `sb` to update the cache, or just delete the `sb` directory when you feel like it. If you have the RAM to spare, you can also call `sb` with `--sof-tmpfs` to place the cache in your `/tmp` directory, not only speeding up performance, but automatically cleaning the cache on rebote (With the downside being that you'll need to generate that cache on each subsequent startup)
+By default, `sb` will store every library needed by any application it runs in `/tmp/sb/shared`. Then, for each application, hardlinks are made to its own individual folder; this ensures that at a *maximum*, the `shared` folder will never be larger than your `/lib` folder, which is usually only a couple of GB (Your file explorer may lie and say its bigger). Once the library has been cached, repeated launches of the application will be as quick as loading the `/lib` directory directly. However, since the files in `shared` are copied, you may need to periodically update the cache after an update. Use `--update-libraries` when calling `sb` to update the cache, or just delete the `sb` directory when you feel like it.
 
-With all that being said, unless you're awfully paranoid it's probably best to just pass your entire `/lib` folder into the sandbox; for a point of reference, this is the same thing AppArmor does when creating a new profile. *SOF* does not always capture every library that is needed, so if you do want to use it, be prepared to do some debugging to try and figure out what libraries are missing.
+`SB` will compute a library and command cache, ensuring that the initial dependency generation does not need to be done every reboot (As the SOF is on /tmp), but you can also provide the `--dry-startup` option alongside enabling the user `sb.service` so that the SOF is generated on startup, rather than when the application is first run.
+
 
 ### Arbitrary Files and Application Specific Files
 
@@ -95,7 +95,6 @@ However, if you would instead like to isolate the application from your home dir
 * `--dri` will include various components needed for graphical applications, such as fonts, icons, themes, but also *dri* devices such as the graphics card to ensure hardware accelerated rendering. Pretty much every switch described here will pull this in, so you probably don't need to use it.
 * `--qt` will include Qt5/6 files for running Qt applications
 * `--kde` if a superset of `--qt`, and provides KDE related configuration files to make sure Qt applications are themed like the system.
-* `--kf6` if a superset of `--kde`, and only applies if not using `--lib`. It pulls in KF6 and Kirigami libraries.
 * `--gtk` provides files needed for running gtk3/4 applications.
 * `--electron` provides files needed for running electron apps and chromium-based browsers. If running an electron app itself, you can additionally provide the `--electron-version` flag to pull a specific electron version, such as `electron28`.
 
@@ -103,7 +102,9 @@ However, if you would instead like to isolate the application from your home dir
 
 Once a profile has been generated for a specific application, simply add the `--make-desktop-entry` to the command and `sb` will generate an executable file of the command located at `$HOME/.local/bin`, and create a desktop file pointing to that script. Launching the application from your desktop environment, the program will automatically get sandboxed by `sb`. Additionally, you can continue making modifications to the profile by simplying editing the file in your `bin` folder. If your application does not have the same name as your desktop profile, you may need to pass the `--desktop-entry` flag to specify the application, such as `zed.desktop`
 
-Another feature of `sb` is that files that are passed, intended for the application, are automatically provided in the sandbox. This not only means that traditional command line arguments work, such as `chromium.desktop.sh https://duck.com`, but also means that you can pass files, such as `chromium.desktop.sh bookmarks.html`. Best of all, this automatically gets incorporated into the desktop file, so you can open any file that you application would usually support directly from your file explorer or other apps using something like `xdg-open`. By default, these files are exposed read-only, as they are passed directly rather than through a portal, but for applications that typically open things to edit them, such as text edtiors, you can pass `--file-passthrough-rw` to allow the application to make changes
+Another feature of `sb` is that files that are passed, intended for the application, are automatically provided in the sandbox. This not only means that traditional command line arguments work, such as `chromium.desktop.sh https://duck.com`, but also means that you can pass files, such as `chromium.desktop.sh bookmarks.html`. Best of all, this automatically gets incorporated into the desktop file, so you can open any file that you application would usually support directly from your file explorer or other apps using something like `xdg-open`. By default, these files are exposed read-only, as they are passed directly rather than through a portal, but for applications that typically open things to edit them, such as text editors, you can pass `--file-passthrough-rw` to allow the application to make changes
+
+If you run into issues with Read-Write passthrough, it may because of how your application handles writes. Because `bubblewrap` exposes these files via bind mounts, if your application does not write to the file directly, but instead makes a copy and then overwrites it, it will be unable to overwrite the mount, and fail. To solve this, use the `--file-enclave` option, which will copy the file to the sandbox, and then overwrite the contents when the application closes. However, be warned that if the program is terminated prematurely, or the computer suffers a power-outage or something similar, the file will not be updated!
 
 ## Debugging
 
@@ -120,15 +121,20 @@ With everything said, it may seem daunting to actually create a profile, especia
 ### Chromium
 
 ```bash
-sb chromium "$@" --portals Flatpak Desktop Notifications FileChooser --sockets wayland pipewire --kde --electron --app-dirs cache config etc share lib --rw $XDG_CONFIG_HOME/chromium-flags.conf --enable-namespaces --talk org.kde.kwalletd6 --own org.mpris.MediaPlayer2.chromium.instance2 --share net --devices /dev/video0 --binaries /usr/lib/chromium/chromium
+sb chromium "$@" --portals Flatpak Desktop Notifications FileChooser Camera --sockets wayland pipewire xorg --electron --app-dirs etc share lib --enable-namespaces --own org.mpris.MediaPlayer2.chromium.instance2 --binaries /usr/lib/chromium/chromium --home --share net --file-passthrough-rw --dry-startup --cached-home
 ```
 
-This profile runs `chromium` underneath Wayland, with Pipewire for sound, while passing through `kwallet` communication and a webcam at `/dev/video`. `--capabilities` is not particularly supported, so while it would probably be possible to get chromium to use the setuid sandbox, passing `--enable-namespaces` allows for the newer version of browser sandboxing to be used within the application sandbox. `--kde` is passed to get theming options passed to the browser, and `FileChooser` is allowed for Portal access for Downloading/Uploading. Because we aren't using `--lib`, we pass the main `chromium` executable at `/usr/lib/chromium/chromium` as a binary (It would've been included already at `--app-dirs lib`) so that dependencies can be correctly determined.
+This profile runs `chromium` underneath Wayland, with Pipewire for sound. Xorg passthrough is due to an issue with VA-API on AMD. `FileChooser` is allowed for Portal access for Downloading/Uploading. Because we aren't using `--lib`, we pass the main `chromium` executable at `/usr/lib/chromium/chromium` as a binary (It would've been included already at `--app-dirs lib`) so that dependencies can be correctly determined. 
+
+> [!tip]
+> To find busses the application uses, run `sb` with the `--verbose` flag.
+> Calls to the `dbus-proxy` will be written to console, so you can find
+> Calls to busses like `org.mpris.MediaPlayer2.chromium.instance2`!
 
 ### Obsidian
 
 ```bash
-sb obsidian "$@" --portals Documents Flatpak Desktop FileChooser --sockets wayland --kde --electron --electron-version 28 --app-dirs config lib --enable-namespaces --binaries bash grep
+sb obsidian "$@" --portals Documents Flatpak Desktop --sockets wayland pipewire --electron --electron-version 30 --app-dirs lib --enable-namespaces --binaries bash grep --home --share net
 ```
 
 Electron applications are similar to chromium itself, save the need for a specific electron version. This bundles the library and executable into the sandbox. Also, since my `/usr/bin/obsidian` isn't actually an executable, but a shell script, we need to include `bash` and `grep` to properly run it.
@@ -136,33 +142,29 @@ Electron applications are similar to chromium itself, save the need for a specif
 ### Okular
 
 ```bash
-sb okular "$@" --portals Flatpak Desktop FileChooser --sockets wayland --kf6 --app-dirs data share --rw $XDG_CONFIG_HOME/okularpartrc $XDG_CONFIG_HOME/okularrc --libraries /usr/lib/libOkular6Core.so{,.1,.1.0.0}
+sb okular "$@" --portals Flatpak Desktop FileChooser --sockets wayland --kde --app-dirs share --home --libraries "libOkular6Core*" "libpoppler-qt*" --own org.kde.okular-2 --file-passthrough-rw
 ```
 
-Qt applications can generally be run with the `--qt` flag, but missing KF6 and Kirigami can make them look ugly, hence the `--kf6` flag. Additionally, we need to pull in some configuration files, and also some libraries that *SOF* didn't catch.
+Qt applications can generally be run with the `--qt` flag, but missing KF6 and Kirigami can make them look ugly, hence the `--kde` flag. Additionally, we need to pull in some configuration files, and also some libraries that *SOF* didn't catch.
 
 ### Zed
 
 ```bash
-sb Zed "$@" --portals Documents Flatpak Desktop FileChooser --share net --rw $XDG_DATA_HOME/zed $XDG_CACHE_HOME/zed $XDG_CONFIG_HOME/zed --dri --file-passthrough-rw --sockets wayland --locale
+sb /usr/lib/zed/zed-editor "$@" --portals Documents Flatpak Desktop FileChooser --dri --home --sockets wayland --locale --file-passthrough-rw --devices /dev/null --dry-startup --hunspell --cached-home
 ```
 
-Despite being named *Zed*, all of its files are named in lowercase *zed*, which makes it incredibly frustrating that none of the `--app-dir` folders work on it. However, because this application uses neither Qt or GTK, we only pass `--dri`, and have to provide the application locale information, otherwise it crashed beacause `/usr/share/X11/locale` is missing. To make a desktop entry, since we need to use `--desktop-entry` for this case:
+Because this application uses neither Qt or GTK, we only pass `--dri`, and have to provide the application locale information, otherwise it crashed beacause `/usr/share/X11/locale` is missing. To make a desktop entry, since we need to use `--desktop-entry` for this case:
 
 ```bash
-sb Zed "$@" --portals Documents Flatpak Desktop FileChooser --share net --rw $XDG_DATA_HOME/zed $XDG_CACHE_HOME/zed $XDG_CONFIG_HOME/zed --dri --file-passthrough-rw --sockets wayland --locale --make-desktop-entry --desktop-entry zed.desktop
+sb /usr/lib/zed/zed-editor "$@" --portals Documents Flatpak Desktop FileChooser --dri --home --sockets wayland --locale --file-passthrough-rw --devices /dev/null --dry-startup --hunspell --cached-home --make-desktop-entry --desktop-entry dev.zed.Zed.desktop
 ```
 
-### QMMP
+This will create a `dev.zed.Zed.desktop.sb` in ~/.local/bin`
+
+### qBittorrent
 
 ```bash
-sb qmmp "$@" --portals Flatpak Desktop Notifications FileChooser --sockets wayland pipewire --kf6 --app-dirs share config data --ro /usr/lib/qmmp-2.1
+/usr/bin/sb qbittorrent "$@" --portals Documents Flatpak Desktop Notifications FileChooser --sockets wayland --kde --home --share net
 ```
 
-Finally, a simple configuration, only requiring a manual library update. Note that `--libraries` only takes *files*, so if you want to pass a folder, do so in the `--ro` argument. While this application isn't technically part of KF6, you can try just passing `--qt` or `--kde` instead, realize how awful it looks, and then change it back. However, since this profile is using *SOF*, the libraries will be cached, and you won't actually update the libraries. Here, we can just call it with `--update-libraries`:
-
-```bash
-sb qmmp "$@" --portals Flatpak Desktop Notifications FileChooser --sockets wayland pipewire --kf6 --app-dirs share config data --ro /usr/lib/qmmp-2.1 --update-libraries
-```
-
-And it will add the needed libraries to the sandbox. Note while this method can *add* libraries, it cannot *remove* them. If you're experimenting around, it's better to just delete the folder at `$XDG_DATA_HOME/sb/app` instead (Or just throw onto the tmpfs)
+Finally, a simple configuration. You could use `--qt`, but then `qbittorrent` wouldn't look very nice.
