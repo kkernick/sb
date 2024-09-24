@@ -108,6 +108,7 @@ def parse():
 
   parser.add_argument("--do-not-allow-file-passthrough", action="store_true", default=False, help="If the program is passed an argument to a file, do not expose this file to the sandbox.")
   parser.add_argument("--file-passthrough-rw", action="store_true", default=False, help="File passthrough is done with write privileges")
+  parser.add_argument("--file-enclave", action="store_true", default=False, help="Pass through files in a mediated enclave. This ensures that programs will have sufficient permission to read/write, but the real file will not be updated until the program closes.")
 
   parser.add_argument("--debug-shell", action="store_true", default=False, help="Launch a shell in the sandbox instead of the application")
   parser.add_argument("--strace", action="store_true", default=False, help="Launch the application underneath strace")
@@ -381,16 +382,19 @@ def run_application(application, application_path, application_folder, info_name
         path = Path(argument)
         if path.is_dir():
           share(command, [argument], mode = "bind-try" if args.file_passthrough_rw else "ro-bind-try")
-        elif path.is_file() and file_enclave is None:
-          file_enclave = TemporaryDirectory()
-          command.extend(["--bind", file_enclave.name, "/enclave"])
+        elif path.is_file():
+          if args.file_enclave:
+            if file_enclave is None: file_enclave = TemporaryDirectory()
+            command.extend(["--bind", file_enclave.name, "/enclave"])
+          else:
+            share(command, [argument], mode = "bind-try" if args.file_passthrough_rw else "ro-bind-try")
+            unknown.append(argument)
       else: unknown.append(argument)
 
   if args.debug_shell: command.append("sh")
   else:
     if args.strace: command.extend(["strace", "-fZ"])
     command.append(application_path)
-
 
   if file_enclave:
     for argument in args.unknown:
