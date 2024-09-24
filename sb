@@ -209,6 +209,9 @@ def parse():
   parser.add_argument("--startup", action="store_true", default=False, help="DO NOT USE.")
   parser.add_argument("--dry-startup", action="store_true", default=False, help="Tell the systemd startup script that this program should be run on start.")
 
+  # Be verbose in logging.
+   parser.add_argument("--proxy-delay", action="store", default=0.1, help="If the application launches too quickly, the dbus-proxy may not have sufficient time to initialize. Customize the delay period between launching the proxy, and launching the application.")
+
   args, unknown = parser.parse_known_args()
   args.unknown = unknown
   return args
@@ -295,7 +298,7 @@ def main(args):
   dbus_proxy(args.portals, application_folder, info.name, args)
 
   # We need to wait a slight amount of time for the Proxy to get up and running.
-  sleep(0.1)
+  sleep(args.proxy_delay)
 
   # Then, run the program.
   if args.verbose:
