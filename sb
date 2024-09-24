@@ -298,7 +298,7 @@ def main(args):
   dbus_proxy(args.portals, application_folder, info.name, args)
 
   # We need to wait a slight amount of time for the Proxy to get up and running.
-  sleep(args.proxy_delay)
+  sleep(float(args.proxy_delay))
 
   # Then, run the program.
   if args.verbose:
