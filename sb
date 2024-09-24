@@ -210,7 +210,7 @@ def parse():
   parser.add_argument("--dry-startup", action="store_true", default=False, help="Tell the systemd startup script that this program should be run on start.")
 
   # Be verbose in logging.
-   parser.add_argument("--proxy-delay", action="store", default=0.1, help="If the application launches too quickly, the dbus-proxy may not have sufficient time to initialize. Customize the delay period between launching the proxy, and launching the application.")
+  parser.add_argument("--proxy-delay", action="store", default=0.1, help="If the application launches too quickly, the dbus-proxy may not have sufficient time to initialize. Customize the delay period between launching the proxy, and launching the application.")
 
   args, unknown = parser.parse_known_args()
   args.unknown = unknown
