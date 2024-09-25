@@ -312,6 +312,10 @@ def output(command): return [out for out in run(command, stdout=PIPE).stdout.dec
 
 # Find libraries in /usr/lib with wildcard support.
 def find_libs(expression, depth=1, path="/usr/lib"):
+  if "/" in expression:
+    base = expression.rfind("/")
+    path += "/" + expression[:base]
+    expression = expression[base + 1:]
   libs = set(output([
     "find", path,
     "-maxdepth", str(depth), "-mindepth", str(1),
