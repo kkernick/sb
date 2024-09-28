@@ -21,6 +21,7 @@ home = environ["HOME"]
 searched = set()
 libraries = set()
 
+args = None
 
 def parse():
   """
@@ -212,12 +213,12 @@ def parse():
   # Be verbose in logging.
   parser.add_argument("--proxy-delay", action="store", default=0, help="If the application launches too quickly, the dbus-proxy may not have sufficient time to initialize. Customize the delay period between launching the proxy, and launching the application.")
 
-  args, unknown = parser.parse_known_args()
-  args.unknown = unknown
-  return args
+  arguments, unknown = parser.parse_known_args()
+  arguments.unknown = unknown
+  return arguments
 
 
-def desktop_entry(args):
+def desktop_entry():
   """
   @brief Make a desktop entry for the sandbox.
   """
@@ -258,11 +259,11 @@ def desktop_entry(args):
   return
 
 
-def main(args):
+def main():
   global libraries
 
   # If we are making a desktop entry, or on startup and it's not a startup app, do the action and return.
-  if args.make_desktop_entry: desktop_entry(args)
+  if args.make_desktop_entry: desktop_entry()
   if args.startup and not args.dry_startup: return
 
   # Get the basename of the program.
@@ -295,7 +296,7 @@ def main(args):
 
   # Setup the DBux Proxy. This is needed to mediate Dbus calls, and enable Portals.
   if args.verbose: print("Launching D-Bus Proxy")
-  dbus_proxy(args.portals, application_folder, info.name, args)
+  dbus_proxy(args.portals, application_folder, info.name)
 
   # We need to wait a slight amount of time for the Proxy to get up and running.
   sleep(float(args.proxy_delay))
@@ -303,11 +304,13 @@ def main(args):
   # Then, run the program.
   if args.verbose:
     print("Launching ", program, "at", path)
-  run_application(program, path, application_folder, info.name, temp.name, args)
+  run_application(program, path, application_folder, info.name, temp.name)
 
 
 # Run a command, put the results in a list.
-def output(command): return [out for out in run(command, stdout=PIPE).stdout.decode().split("\n") if out]
+def output(command):
+  if args.verbose: print("Running: ", " ".join(command))
+  return [out for out in run(command, stdout=PIPE).stdout.decode().split("\n") if out]
 
 
 # Find libraries in /usr/lib with wildcard support.
@@ -320,7 +323,7 @@ def find_libs(expression, depth=1, path="/usr/lib"):
     "find", path,
     "-maxdepth", str(depth), "-mindepth", str(1),
     "-type", "f,l",
-    "-name", f"{expression}.so*"
+    "-name", f"{expression}"
   ]))
   return libs
 
@@ -340,7 +343,10 @@ def get_libraries(to_load, libraries=set(), recursive_folders=False):
   # If its a directory, then either search if the user wants, or just be content having added itself to searched.
   if Path(to_load).is_dir():
     if recursive_folders:
-      libraries |= find_libs("*", depth=10, path=to_load[:-1])
+      libraries |= find_libs("*", depth=10, path=to_load)
+      print(libraries)
+    else:
+      libraries.add(to_load)
     return
 
   # If there's a wildcard, expand it.
@@ -367,7 +373,7 @@ def get_libraries(to_load, libraries=set(), recursive_folders=False):
   return
 
 
-def setup_lib(args, sof_dir, lib_cache, update_sof):
+def setup_lib(sof_dir, lib_cache, update_sof):
   """
   @brief Setup the library folder.
   @param args: The program arguments.
@@ -481,7 +487,7 @@ def share(command: list, paths: list, mode = "ro-bind-try"):
 
 
 # Run the DBUS Proxy.
-def dbus_proxy(portals, application_folder, info_name, args):
+def dbus_proxy(portals, application_folder, info_name):
   command = ["bwrap"]
   command.extend([
     "--new-session",
@@ -515,7 +521,7 @@ def dbus_proxy(portals, application_folder, info_name, args):
 
 
 # Run the application.
-def run_application(application, application_path, application_folder, info_name, temp, args):
+def run_application(application, application_path, application_folder, info_name, temp):
   command = ["bwrap", "--new-session", "--die-with-parent"]
   sof_dir =  Path("/tmp", "sb", application)
   local_dir =  Path(data, "sb", application)
@@ -550,7 +556,7 @@ def run_application(application, application_path, application_folder, info_name
   command.extend(["--tmpfs", temp])
 
   # Get the cached portion of the command.
-  command.extend(gen_command(application, application_path, application_folder, args))
+  command.extend(gen_command(application, application_path, application_folder))
 
   # Handle unknown arguments. If they're files, deal with them, otherwise
   enclave_contents = {}
@@ -575,7 +581,7 @@ def run_application(application, application_path, application_folder, info_name
   # Either launch the debug shell, run under strace, or run the command accordingly.
   if args.debug_shell: command.append("sh")
   else:
-    if args.strace: command.extend(["strace", "-fZ"])
+    if args.strace: command.extend(["strace", "-f"])
     command.append(application_path)
 
   # Now, we tack on all the unknown arguments.
@@ -610,7 +616,7 @@ def run_application(application, application_path, application_folder, info_name
 
 
 # Generate the cacheable part of the command.
-def gen_command(application, application_path, application_folder, args):
+def gen_command(application, application_path, application_folder):
   global libraries, searched
 
   # Get all our locations.
@@ -852,11 +858,13 @@ def gen_command(application, application_path, application_folder, args):
     if "--unshare-all" in command:
       command.append("--share-net")
     share(command, [
-      "/etc/gai.conf", "/etc/hosts.conf", "/etc/hosts", "/etc/nsswitch.conf", "/etc/resolv.conf", "/etc/gnutls/config",
+      "/etc/gai.conf", "/etc/hosts.conf", "/etc/hosts", "/etc/host.conf", "/etc/nsswitch.conf", "/etc/resolv.conf", "/etc/gnutls/config",
       "/etc/ca-certificates", "/usr/share/ca-certificates/",
       "/etc/pki", "/usr/share/pki",
       "/etc/ssl", "/usr/share/ssl",
     ])
+    if update_sof:
+      libraries |= find_libs("libnss*")
 
   # Add variables
   for variable in args.env:
@@ -872,8 +880,10 @@ def gen_command(application, application_path, application_folder, args):
   # Add binaries.
   if args.bin:
     if args.verbose: print("Adding binaries...")
-    command.extend(["--ro-bind-try", "/usr/bin", "/bin",])
-    share(command, ["/usr/bin"])
+    command.extend(["--ro-bind-try", "/usr/bin", "/usr/bin"])
+    command.extend(["--ro-bind-try", "/bin", "/bin",])
+    command.extend(["--ro-bind-try", "/sbin", "/sbin",])
+    command.extend(["--ro-bind-try", "/usr/sbin", "/usr/sbin",])
   else:
     if args.verbose: print("Generating binaries...")
     binaries = args.binaries
@@ -899,7 +909,7 @@ def gen_command(application, application_path, application_folder, args):
 
   # If we aren't just passing through /lib, setup our SOF.
   if not args.lib:
-    setup_lib(args, sof_dir, lib_cache, update_sof)
+    setup_lib(sof_dir, lib_cache, update_sof)
     command.extend(["--bind", f"{str(sof_dir)}/usr/lib", "/usr/lib"])
 
   # Setup application directories.
@@ -923,4 +933,6 @@ def gen_command(application, application_path, application_folder, args):
   return command
 
 
-if __name__ == "__main__": main(parse())
+if __name__ == "__main__":
+  args = parse()
+  main()
