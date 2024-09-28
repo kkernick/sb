@@ -159,6 +159,11 @@ def parse():
   parser.add_argument("--home", action="store_true", default=False, help="Create a permanent home directory for the application at $XDG_DATA_HOME/sb/application")
   parser.add_argument("--cached-home", action="store_true", default=False, help="Copy the SOF home into the application's temporary RAM folder. Modifications to the home will not persist, but will be isolated from instances and faster. Applications that use profile locks, like Chrome, can run multiple instances at once.")
 
+
+  # In order to maintain backward compatability, --cache simply avoids the creation of a temporary folder. It uses the same
+  # location as --home.
+  parser.add_argument("--cache", action="store_true", default=False, help="Give the application a permanent .cache folder, rather than generating a tmpfs on a per-session basis. Requires --home")
+
   # How the Sandbox should handle file arguments.
   # By default, any file argument passed to the command (IE application.sb ~/myfile) will be read-only bind mounted into the
   # sandbox, so that the application can read it.
@@ -550,7 +555,8 @@ def run_application(application, application_path, application_folder, info_name
       command.extend(["--bind", cache_home.name, "/home"])
     else:
       command.extend(["--bind", str(home_dir), "/home"])
-      command.extend(["--bind", temp, f"{home}/.cache"])
+
+  if not args.cache: command.extend(["--bind", temp, f"{home}/.cache"])
 
   # Add the tmpfs.
   command.extend(["--tmpfs", temp])
