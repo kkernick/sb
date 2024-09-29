@@ -328,6 +328,7 @@ def find_libs(expression, depth=1, path="/usr/lib"):
     "find", path,
     "-maxdepth", str(depth), "-mindepth", str(1),
     "-type", "f,l",
+    "-executable",
     "-name", f"{expression}"
   ]))
   return libs
