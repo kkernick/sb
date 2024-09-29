@@ -350,7 +350,6 @@ def get_libraries(to_load, libraries=set(), recursive_folders=False):
   if Path(to_load).is_dir():
     if recursive_folders:
       libraries |= find_libs("*", depth=10, path=to_load)
-      print(libraries)
     else:
       libraries.add(to_load)
     return
