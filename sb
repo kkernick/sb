@@ -314,7 +314,6 @@ def main():
 
 # Run a command, put the results in a list.
 def output(command):
-  if args.verbose: print("Running: ", " ".join(command))
   return [out for out in run(command, stdout=PIPE).stdout.decode().split("\n") if out]
 
 
@@ -737,7 +736,7 @@ def gen_command(application, application_path, application_folder):
     if args.verbose: print("Adding QT...")
     share(command, ["/usr/share/qt6", "/usr/share/qt6"])
     if update_sof:
-      libraries |= {"/usr/lib/qt6/", "/usr/lib/qt5/", "/usr/lib/qt/"}
+      libraries |= {"/usr/lib/qt6/"}
       libraries |= find_libs("libQt*")
     args.dri = True
 
