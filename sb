@@ -42,9 +42,6 @@ def parse():
     "--portals",
     action="extend",
     nargs="*",
-    choices=[
-      "Documents", "Flatpak", "Desktop", "Notifications", "FileChooser", "ScreenCast", "Camera"
-    ],
     default=["Flatpak"],
     help="A list of XDG Portals to expose to the application",
   )
