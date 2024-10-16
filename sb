@@ -135,6 +135,8 @@ def parse():
 
   # Share QT libraries and configurations.
   parser.add_argument("--qt", action="store_true", default=False, help="Give the application access to QT libraries (Implies --dri)")
+  parser.add_argument("--qt5", action="store_true", default=False, help="Give legacy qt5 access (Implies --qt)")
+
 
   # Ensure Electron applications are supported. Will share user-namespaces, proc, and --dri + --gtk.
   parser.add_argument("--electron", action="store_true", default=False, help="Give the application access to electron libraries (Implies --dri, --gtk)")
@@ -732,12 +734,14 @@ def gen_command(application, application_path, application_folder):
     args.qt = True
 
   # Add QT
-  if args.qt:
+  if args.qt or args.qt5:
     if args.verbose: print("Adding QT...")
-    share(command, ["/usr/share/qt6", "/usr/share/qt6"])
+    share(command, ["/usr/share/qt6"])
+    if args.qt5: share(command, ["/usr/share/qt5"])
     if update_sof:
       libraries |= {"/usr/lib/qt6/"}
       libraries |= find_libs("libQt*")
+      if args.qt5: libraries |= {"/usr/lib/qt5/", "/usr/lib/qt/"}
     args.dri = True
 
   # Add GTK
