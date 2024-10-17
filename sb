@@ -604,8 +604,10 @@ def run_application(application, application_path, application_folder, info_name
             # Get the line with electron, and split the "electron asar" pair.
             if "electron" in line:
               split = line.split()
-              if split[0] == "exec": split = split[1:]
-              application = split[:2]
+              for x in range(len(split)):
+                if "electron" in split[x]:
+                  application = split[x:]
+                  break
       except UnicodeDecodeError: pass
       command.extend(application)
     else: command.append(application_path)
