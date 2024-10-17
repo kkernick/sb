@@ -1,6 +1,6 @@
 pkgbase = sb-git
 	pkgdesc = Sandbox Applications
-	pkgver = r75.719f7e2
+	pkgver = r76.1207153
 	pkgrel = 1
 	arch = any
 	depends = python
@@ -10,6 +10,7 @@ pkgbase = sb-git
 	depends = xdg-dbus-proxy
 	depends = bubblewrap
 	depends = strace
+	depends = zypak
 	provides = sb
 	source = git+https://github.com/kkernick/sb.git
 	sha256sums = SKIP

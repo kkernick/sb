@@ -183,6 +183,8 @@ def parse():
   # Run the program in the sandbox under strace to debug missing files.
   parser.add_argument("--strace", action="store_true", default=False, help="Launch the application underneath strace")
 
+  parser.add_argument("--zypak", action="store_true", default=False, help="Launch the application underneath zypak")
+
   # Use the real hostname of the computer.
   parser.add_argument("--real-hostname", action="store_true", default=False, help="Give the application the hostname")
 
@@ -399,7 +401,6 @@ def setup_lib(sof_dir, lib_cache, update_sof):
       # Run this however many times it takes before all dependencies are found.
       unsearched = libraries - searched
       while unsearched:
-        if args.verbose: print("Unresolved Libraries:", unsearched)
         for lib in unsearched:
           get_libraries(lib, libraries, recursive_folders=args.recursive_libraries)
         unsearched = libraries - searched
@@ -585,8 +586,29 @@ def run_application(application, application_path, application_folder, info_name
   # Either launch the debug shell, run under strace, or run the command accordingly.
   if args.debug_shell: command.append("sh")
   else:
-    if args.strace: command.extend(["strace", "-f"])
-    command.append(application_path)
+    if args.strace: command.extend(["strace", "-ff"])
+
+    # Zypak must be run on the direct binary, so if we're passed
+    # a shell script, parse it
+    if args.zypak:
+      command.extend(["zypak-wrapper"])
+
+      binary = output(["which", application_path])[0]
+      application = [application_path]
+
+      # If we get an exception, it's a binary.
+      try:
+        with open(binary) as file:
+          content = file.readlines()
+          for line in content:
+            # Get the line with electron, and split the "electron asar" pair.
+            if "electron" in line:
+              split = line.split()
+              if split[0] == "exec": split = split[1:]
+              application = split[:2]
+      except UnicodeDecodeError: pass
+      command.extend(application)
+    else: command.append(application_path)
 
   # Now, we tack on all the unknown arguments.
   for argument in args.unknown:
@@ -609,7 +631,7 @@ def run_application(application, application_path, application_folder, info_name
 
   # So long as we aren't dry-running, run the program.
   if not args.dry:
-    if args.verbose: print(" ".join(command))
+    if args.verbose: print("Command:", " ".join(command))
     run(command)
 
   # If we have RW acess, and there's things in the enclave, update the source.
@@ -680,6 +702,18 @@ def gen_command(application, application_path, application_folder):
     "--symlink", "/usr/lib", "/lib64",
     "--symlink", "/usr/lib", "/usr/lib64",
   ])
+
+
+  if args.zypak:
+    args.binaries.extend([
+      "zypak-helper",
+      "zypak-sandbox",
+      "zypak-wrapper",
+      "zypak-wrapper.sh",
+      "bash", "realpath", "dirname"
+    ])
+    if update_sof: libraries |= find_libs("libzypak*")
+    args.enable_namespaces = True
 
   # Add python, if needed.
   if args.python:
@@ -809,6 +843,7 @@ def gen_command(application, application_path, application_folder):
         ]:
           libraries |= find_libs(lib)
       libraries |= find_libs("*", path="/usr/lib/dri")
+      libraries |= find_libs("*", path="/usr/lib/gbm")
 
   # Add the wayland socket and XKB
   if "wayland" in args.sockets:
