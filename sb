@@ -322,13 +322,13 @@ def find_libs(expression, depth=1, path="/usr/lib"):
     base = expression.rfind("/")
     path += "/" + expression[:base]
     expression = expression[base + 1:]
-  libs = set(output([
-    "find", path,
+  command = [
+    "find", f"{path}/",
     "-maxdepth", str(depth), "-mindepth", str(1),
-    "-type", "f,l,d",
     "-executable",
-    "-name", f"{expression}"
-  ]))
+    "-name", f'{expression}'
+  ]
+  libs = set(output(command))
   return libs
 
 
@@ -704,11 +704,20 @@ def gen_command(application, application_path, application_folder):
 
     if args.electron_version:
       # Extend existing args so they can be handled.
+      if args.electron_version == "stable":
+        electron_string = f"electron{environ["ELECTRON_VERSION"]}"
+      else:
+        electron_string = f"electron{args.electron_version}"
+
       args.binaries.extend([
-        f"/usr/lib/electron{args.electron_version}/electron",
-        f"/usr/bin/electron{args.electron_version}",
+        f"/usr/lib/{electron_string}/electron",
+        f"/usr/bin/{electron_string}",
+
       ])
-      args.ro.append(f"/usr/lib/electron{args.electron_version}")
+      args.ro.append(f"/usr/lib/{electron_string}")
+
+      if update_sof:
+        libraries |= find_libs("*", path=f"/usr/lib/{electron_string}")
 
     # Enable needed features.
     args.dri = True
