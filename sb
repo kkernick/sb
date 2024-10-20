@@ -185,6 +185,16 @@ def parse():
 
   parser.add_argument("--zypak", action="store_true", default=False, help="Launch the application underneath zypak")
 
+  parser.add_argument(
+    "--caps",
+    action="extend",
+    nargs="*",
+    default=[],
+    help="A list of capabilities to permit in the sandbox; ALL can be used to allow all.",
+  )
+
+  parser.add_argument("--xdg-open", action="store_true", default=False, help="Give the application xdg-open to launch default applications")
+
   # Use the real hostname of the computer.
   parser.add_argument("--real-hostname", action="store_true", default=False, help="Give the application the hostname")
 
@@ -518,6 +528,8 @@ def dbus_proxy(portals, application_folder, info_name):
   command.extend([f'--talk={portal}' for portal in args.talk])
   command.extend([f'--own={portal}' for portal in args.own])
 
+  if args.xdg_open: command.extend(["--talk=org.freedesktop.portal.OpenURI"])
+
   if args.verbose:
     print(" ".join(command))
     command.extend(["--log"])
@@ -705,6 +717,12 @@ def gen_command(application, application_path, application_folder):
     "--symlink", "/usr/lib", "/usr/lib64",
   ])
 
+
+  # Add capabilities.
+  for cap in args.caps: command.extend(["--cap-add", cap])
+
+  if args.xdg_open:
+    args.binaries.extend(["xdg-open", "sh", "cat", "grep", "gdbus"])
 
   if args.zypak:
     args.binaries.extend([
