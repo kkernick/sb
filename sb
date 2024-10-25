@@ -204,6 +204,8 @@ def parse():
   # Passthrough spellchecking via hunspell.
   parser.add_argument("--hunspell", action="store_true", default=False, help="Give the application dictionaries")
 
+  parser.add_argument("--git", action="store_true", default=False, help="Give the application git")
+
   # Make a desktop entry for this sandboxed application.
   parser.add_argument("--make-desktop-entry", action="store_true", default=False, help="Create a desktop entry for the application.")
 
@@ -690,10 +692,6 @@ def gen_command(application, application_path, application_folder):
         if args.verbose: print("Using cached command")
         return info[1].split(" ")
 
-  # If we're updating the SOF, generate all the libraries needed based on those that were explicitly provided.
-  if update_sof:
-    for library in args.libraries:
-      get_libraries(library, libraries, recursive_folders=args.recursive_libraries)
 
   # Get the basic stuff.
   if args.verbose: print("Setting up...")
@@ -744,6 +742,16 @@ def gen_command(application, application_path, application_folder):
         f"lib{version}.so",
         f"/usr/lib/{version}/"
       }
+
+  # Git
+  if args.git:
+    share(command, ["/dev/null"], "dev-bind")
+    args.binaries.extend([
+      "git", "git-cvsserver", "git-receive-pack", "git-shell",
+      "git-upload-archive", "git-upload-pack", "gitk", "scalar"
+    ])
+    args.libraries.append("/usr/lib/git-core/")
+    share(command, ["/usr/share/git/"])
 
   # Add electron
   if args.electron:
@@ -815,12 +823,14 @@ def gen_command(application, application_path, application_folder):
       "/usr/share/gtk-4.0",
       "/usr/share/gtk",
       "/usr/share/glib-2.0",
+      "/etc/xdg/gtk-3.0/",
     ])
     command.extend(["--setenv", "GTK_USE_PORTAL", "1"])
     if update_sof:
       libraries |= find_libs("libgtk*")
       libraries |= find_libs("libgdk*")
       libraries |= find_libs("libgio*")
+      libraries = {"/usr/lib/gdk-pixbuf-2.0/", "/usr/lib/gtk-3.0"}
     args.dri = True
 
 
@@ -978,6 +988,11 @@ def gen_command(application, application_path, application_folder):
 
 
   # If we aren't just passing through /lib, setup our SOF.
+  if update_sof:
+    for library in args.libraries:
+      get_libraries(library, libraries, recursive_folders=args.recursive_libraries)
+
+  # If we're updating the SOF, generate all the libraries needed based on those that were explicitly provided.
   if not args.lib:
     setup_lib(sof_dir, lib_cache, update_sof)
     command.extend(["--bind", f"{str(sof_dir)}/usr/lib", "/usr/lib"])
