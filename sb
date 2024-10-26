@@ -206,9 +206,6 @@ def parse():
 
   parser.add_argument("--git", action="store_true", default=False, help="Give the application git")
 
-  parser.add_argument("--disable-root-info", action="store_true", default=False, help="Do not put a copy of .flatpak-info in the root")
-
-
   # Make a desktop entry for this sandboxed application.
   parser.add_argument("--make-desktop-entry", action="store_true", default=False, help="Create a desktop entry for the application.")
 
@@ -559,7 +556,7 @@ def run_application(application, application_path, application_folder, info_name
 
   # Add the flatpak-info.
   command.extend(["--ro-bind-try", info_name, f"{runtime}/flatpak-info"])
-  if not args.disable_root_info: command.extend(["--ro-bind-try", info_name, "/.flatpak-info"])
+  command.extend(["--ro-bind-try", info_name, "/.flatpak-info"])
 
   # If we have a home directory, add it.
   if args.home:
