@@ -206,6 +206,9 @@ def parse():
 
   parser.add_argument("--git", action="store_true", default=False, help="Give the application git")
 
+  parser.add_argument("--disable-root-info", action="store_true", default=False, help="Do not put a copy of .flatpak-info in the root")
+
+
   # Make a desktop entry for this sandboxed application.
   parser.add_argument("--make-desktop-entry", action="store_true", default=False, help="Create a desktop entry for the application.")
 
@@ -361,7 +364,11 @@ def get_libraries(to_load, libraries=set(), recursive_folders=False):
   # If its a directory, then either search if the user wants, or just be content having added itself to searched.
   if Path(to_load).is_dir():
     if recursive_folders:
-      libraries |= find_libs("*", depth=10, path=to_load)
+      new = find_libs("*", depth=10, path=to_load)
+      if args.verbose:
+        for lib in new:
+          if not lib.startswith(to_load): print(to_load, ": ", lib)
+      libraries |= new
     else:
       libraries.add(to_load)
     return
@@ -551,10 +558,8 @@ def run_application(application, application_path, application_folder, info_name
   cmd_cache = Path(local_dir, "cmd.cache")
 
   # Add the flatpak-info.
-  command.extend([
-    "--ro-bind-try", info_name, "/.flatpak-info",
-    "--ro-bind-try", info_name, f"{runtime}/flatpak-info"
-  ])
+  command.extend(["--ro-bind-try", info_name, f"{runtime}/flatpak-info"])
+  if not args.disable_root_info: command.extend(["--ro-bind-try", info_name, "/.flatpak-info"])
 
   # If we have a home directory, add it.
   if args.home:
@@ -759,7 +764,10 @@ def gen_command(application, application_path, application_folder):
 
     # NSS junk
     if update_sof:
-      libraries |= {"/usr/lib/libsoftokn3.so", "/usr/lib/libfreeblpriv3.so", "/usr/lib/libsensors.so.5", "/usr/lib/libnssckbi.so"}
+      libraries |= find_libs("libsoftokn3*")
+      libraries |= find_libs("libfreeblpriv3*")
+      libraries |= find_libs("libsensors*")
+      libraries |= find_libs("libnssckbi*")
 
     share(command, ["/sys/block", "/sys/dev"])
     share(command, ["/dev/null", "/dev/urandom", "/dev/shm"], "dev-bind")
@@ -791,7 +799,17 @@ def gen_command(application, application_path, application_folder):
   # Add KDE
   if args.kde:
     if args.verbose: print("Adding KDE...")
-    share(command, [f"{config}/kdedefaults", f"{config}/breezerc", f"{config}/kcminputrc", f"{config}/kdeglobals", f"{config}/kwinrc", f"{config}/xmlgui5", f"{config}/Trolltech.conf", f"/etc/xdg/{application}rc"])
+    share(command, [
+      f"{config}/kdedefaults",
+      f"{config}/breezerc",
+      f"{config}/kcminputrc",
+      f"{config}/kdeglobals",
+      f"{config}/kwinrc",
+      f"{config}/kxmlgui5",
+      f"{config}/Trolltech.conf",
+      f"/etc/xdg/{application}rc",
+      f"{config}/kde.org",
+    ])
 
     if update_sof:
       libraries |= find_libs("libKF*")
@@ -830,7 +848,7 @@ def gen_command(application, application_path, application_folder):
       libraries |= find_libs("libgtk*")
       libraries |= find_libs("libgdk*")
       libraries |= find_libs("libgio*")
-      libraries = {"/usr/lib/gdk-pixbuf-2.0/", "/usr/lib/gtk-3.0"}
+      libraries |= {"/usr/lib/gdk-pixbuf-2.0/", "/usr/lib/gtk-3.0"}
     args.dri = True
 
 
@@ -859,10 +877,12 @@ def gen_command(application, application_path, application_folder):
       "/sys/dev",
     ])
     share(command, [
-        "/usr/share/fontconfig", "/usr/share/fonts", "/etc/fonts", f"{home}/.fonts",
+        "/usr/share/fontconfig", "/usr/share/fonts", "/etc/fonts",
+        f"{home}/.fonts",
         f"{config}/fontconfig", f"{data}/fontconfig", f"{cache}/fontconfig"
         "/usr/share/themes", "/usr/share/color-schemes", "/usr/share/icons", "/usr/share/cursors", "/usr/share/pixmaps",
-        "/usr/share/mime", f"{data}/mime",
+        "/usr/share/mime",
+        f"{data}/mime",
         f"{data}/pixmaps",
       ])
     if "XDG_SESSION_DESKTOP" in environ: command.extend(["--setenv", "XDG_SESSION_DESKTOP", environ["XDG_SESSION_DESKTOP"]])
