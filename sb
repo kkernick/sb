@@ -19,6 +19,8 @@ home = environ["HOME"]
 # Used for library dependency lookup. Libraries will contain all the needed libraries,
 # Searched will contain libraries that have already been searched.
 searched = set()
+searched.add("")
+
 libraries = set()
 
 args = None
@@ -360,7 +362,6 @@ def get_libraries(to_load, libraries=set()):
   # If the binary/library has already been searched, just return, otherwise add it.
   if to_load in searched or to_load == "": return
   searched.add(to_load)
-  print(to_load)
 
   # If its a directory, then either search if the user wants, or just be content having added itself to searched.
   if Path(to_load).is_dir():
