@@ -824,7 +824,7 @@ def gen_command(application, application_path, application_folder):
     args.dri = True
     args.qt = True
 
-    command.extend(["--setenv", "QT_QPA_PLATFORMTHEME", "kde"])
+    #command.extend(["--setenv", "QT_QPA_PLATFORMTHEME", "kde"])
 
   # Add QT
   if args.qt or args.qt5:
