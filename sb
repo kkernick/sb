@@ -85,13 +85,11 @@ def parse():
   # --libraries allows you to explicitly specify needed libraries, often useful when using an interpreted program like Python.
   # You can either explicitly list the path (IE /usr/lib/mylib.so), just provide the library name (IE mylib.so), or use a wildcard
   # for matching multiply versions (IE mylib* -> mylib.so, mylib.so.0)
-  # --recursive-libraries is provided mostly for QT, because the /usr/lib/qt folder is massive, and SB defaults to just mounting
   # the folder rather than determining required libraries from within it. Unfortunately, some applications, such as QMMP, don't
   # appreciate this, because other libraries were missing. --recursive-libraries will perform the library lookup on the folder, and
   # any folder within /lib, but it will be slow to generate the command and library cache.
   parser.add_argument("--lib", action="store_true", default=False, help="Mount /lib and others")
   parser.add_argument("--libraries", action="extend", nargs="*", default=[], help="A list of libraries needed in the sandbox")
-  parser.add_argument("--recursive-libraries", action="store_true", default=False, help="Recursively search library folders to determine dependencies (Expensive)")
 
   # Passthrough environment variables using ENV=VALUE.
   parser.add_argument("--env", action="extend", nargs="*", default=[], help="ENV=VALUE pairs to pass to the sandbox.")
@@ -215,6 +213,9 @@ def parse():
 
   # Force the program to recalculate library dependencies, overwriting the library and command cache.
   parser.add_argument("--update-libraries", action="store_true", default=False, help="Update SOF libraries")
+
+  parser.add_argument("--update-library-cache", action="store_true", default=False, help="Update SOF libraries")
+
 
   # Be verbose in logging.
   parser.add_argument("--verbose", action="store_true", default=False, help="Verbose logging")
@@ -346,7 +347,7 @@ def find_libs(expression, depth=1, path="/usr/lib"):
   return libs
 
 
-def get_libraries(to_load, libraries=set(), recursive_folders=False):
+def get_libraries(to_load, libraries=set()):
   """
   @brief Get the needed libraries for a binary.
   @param to_load: The binary or library
@@ -354,20 +355,26 @@ def get_libraries(to_load, libraries=set(), recursive_folders=False):
   @param recursive_folders: Whether to search folders.
   """
 
+  global searched
+
   # If the binary/library has already been searched, just return, otherwise add it.
-  if to_load in searched: return
+  if to_load in searched or to_load == "": return
   searched.add(to_load)
+  print(to_load)
 
   # If its a directory, then either search if the user wants, or just be content having added itself to searched.
   if Path(to_load).is_dir():
-    if recursive_folders:
-      new = find_libs("*", depth=10, path=to_load)
-      if args.verbose:
-        for lib in new:
-          if not lib.startswith(to_load): print(to_load, ": ", lib)
-      libraries |= new
-    else:
-      libraries.add(to_load)
+    name = Path(to_load).name
+    cache = Path(data, "sb", "cache")
+    cache.mkdir(parents=True, exist_ok=True)
+    dir_cache = cache / (name + ".cache")
+
+    if not dir_cache.is_file() or args.update_library_cache:
+      run(["sb-cache", str(to_load), str(dir_cache)])
+
+    libs = set(dir_cache.open("r").read().splitlines())
+    libraries |= libs
+    libraries.add(to_load)
     return
 
   # If there's a wildcard, expand it.
@@ -390,7 +397,7 @@ def get_libraries(to_load, libraries=set(), recursive_folders=False):
       if lib.startswith("/lib"): lib = lib[4:]
 
     # If we have a library, check it as well.
-    if lib is not None: get_libraries(lib, libraries, recursive_folders)
+    if lib is not None: get_libraries(lib, libraries)
   return
 
 
@@ -418,7 +425,7 @@ def setup_lib(sof_dir, lib_cache, update_sof):
       unsearched = libraries - searched
       while unsearched:
         for lib in unsearched:
-          get_libraries(lib, libraries, recursive_folders=args.recursive_libraries)
+          get_libraries(lib, libraries)
         unsearched = libraries - searched
 
     # When updating, we need to overwrite the lib_cache.
@@ -1003,13 +1010,13 @@ def gen_command(application, application_path, application_folder):
           "--ro-bind-try", path, f"/usr/bin/{binary}",
         ])
       if update_sof:
-        get_libraries(path, libraries, args.recursive_libraries)
+        get_libraries(path, libraries)
 
 
   # If we aren't just passing through /lib, setup our SOF.
   if update_sof:
     for library in args.libraries:
-      get_libraries(library, libraries, recursive_folders=args.recursive_libraries)
+      get_libraries(library, libraries)
 
   # If we're updating the SOF, generate all the libraries needed based on those that were explicitly provided.
   if not args.lib:

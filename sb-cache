@@ -1,0 +1,9 @@
+#!/bin/bash
+DIR=$1
+BASE=$(basename $DIR)
+
+OUT=$2
+
+for exec in $(find $DIR -executable); do ldd $exec >> /tmp/$BASE.txt; done
+cat /tmp/$BASE.txt | grep "/usr/lib/[^${BASE}]" | awk '{print $3}' | sort -u >> $OUT
+rm /tmp/$BASE.txt
