@@ -163,6 +163,8 @@ def parse():
   # location as --home.
   parser.add_argument("--cache", action="store_true", default=False, help="Give the application a permanent .cache folder, rather than generating a tmpfs on a per-session basis. Requires --home")
 
+  parser.add_argument("--share-cache", action="store_true", default=False, help="Give the application to the non-sandboxed .cache folder in the home directory.")
+
   # How the Sandbox should handle file arguments.
   # By default, any file argument passed to the command (IE application.sb ~/myfile) will be read-only bind mounted into the
   # sandbox, so that the application can read it.
@@ -579,7 +581,9 @@ def run_application(application, application_path, application_folder, info_name
     else:
       command.extend(["--bind", str(home_dir), "/home"])
 
-  if not args.cache: command.extend(["--bind", temp, f"{home}/.cache"])
+  if not args.cache:
+    if args.share_cache: command.extend(["--bind", f"{home}/.cache", f"{home}/.cache"])
+    else: command.extend(["--bind", temp, f"{home}/.cache"])
 
   # Add the tmpfs.
   command.extend(["--tmpfs", temp])
