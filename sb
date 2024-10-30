@@ -1,8 +1,8 @@
 #!/bin/python
 
 from argparse import ArgumentParser
-from subprocess import run, Popen, PIPE, check_output
-from os import environ, fork
+from subprocess import run, Popen, PIPE
+from os import environ
 from time import sleep
 from pathlib import Path
 from tempfile import TemporaryDirectory, NamedTemporaryFile
@@ -153,6 +153,7 @@ def parse():
   # ZSH
   parser.add_argument("--zsh", action="store_true", default=False, help="Give the application the ZSH shell.")
 
+  parser.add_argument("--include", action="store_true", default=False, help="Give the application include headers, for clangd and other development tools")
 
   # Home related settings.
   # --home will create a home directory for the application. This lets configuration persist, but keeps it separate from your
@@ -775,10 +776,18 @@ def gen_command(application, application_path, application_folder):
 
 
   if args.zsh:
-    args.ro.extend(["/etc/shells", "/usr/share/zsh/", "/etc/zsh/"])
+    args.ro.extend(["/etc/shells", "/usr/share/zsh/", "/etc/zsh/", "/etc/profile"])
     args.binaries.extend(["zsh"])
     libraries |= {"/usr/lib/zsh/"}
     args.dev = True
+
+
+  if args.include:
+    args.ro.extend([
+      "/usr/include",
+      "/usr/local/include"
+    ])
+    libraries |= {"/usr/lib/clang", "/usr/lib/gcc"}
 
   # Add electron
   if args.electron:
