@@ -1,7 +1,8 @@
 #!/bin/bash
 
+rm $XDG_DATA_HOME/sb/cache/*
 for profile in $(ls $HOME/.local/bin/*.sb); do
   $profile --dry --update-libraries &
 done
 wait
-rm -fr /tmp/sb
+rm -r /tmp/sb
