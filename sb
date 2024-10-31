@@ -378,11 +378,10 @@ def get_libraries(to_load, libraries=set()):
     sub = to_load.replace("/", ".")
     if not sub.endswith("."): sub += "."
     sub += "cache"
-     
+
     dir_cache = cache / sub
 
     if not dir_cache.is_file() or args.update_library_cache:
-      print(to_load)
       local_libraries = output(["sb-cache", str(to_load)])
       if local_libraries:
         with dir_cache.open("w") as file:
