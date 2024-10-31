@@ -1,6 +1,6 @@
 #!/bin/bash
 
-rm $XDG_DATA_HOME/sb/cache/*
+find $XDG_DATA_HOME/sb/cache/ -type f -delete
 for profile in $(ls $HOME/.local/bin/*.sb); do
   $profile --dry --update-libraries &
 done
