@@ -2,9 +2,6 @@
 DIR=$1
 BASE=$(basename $DIR)
 
-OUT=$2
-
-echo "Generating cache for ${DIR} to ${OUT}"
-for exec in $(find $DIR -executable -type f); do ldd $exec >> /tmp/$BASE.txt; done
-cat /tmp/$BASE.txt | grep -v "/usr/lib/${BASE}" | awk '{print $3}' | sort -u >> $OUT
+for exec in $(find $DIR -executable -type f); do ldd $exec >> /tmp/$BASE.txt 2> /dev/null; done
+cat /tmp/$BASE.txt | grep -v "/usr/lib/${BASE}" | awk '{print $3}' | sort -u
 rm /tmp/$BASE.txt

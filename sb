@@ -378,11 +378,18 @@ def get_libraries(to_load, libraries=set()):
     dir_cache = cache / (name + ".cache")
 
     if not dir_cache.is_file() or args.update_library_cache:
-      run(["sb-cache", str(to_load), str(dir_cache)])
+      local_libraries = output(["sb-cache", str(to_load)])
+      if local_libraries:
+        with dir_cache.open("w") as file:
+          for library in local_libraries[:-1]:
+            if library != "" and library != "not":
+              file.write(f"{library} ")
+          file.write(local_libraries[-1])
 
-    libs = set(dir_cache.open("r").read().splitlines())
-    libraries |= libs
-    libraries.add(to_load)
+    if dir_cache.is_file():
+      libs = set(dir_cache.open("r").readline().strip().split(" "))
+      libraries |= libs
+      libraries.add(to_load)
     return
 
   # If there's a wildcard, expand it.
