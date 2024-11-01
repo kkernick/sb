@@ -1,6 +1,7 @@
 #!/bin/python
 
-from argparse import ArgumentParser
+
+
 from subprocess import run, Popen, PIPE
 from os import environ
 from time import sleep
@@ -9,6 +10,7 @@ from tempfile import TemporaryDirectory, NamedTemporaryFile
 from sys import argv
 from hashlib import new
 
+import arguments
 import re
 
 # Get the XDG directories.
@@ -25,227 +27,7 @@ searched.add("")
 
 libraries = set()
 
-args = None
-
-def parse():
-  """
-  @brief Parse the command line arguments.
-  @returns The parsed arguments.
-  """
-
-  # Setup the argument.
-  parser = ArgumentParser(
-    prog="sb",
-    description="Run applications in a Sandbox",
-  )
-  parser.add_argument("program", help="The program to run")
-
-  # Some standard Freedesktop Portals. Technically, you can add these explicitly in the --talk argument,
-  # but they are presented for convenience.
-  parser.add_argument(
-    "--portals",
-    action="extend",
-    nargs="*",
-    default=["Flatpak"],
-    help="A list of XDG Portals to expose to the application",
-  )
-
-  # See, talk, or own busses
-  parser.add_argument("--see", action="extend", nargs="*", default=[], help="A list of additional buses that the application should be able to see")
-  parser.add_argument("--talk", action="extend", nargs="*", default=[], help="A list of additional buses that the application should be able to talk over")
-  parser.add_argument("--own", action="extend", nargs="*", default=[], help="A list of additional buses that the application should be able to own")
-
-  # Share namespaces. All and None are unique, defaulting to the latter.
-  parser.add_argument(
-    "--share",
-    action="extend",
-    nargs="*",
-    choices=["user", "ipc", "pid", "net", "uts", "cgroup", "all", "none"],
-    default=["none"],
-    help="A list of namespaces to share with the sandbox"
-  )
-
-  # "Sockets"
-  # The Wayland and Pipewire sockets are supported.
-  # Xorg is a vulnerability, but Chromium needs it (Even when on Wayland) for VA-API on AMD.
-  parser.add_argument(
-    "--sockets",
-    action="extend",
-    nargs="*",
-    choices=["wayland", "pipewire", "xorg"],
-    default=["wayland"],
-    help="A list of sockets to give the application various functionality"
-  )
-
-  # Specify what binaries should be permitted.
-  # --bin will merely mount /bin.
-  # --binaries will use `which` to locate the binary, and will perform library dependency lookups.
-  parser.add_argument("--bin", action="store_true", default=False, help="Mount /bin")
-  parser.add_argument("--binaries", action="extend", nargs="*", default=[], help="A list of binaries to include in the sandbox. Does nothing if --bin")
-
-  # Specify libraries.
-  # By default, SB will dynamically determine libraries.
-  # --lib will forgo this and simply mount /lib
-  # --libraries allows you to explicitly specify needed libraries, often useful when using an interpreted program like Python.
-  # You can either explicitly list the path (IE /usr/lib/mylib.so), just provide the library name (IE mylib.so), or use a wildcard
-  # for matching multiply versions (IE mylib* -> mylib.so, mylib.so.0)
-  # the folder rather than determining required libraries from within it. Unfortunately, some applications, such as QMMP, don't
-  # appreciate this, because other libraries were missing. --recursive-libraries will perform the library lookup on the folder, and
-  # any folder within /lib, but it will be slow to generate the command and library cache.
-  parser.add_argument("--lib", action="store_true", default=False, help="Mount /lib and others")
-  parser.add_argument("--libraries", action="extend", nargs="*", default=[], help="A list of libraries needed in the sandbox")
-
-  # Passthrough environment variables using ENV=VALUE.
-  parser.add_argument("--env", action="extend", nargs="*", default=[], help="ENV=VALUE pairs to pass to the sandbox.")
-
-  # Arbitrary paths that should be provided read-only or read-write. These are bind mounts.
-  parser.add_argument("--rw", action="extend", nargs="*", default=[], help="Files/Directories the application can read and write.")
-  parser.add_argument("--ro", action="extend", nargs="*", default=[], help="Files/Directories that the application can read.")
-
-  # Passthrough various appdirs based on the command name.
-  # config = ~/.config/application
-  # cache = ~/.cache/application
-  # etc = /etc/application
-  # share = /usr/share/application
-  # data = ~/.local/share/application
-  # lib = /usr/lib/application
-  parser.add_argument(
-    "--app-dirs",
-    action="extend",
-    nargs="*",
-    default=[],
-    choices=["config", "cache", "etc", "share", "data", "lib"],
-    help="Directories the application owns",
-  )
-
-  # Enable user namespaces. This is needed for chromium, and turns on --share user.
-  parser.add_argument("--enable-namespaces", action="store_true", default=False, help="Enable user namespace support within the sandbox")
-
-  # Passthrough various root folders.
-  parser.add_argument("--dev", action="store_true", default=False, help="Mount the /dev filesystem")
-  parser.add_argument("--devices", action="extend", nargs="*", default=[], help="A list of devices to include in the sandbox")
-  parser.add_argument("--proc", action="store_true", default=False, help="Mount the /proc filesystem")
-  parser.add_argument("--etc", action="store_true", default=False, help="Mount the /etc folder")
-  parser.add_argument("--sys", action="store_true", default=False, help="Mount the /sys folder")
-  parser.add_argument("--usr-share", action="store_true", default=False, help="Give the application access to /usr/share")
-
-  # Share files needed for GPU acceleration.
-  parser.add_argument("--dri", action="store_true", default=False, help="Give the application access to DRI/GPU, Vulkan, Devices, and graphical things")
-
-  # Share QT libraries and configurations.
-  parser.add_argument("--qt", action="store_true", default=False, help="Give the application access to QT libraries (Implies --dri)")
-  parser.add_argument("--qt5", action="store_true", default=False, help="Give legacy qt5 access (Implies --qt)")
-
-
-  # Ensure Electron applications are supported. Will share user-namespaces, proc, and --dri + --gtk.
-  parser.add_argument("--electron", action="store_true", default=False, help="Give the application access to electron libraries (Implies --dri, --gtk)")
-
-  # If you are actually using an electron app with the system electron, provide the version to make sure its available.
-  parser.add_argument("--electron-version", default=None, help="Give the application access to a specific electron version. Only if --electron")
-
-  # Bring in Python for a specific version.
-  parser.add_argument("--python", default=None, help="Pass through the specified version of python, IE 3.12")
-
-  # Bring in KDE/KF6 files and configurations.
-  parser.add_argument("--kde", action="store_true", default=False, help="Give the application access to KDE/QT configuration (Implies --dri, --qt)")
-
-  # Bring in GTK files and configuration. This isn't well tested besides in use of Electron.
-  parser.add_argument("--gtk", action="store_true", default=False, help="Give the application access to GTK3/4 configuration (Implies --dri)")
-
-  # ZSH
-  parser.add_argument("--zsh", action="store_true", default=False, help="Give the application the ZSH shell.")
-
-  parser.add_argument("--include", action="store_true", default=False, help="Give the application include headers, for clangd and other development tools")
-
-  # Home related settings.
-  # --home will create a home directory for the application. This lets configuration persist, but keeps it separate from your
-  # actual home directory.
-  # --cached-home will take this home directory and make a copy of it in RAM for each instance of the application. This is useful
-  # if you have a good configuration, and don't want new changes to persist.
-  parser.add_argument("--home", action="store_true", default=False, help="Create a permanent home directory for the application at $XDG_DATA_HOME/sb/application")
-  parser.add_argument("--cached-home", action="store_true", default=False, help="Copy the SOF home into the application's temporary RAM folder. Modifications to the home will not persist, but will be isolated from instances and faster. Applications that use profile locks, like Chrome, can run multiple instances at once.")
-
-
-  # In order to maintain backward compatability, --cache simply avoids the creation of a temporary folder. It uses the same
-  # location as --home.
-  parser.add_argument("--cache", action="store_true", default=False, help="Give the application a permanent .cache folder, rather than generating a tmpfs on a per-session basis. Requires --home")
-
-  parser.add_argument("--share-cache", action="store_true", default=False, help="Give the application to the non-sandboxed .cache folder in the home directory.")
-
-  # How the Sandbox should handle file arguments.
-  # By default, any file argument passed to the command (IE application.sb ~/myfile) will be read-only bind mounted into the
-  # sandbox, so that the application can read it.
-  # --do-not-allow-file-passthrough will prohibit this functionality
-  # --file-passthrough-rw will allow the application modification of this file.
-  # --file-enclave is useful if permissions or other issues prevent the traditional passthrough from functioning (Noteably
-  # applications that do not directly write to files, but instead create a temporary, and move that file to overwrite the
-  # original. A file enclave will copy all passed files to a TMPFS, allow the program to modify it, and then update those files
-  # once the program closes.
-  parser.add_argument("--do-not-allow-file-passthrough", action="store_true", default=False, help="If the program is passed an argument to a file, do not expose this file to the sandbox.")
-  parser.add_argument("--file-passthrough-rw", action="store_true", default=False, help="File passthrough is done with write privileges")
-  parser.add_argument("--file-enclave", action="store_true", default=False, help="Pass through files in a mediated enclave. This ensures that programs will have sufficient permission to read/write, but the real file will not be updated until the program closes.")
-
-  # Open a debug shell into the sandbox, rather than running the program. You may need to run --update-libraries to ensure
-  # the shell program has needed libraries.
-  parser.add_argument("--debug-shell", action="store_true", default=False, help="Launch a shell in the sandbox instead of the application")
-
-  # Run the program in the sandbox under strace to debug missing files.
-  parser.add_argument("--strace", action="store_true", default=False, help="Launch the application underneath strace")
-
-  parser.add_argument("--zypak", action="store_true", default=False, help="Launch the application underneath zypak")
-
-  parser.add_argument(
-    "--caps",
-    action="extend",
-    nargs="*",
-    default=[],
-    help="A list of capabilities to permit in the sandbox; ALL can be used to allow all.",
-  )
-
-  parser.add_argument("--xdg-open", action="store_true", default=False, help="Give the application xdg-open to launch default applications")
-
-  # Use the real hostname of the computer.
-  parser.add_argument("--real-hostname", action="store_true", default=False, help="Give the application the hostname")
-
-  # Passthrough locale information.
-  parser.add_argument("--locale", action="store_true", default=False, help="Give the application locale information")
-
-  # Passthrough spellchecking via hunspell.
-  parser.add_argument("--hunspell", action="store_true", default=False, help="Give the application dictionaries")
-
-  parser.add_argument("--git", action="store_true", default=False, help="Give the application git")
-
-  # Make a desktop entry for this sandboxed application.
-  parser.add_argument("--make-desktop-entry", action="store_true", default=False, help="Create a desktop entry for the application.")
-
-  # If the desktop entry for the application does not follow the application.desktop convention, explicitly specify the
-  # name of the desktop entry as found in /usr/share/applications.
-  parser.add_argument("--desktop-entry", action="store", default=None, help="The application's desktop entry, if it cannot be deduced automatically. For example, chromium.desktop")
-
-  # Force the program to recalculate library dependencies, overwriting the library and command cache.
-  parser.add_argument("--update-libraries", action="store_true", default=False, help="Update SOF libraries")
-
-  parser.add_argument("--update-library-cache", action="store_true", default=False, help="Update SOF libraries")
-
-
-  # Be verbose in logging.
-  parser.add_argument("--verbose", action="store_true", default=False, help="Verbose logging")
-
-  # Dry and Startup related settings.
-  # --dry will do everything except run the program, such as createing the SOF folder.
-  # --startup should only be used by the systemd startup service, to let the program know that it's not being run by the user.
-  # --dry-startup will let the startup service know that this application should be dry-run on boot, so that SOF folder's
-  # can be generated immediately.
-  parser.add_argument("--dry", action="store_true", default=False, help="Dry run a program, establishing the SOF folder, but don't run it.")
-  parser.add_argument("--startup", action="store_true", default=False, help="DO NOT USE.")
-  parser.add_argument("--dry-startup", action="store_true", default=False, help="Tell the systemd startup script that this program should be run on start.")
-
-  # Be verbose in logging.
-  parser.add_argument("--proxy-delay", action="store", default=0.01, help="If the application launches too quickly, the dbus-proxy may not have sufficient time to initialize. Customize the delay period between launching the proxy, and launching the application.")
-
-  arguments, unknown = parser.parse_known_args()
-  arguments.unknown = unknown
-  return arguments
+args = arguments.parse()
 
 
 def desktop_entry():
@@ -329,7 +111,7 @@ def main():
   dbus_proxy(args.portals, application_folder, info.name)
 
   # We need to wait a slight amount of time for the Proxy to get up and running.
-  sleep(float(args.proxy_delay))
+  sleep(0.01)
 
   # Then, run the program.
   if args.verbose:
@@ -610,9 +392,8 @@ def run_application(application, application_path, application_folder, info_name
     else:
       command.extend(["--bind", str(home_dir), "/home"])
 
-  if not args.cache:
-    if args.share_cache: command.extend(["--bind", f"{home}/.cache", f"{home}/.cache"])
-    else: command.extend(["--bind", temp, f"{home}/.cache"])
+  if args.share_cache: command.extend(["--bind", f"{home}/.cache", f"{home}/.cache"])
+  else: command.extend(["--bind", temp, f"{home}/.cache"])
 
   # Add the tmpfs.
   command.extend(["--tmpfs", temp])
@@ -760,12 +541,7 @@ def gen_command(application, application_path, application_folder):
     "--symlink", "/usr/lib", "/usr/lib64",
   ])
 
-
-  # Add capabilities.
-  for cap in args.caps: command.extend(["--cap-add", cap])
-
-  if args.xdg_open:
-    args.binaries.extend(["xdg-open"])
+  if args.xdg_open: args.binaries.extend(["xdg-open"])
 
   if args.zypak:
     args.binaries.extend([
@@ -775,7 +551,6 @@ def gen_command(application, application_path, application_folder):
       "zypak-wrapper.sh",
     ])
     if update_sof: libraries |= find_libs("libzypak*")
-    args.enable_namespaces = True
 
   # Add python, if needed.
   if args.python:
@@ -1036,11 +811,6 @@ def gen_command(application, application_path, application_folder):
     split = variable.split("=")
     command.extend(["--setenv", split[0], "=".join(split[1:])])
 
-  # Add the user namespace.
-  if not args.enable_namespaces:
-    command.append("--disable-userns")
-    if "--unshare-user" not in command:
-      command.append("--unshare-user")
 
   # Add binaries.
   if args.bin:
@@ -1149,6 +919,4 @@ def gen_command(application, application_path, application_folder):
   return command
 
 
-if __name__ == "__main__":
-  args = parse()
-  main()
+if __name__ == "__main__": main()
