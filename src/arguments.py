@@ -5,6 +5,7 @@
 
 from argparse import ArgumentParser
 
+
 def parse():
   """
   @brief Parse the command line arguments.
