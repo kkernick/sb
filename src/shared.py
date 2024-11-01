@@ -1,5 +1,6 @@
 from subprocess import run, PIPE
 from os import environ
+from pathlib import Path
 
 import arguments
 
@@ -18,6 +19,7 @@ home = environ["HOME"]
 
 # Run a command, put the results in a list.
 def output(command):
+  log("Running:", " ".join(command))
   process = run(command, stdout=PIPE, stderr=PIPE)
   errors = [out for out in process.stderr.decode().split("\n") if out]
   if errors:
@@ -31,3 +33,14 @@ def log(*messages):
   """
   if args.verbose:
     print(*messages)
+
+
+# Share a list of files under a specified mode.
+def share(command: list, paths: list, mode = "ro-bind-try"):
+  for path in paths:
+    if Path(path).is_symlink():
+      true = str(Path(path).readlink())
+      command.extend([f"--{mode}", true, true])
+      command.extend(["--symlink", true, path])
+    else:
+      command.extend([f"--{mode}", path, path])

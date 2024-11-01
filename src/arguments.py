@@ -81,7 +81,7 @@ def parse():
 
   # Force the program to recalculate library dependencies, overwriting the library and command cache.
   parser.add_argument("--update-libraries", action="store_true", default=False, help="Update SOF libraries")
-  parser.add_argument("--update-library-cache", action="store_true", default=False, help="Update SOF libraries")
+  parser.add_argument("--update-cache", action="store_true", default=False, help="Update SOF libraries")
 
   # Passthrough environment variables using ENV=VALUE.
   parser.add_argument("--env", action="extend", nargs="*", default=[], help="ENV=VALUE pairs to pass to the sandbox.")

@@ -32,26 +32,8 @@ current = set()
 searched = {""}
 
 
-def find(expression):
-  """
-  @brief Find libraries
-  @param expression: The library expression, such as "libc*"
-  @returns The matching .so files.
-  """
-
-  path = "/usr/lib"
-  if "/" in expression:
-    base = expression.rfind("/")
-    path += "/" + expression[:base]
-    expression = expression[base + 1:]
-  command = [
-    "find", f"{path}/",
-    "-mindepth", str(1),
-    "-executable",
-    "-name", f'{expression}'
-  ]
-  libs = set(output(command))
-  return libs
+# A set of wildcard libraries, so that we can con
+wildcards = set()
 
 
 def get(to_load, current=set()):
@@ -61,7 +43,7 @@ def get(to_load, current=set()):
   @pararm current: The list of current libraries we should add to
   """
 
-  global searched
+  global searched, wildcards
 
   # If the binary/library has already been searched, just return, otherwise add it.
   if to_load in searched or to_load == "":
@@ -80,7 +62,7 @@ def get(to_load, current=set()):
 
     dir_cache = cache / sub
 
-    if not dir_cache.is_file() or args.update_library_cache:
+    if not dir_cache.is_file() or args.update_cache:
       local_libraries = output(["sb-cache", str(to_load)])
       if local_libraries:
         with dir_cache.open("w") as file:
@@ -97,7 +79,7 @@ def get(to_load, current=set()):
 
   # If there's a wildcard, expand it.
   if "*" in to_load:
-    current |= find(to_load, path="/usr/lib")
+    wildcards |= to_load
     return
 
   # Otherwise, add the library/binary to libraries, and then add all libraries needed via ldd.
@@ -129,6 +111,8 @@ def setup(sof_dir, lib_cache, update_sof):
   @param update_sof: Whether we should actually update the SOF if it is already present.
   """
 
+  global current
+
   # If we are explicitly told to update the libraries, or the SOF dir doesn't exist, then update.
   if args.update_libraries or not sof_dir.is_dir():
 
@@ -138,10 +122,18 @@ def setup(sof_dir, lib_cache, update_sof):
 
     # If we want to update the SOF, perform the recursive library dependency check.
     if update_sof:
-      log("Determining library dependencies...")
+
+      log("Finding wildcard libraries...")
+      command = ["find", "/usr/lib", "-mindepth", "1", "-maxdepth", "1", "-executable"]
+      for library in wildcards:
+        command.extend(["-name", library[library.rfind("/") + 1:], "-o"])
+      # Remove the trailing -o
+      command = command[:-1]
+      current |= set(output(command))
 
       # We simply get libraries based on everything within libraries that hasn't been searched.
       # Run this however many times it takes before all dependencies are found.
+      log("Determining library dependencies...")
       unsearched = current - searched
       while unsearched:
         for lib in unsearched:
@@ -184,7 +176,7 @@ def setup(sof_dir, lib_cache, update_sof):
 
       # If it IS a directory, then get all the files, and writen them all in.
       elif real_path.is_dir():
-        for sub in output(["find", real_path, "-type", "f"]):
+        for sub in output(["find", str(real_path), "-type", "f"]):
           if sub:
             write(sub, Path(f"{runtime_lib}/{sub}"), Path(sub), sof_dir)
 

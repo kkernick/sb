@@ -8,53 +8,11 @@ from tempfile import TemporaryDirectory, NamedTemporaryFile
 from sys import argv
 from hashlib import new
 
-from shared import args, output, log, cache, config, data, home, runtime
+from shared import args, output, log, share, cache, config, data, home, runtime
+from util import desktop_entry
 
-import re
-
+import binaries
 import libraries
-
-
-def desktop_entry():
-  """
-  @brief Make a desktop entry for the sandbox.
-  """
-
-  # Firstly, remove this part of the command so we don't write it into the executable.
-  exec = argv
-  exec.remove("--make-desktop-entry")
-
-  # Pop twice to remove it and the name itself.
-  if args.desktop_entry:
-    i = exec.index("--desktop-entry")
-    exec.pop(i)
-    exec.pop(i)
-  exec.insert(2, '"$@"')
-
-  # Get the name, and setup the buffer and binary.
-  name = args.desktop_entry if args.desktop_entry else f"{args.program}.desktop"
-  exec = " ".join(exec)
-  binary = f"{home}/.local/bin/{name}.sb"
-  buffer = ""
-
-  # Read the original application file, but replace the Exec Line with the path to the sandbox binary.
-  with open(f"/usr/share/applications/{name}", "r") as f:
-    for line in f.readlines():
-      if line.startswith("Exec="):
-        buffer += (f"Exec={binary} {" ".join(line.split()[1:])}\n")
-      else:
-        buffer += line
-
-  # Actually write the sandbox binary.
-  with open(binary, "w") as b:
-    b.write("#!/bin/sh\n")
-    b.write(f"{exec}")
-  run(["chmod", "+x", binary])
-
-  # Write the sandboxed desktop entry to the user's application folder.
-  with open(f"{data}/applications/{name}", "w") as f:
-    f.write(buffer)
-  return
 
 
 def main():
@@ -102,17 +60,6 @@ def main():
   # Then, run the program.
   log("Launching ", program, "at", path)
   run_application(program, path, application_folder, info.name, temp.name)
-
-
-# Share a list of files under a specified mode.
-def share(command: list, paths: list, mode = "ro-bind-try"):
-  for path in paths:
-    if Path(path).is_symlink():
-      true = str(Path(path).readlink())
-      command.extend([f"--{mode}", true, true])
-      command.extend(["--symlink", true, path])
-    else:
-      command.extend([f"--{mode}", path, path])
 
 
 # Run the DBUS Proxy.
@@ -345,7 +292,7 @@ def gen_command(application, application_path, application_folder):
       "zypak-wrapper.sh",
     ])
     if update_sof:
-      libraries.current |= libraries.find("libzypak*")
+      libraries.wildcards.add("libzypak*")
 
   # Add python, if needed.
   if args.python:
@@ -396,10 +343,10 @@ def gen_command(application, application_path, application_folder):
 
     # NSS junk
     if update_sof:
-      libraries.current |= libraries.find("libsoftokn3*")
-      libraries.current |= libraries.find("libfreeblpriv3*")
-      libraries.current |= libraries.find("libsensors*")
-      libraries.current |= libraries.find("libnssckbi*")
+      libraries.wildcards.add("libsoftokn3*")
+      libraries.wildcards.add("libfreeblpriv3*")
+      libraries.wildcards.add("libsensors*")
+      libraries.wildcards.add("libnssckbi*")
 
     share(command, ["/sys/block", "/sys/dev"])
     share(command, ["/dev/null", "/dev/urandom", "/dev/shm"], "dev-bind")
@@ -444,8 +391,8 @@ def gen_command(application, application_path, application_folder):
     ])
 
     if update_sof:
-      libraries.current |= libraries.find("libKF*")
-      libraries.current |= libraries.find("lib*Kirigami*")
+      libraries.wildcards.add("libKF*")
+      libraries.wildcards.add("lib*Kirigami*")
       libraries.current |= {"/usr/lib/kf6/"}
 
     args.dri = True
@@ -460,7 +407,7 @@ def gen_command(application, application_path, application_folder):
       share(command, ["/usr/share/qt5"])
     if update_sof:
       libraries.current |= {"/usr/lib/qt6/"}
-      libraries.current |= libraries.find("libQt*")
+      libraries.wildcards.add("libQt*")
       if args.qt5:
         libraries.current |= {"/usr/lib/qt5/", "/usr/lib/qt/"}
     args.dri = True
@@ -480,9 +427,9 @@ def gen_command(application, application_path, application_folder):
     ])
     command.extend(["--setenv", "GTK_USE_PORTAL", "1"])
     if update_sof:
-      libraries.current |= libraries.find("libgtk*")
-      libraries.current |= libraries.find("libgdk*")
-      libraries.current |= libraries.find("libgio*")
+      libraries.wildcards.add("libgtk*")
+      libraries.wildcards.add("libgdk*")
+      libraries.wildcards.add("libgio*")
       libraries.current |= {"/usr/lib/gdk-pixbuf-2.0/", "/usr/lib/gtk-3.0"}
     args.dri = True
 
@@ -534,7 +481,7 @@ def gen_command(application, application_path, application_folder):
         "libvulkan*", "libglapi*", "*mesa*", "*Mesa*", "libdrm", "libGLX*", "libEGL*",
         "libVkLayer*", "libgbm*", "libva*", "*egl*", "*EGL*"
         ]:
-          libraries.current |= libraries.find(lib)
+          libraries.wildcards.add(lib)
       libraries.current |= {"/usr/lib/dri", "/usr/lib/gbm"}
 
   # Add the wayland socket and XKB
@@ -555,7 +502,7 @@ def gen_command(application, application_path, application_folder):
       "/usr/share/pipewire",
     ])
     if update_sof:
-      libraries.current |= libraries.find("libpipewire*")
+      libraries.wildcards.add("libpipewire*")
       libraries.current |= {"/usr/lib/pipewire-0.3/", "/usr/lib/spa-0.2/"}
 
   # add Xorg. This is a vulnerability.
@@ -612,7 +559,7 @@ def gen_command(application, application_path, application_folder):
       "/etc/ssl", "/usr/share/ssl",
     ])
     if update_sof:
-      libraries.current |= libraries.find("libnss*")
+      libraries.wildcards.add("libnss*")
 
   # Add variables
   for variable in args.env:
@@ -626,83 +573,28 @@ def gen_command(application, application_path, application_folder):
     command.extend(["--ro-bind-try", "/usr/bin", "/usr/bin"])
   else:
     log("Generating binaries...")
-    binaries = args.binaries
-    binaries.append(application_path)
+    bins = args.binaries
+    bins.append(application_path)
+
+    # Add the debug shell
     if args.debug_shell:
-      binaries.append("sh")
+      bins.append("sh")
+
+    # Add strace
     if args.strace:
-      binaries.append("strace")
+      bins.append("strace")
 
-    # Get builtins and reserved words
-    builtins = output(["bash", "-c", "compgen -bk"])
+    # Add all the binaries
+    for binary in bins:
 
-    def add_binary(binary):
-      if binary.startswith("/"):
+      # Get the binary, and its dependencies
+      depends = binaries.add(binary)
+      share(command, depends, "ro-bind-try")
 
-        # /bin, /sbin and /usr/sbin are all symlinks, so we can't actually
-        # put files there.
-        if binary.startswith(("/bin/", "/sbin/")):
-          binary = f"/usr{binary}"
-        if binary.startswith("/usr/sbin"):
-          binary.replace("sbin", "bin")
-
-        share(command, [binary], "ro-bind-try")
-        path = binary
-        binary = path.split("/")[-1]
-      else:
-        path = output(["which", binary])[0]
-        share(command, [path], "ro-bind-try")
+      # Add libraries
       if update_sof:
-        libraries.get(path, libraries.current)
-
-      # Parse shell scripts
-      try:
-        with open(path) as binary_file:
-          shebang = binary_file.readline().strip(" \n")
-          if not shebang.startswith("#"):
-            return
-
-          # This helps for cases like #!/usr/bin/env bash
-          for shell in shebang[2:].split(" "):
-            add_binary(shell)
-
-          here_doc = None
-          for line in binary_file:
-            stripped = line.strip()
-
-            # comments, bash syntax, functions
-            if not stripped or stripped.startswith("#"):
-              continue
-
-            if "<<" in stripped:
-              split = stripped.split(" ")
-              here_doc = split[split.index("<<") + 1].strip("'\"")
-              continue
-            if here_doc:
-              if here_doc in split:
-                here_doc = None
-              else:
-                continue
-
-            # Tokenize
-            for split in re.split(r'\s|(?<=\(|\)|\$|\'|\")', stripped):
-              if  len(split) <= 1 \
-                  or split == binary \
-                  or split in builtins \
-                  or split.startswith(("-", "\"", "'", "{", "}")) \
-                  or any(x in split for x in ["=", "&", "|", "(", ")", "/", "\"", "'", "[", "]"]):
-                    continue
-              try:
-                add_binary(split)
-              except Exception:
-                pass
-
-      # Don't try and handle compiled binaries.
-      except UnicodeDecodeError:
-        pass
-
-    for binary in binaries:
-      add_binary(binary)
+        for depend in depends:
+          libraries.get(depend, libraries.current)
   command.extend(["--symlink", "/usr/bin", "/bin"])
   command.extend(["--symlink", "/usr/bin", "/bin"])
   command.extend(["--symlink", "/usr/bin", "/sbin"])
