@@ -9,6 +9,8 @@ from tempfile import TemporaryDirectory, NamedTemporaryFile
 from sys import argv
 from hashlib import new
 
+import re
+
 # Get the XDG directories.
 runtime = environ["XDG_RUNTIME_DIR"]
 config = environ["XDG_CONFIG_HOME"]
@@ -337,7 +339,12 @@ def main():
 
 # Run a command, put the results in a list.
 def output(command):
-  return [out for out in run(command, stdout=PIPE).stdout.decode().split("\n") if out]
+  process = run(command, stdout=PIPE, stderr=PIPE)
+  if args.verbose:
+    errors = [out for out in process.stderr.decode().split("\n") if out]
+    if errors: print(errors)
+
+  return [out for out in process.stdout.decode().split("\n") if out]
 
 
 # Find libraries in /usr/lib with wildcard support.
@@ -529,7 +536,13 @@ def write_to_cache(library, runtime_path, real_path, sof_dir):
 
 # Share a list of files under a specified mode.
 def share(command: list, paths: list, mode = "ro-bind-try"):
-  for path in paths: command.extend([f"--{mode}", path, path])
+  for path in paths:
+    if Path(path).is_symlink():
+      true = str(Path(path).readlink())
+      command.extend([f"--{mode}", true, true])
+      command.extend(["--symlink", true, path])
+    else:
+      command.extend([f"--{mode}", path, path])
 
 
 # Run the DBUS Proxy.
@@ -752,7 +765,7 @@ def gen_command(application, application_path, application_folder):
   for cap in args.caps: command.extend(["--cap-add", cap])
 
   if args.xdg_open:
-    args.binaries.extend(["xdg-open", "sh", "cat", "grep", "gdbus"])
+    args.binaries.extend(["xdg-open"])
 
   if args.zypak:
     args.binaries.extend([
@@ -760,7 +773,6 @@ def gen_command(application, application_path, application_folder):
       "zypak-sandbox",
       "zypak-wrapper",
       "zypak-wrapper.sh",
-      "bash", "realpath", "dirname"
     ])
     if update_sof: libraries |= find_libs("libzypak*")
     args.enable_namespaces = True
@@ -787,10 +799,18 @@ def gen_command(application, application_path, application_folder):
 
 
   if args.zsh:
-    args.ro.extend(["/etc/shells", "/usr/share/zsh/", "/etc/zsh/", "/etc/profile"])
-    args.binaries.extend(["zsh"])
+    args.ro.extend([
+      "/etc/shells", "/usr/share/zsh/", "/etc/zsh/",
+      "/etc/profile", "/usr/share/terminfo", "/var/run/utmp",
+      "/etc/group",
+      f"{home}/.zshrc", f"{config}/environment.d",
+    ])
+    args.devices.extend(["/dev/pts/"])
+    args.proc = True
+
+    # For shell and coredump.
+    args.binaries.extend(["zsh", "mv"])
     libraries |= {"/usr/lib/zsh/"}
-    args.dev = True
 
 
   if args.include:
@@ -861,7 +881,6 @@ def gen_command(application, application_path, application_folder):
     args.dri = True
     args.qt = True
 
-    #command.extend(["--setenv", "QT_QPA_PLATFORMTHEME", "kde"])
 
   # Add QT
   if args.qt or args.qt5:
@@ -897,8 +916,10 @@ def gen_command(application, application_path, application_folder):
 
 
   # Mount devices, or the dev
-  if args.dev: command.extend(["--dev", "/dev"])
-  for device in args.devices: share(command, [device], "dev-bind-try")
+  if args.dev:
+    command.extend(["--dev", "/dev"])
+  else:
+    for device in args.devices: share(command, [device], "dev-bind-try")
 
   # Mount system directories.
   if args.proc: command.extend(["--proc", "/proc"])
@@ -909,8 +930,7 @@ def gen_command(application, application_path, application_folder):
   # Add DRI stuff.
   if args.dri:
     if args.verbose: print("Adding DRI...")
-    command.extend(["--dev-bind-try", "/dev/dri", "/dev/dri"])
-    command.extend(["--dev-bind-try", "/dev/udmabuf", "/dev/udmabuf"])
+    share(command, ["/dev/dri", "/dev/dri", "/dev/udmabuf"], "dev-bind-try")
     share(command, [
       "/sys/devices",
       "/etc/vulkan",
@@ -1026,9 +1046,6 @@ def gen_command(application, application_path, application_folder):
   if args.bin:
     if args.verbose: print("Adding binaries...")
     command.extend(["--ro-bind-try", "/usr/bin", "/usr/bin"])
-    command.extend(["--ro-bind-try", "/bin", "/bin",])
-    command.extend(["--ro-bind-try", "/sbin", "/sbin",])
-    command.extend(["--ro-bind-try", "/usr/sbin", "/usr/sbin",])
   else:
     if args.verbose: print("Generating binaries...")
     binaries = args.binaries
@@ -1036,20 +1053,69 @@ def gen_command(application, application_path, application_folder):
     if args.debug_shell: binaries.append("sh")
     if args.strace: binaries.append("strace")
 
-    # We find libraries as well.
-    for binary in binaries:
+    # Get builtins and reserved words
+    builtins = output(["bash", "-c", "compgen -bk"])
+
+    def add_binary(binary):
       if binary.startswith("/"):
-        command.extend(["--ro-bind-try", binary, binary])
+
+        # /bin, /sbin and /usr/sbin are all symlinks, so we can't actually
+        # put files there.
+        if binary.startswith(("/bin/", "/sbin/")): binary = f"/usr{binary}"
+        if binary.startswith("/usr/sbin"): binary.replace("sbin", "bin")
+
+        share(command, [binary], "ro-bind-try")
         path = binary
         binary = path.split("/")[-1]
       else:
         path = output(["which", binary])[0]
-        command.extend([
-          "--ro-bind-try", path, f"/bin/{binary}",
-          "--ro-bind-try", path, f"/usr/bin/{binary}",
-        ])
-      if update_sof:
-        get_libraries(path, libraries)
+        share(command, [path], "ro-bind-try")
+      if update_sof: get_libraries(path, libraries)
+
+      # Parse shell scripts
+      try:
+        with open(path) as binary_file:
+          shebang = binary_file.readline().strip(" \n")
+          if not shebang.startswith("#"): return
+
+          # This helps for cases like #!/usr/bin/env bash
+          for shell in shebang[2:].split(" "): add_binary(shell)
+
+          here_doc = None
+          for line in binary_file:
+            stripped = line.strip()
+
+            # comments, bash syntax, functions
+            if not stripped or stripped.startswith("#"): continue
+
+            if "<<" in stripped:
+              split = stripped.split(" ")
+              here_doc = split[split.index("<<") + 1].strip("'\"")
+              continue
+            if here_doc:
+              if here_doc in split:
+                here_doc = None
+              else: continue
+
+            # Tokenize
+            for split in re.split(r'\s|(?<=\(|\)|\$|\'|\")', stripped):
+              if  len(split) <= 1 \
+                  or split == binary \
+                  or split in builtins \
+                  or split.startswith(("-", "\"", "'", "{", "}")) \
+                  or any(x in split for x in ["=", "&", "|", "(", ")", "/", "\"", "'", "[", "]"]):
+                    continue
+              try: add_binary(split)
+              except Exception: pass
+
+      # Don't try and handle compiled binaries.
+      except UnicodeDecodeError: pass
+
+    for binary in binaries: add_binary(binary)
+  command.extend(["--symlink", "/usr/bin", "/bin"])
+  command.extend(["--symlink", "/usr/bin", "/bin"])
+  command.extend(["--symlink", "/usr/bin", "/sbin"])
+  command.extend(["--symlink", "/usr/bin", "/usr/sbin"])
 
 
   # If we aren't just passing through /lib, setup our SOF.
