@@ -1,17 +1,23 @@
 pkgname=sb-git
 pkgdesc="Sandbox Applications"
-pkgver=r96.724fd01
+pkgver=r97.e314798
 pkgrel=1
 
 source=("git+https://github.com/kkernick/sb.git")
 sha256sums=("SKIP")
 depends=(python findutils glibc which xdg-dbus-proxy bubblewrap strace zypak)
+makedepends=(zip)
 arch=("any")
 provides=("sb")
 
 pkgver() {
   cd $srcdir/sb
   printf "r%s.%s" "$(git rev-list --count HEAD)" "$(git rev-parse --short=7 HEAD)"
+}
+
+build() {
+  cd $srcdir/sb
+  make
 }
 
 package() {
