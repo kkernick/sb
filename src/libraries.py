@@ -79,7 +79,7 @@ def get(to_load, current=set()):
 
   # If there's a wildcard, expand it.
   if "*" in to_load:
-    wildcards |= to_load
+    wildcards.add(to_load)
     return
 
   # Otherwise, add the library/binary to libraries, and then add all libraries needed via ldd.
