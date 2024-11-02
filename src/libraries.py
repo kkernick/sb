@@ -112,6 +112,7 @@ def setup(sof_dir, lib_cache, update_sof):
   """
 
   global current
+  binds = set()
 
   # If we are explicitly told to update the libraries, or the SOF dir doesn't exist, then update.
   if args.update_libraries or not sof_dir.is_dir():
@@ -174,11 +175,10 @@ def setup(sof_dir, lib_cache, update_sof):
       if not real_path.is_dir():
         write(library, runtime_path, real_path, sof_dir)
 
-      # If it IS a directory, then get all the files, and writen them all in.
+      # If it IS a directory, then return it for binding.
       elif real_path.is_dir():
-        for sub in output(["find", str(real_path), "-type", "f"]):
-          if sub:
-            write(sub, Path(f"{runtime_lib}/{sub}"), Path(sub), sof_dir)
+        binds.add(str(real_path))
+  return binds
 
 
 def write(library, runtime_path, real_path, sof_dir):

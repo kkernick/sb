@@ -122,7 +122,7 @@ def run_application(application, application_path, application_folder, info_name
       command.extend(["--bind", str(home_dir), "/home"])
 
   if args.share_cache:
-    command.extend(["--bind", f"{home}/.cache", f"{home}/.cache"])
+    share(command, [f"{home}/.cache"], "bind")
   else:
     command.extend(["--bind", temp, f"{home}/.cache"])
 
@@ -244,7 +244,7 @@ def gen_command(application, application_path, application_folder):
     if not sof_dir.is_dir():
       if lib_cache.is_file():
         log("Using cached library definitions")
-        libraries.libraries = set([library for library in lib_cache.open("r").read().split(" ")])
+        libraries.current = set([library for library in lib_cache.open("r").read().split(" ")])
       else:
         update_sof = True
 
@@ -570,7 +570,7 @@ def gen_command(application, application_path, application_folder):
   # Add binaries.
   if args.bin:
     log("Adding binaries...")
-    command.extend(["--ro-bind-try", "/usr/bin", "/usr/bin"])
+    share(command, ["/usr/bin"], "ro-bind")
   else:
     log("Generating binaries...")
     bins = args.binaries
@@ -608,8 +608,9 @@ def gen_command(application, application_path, application_folder):
 
   # If we're updating the SOF, generate all the libraries needed based on those that were explicitly provided.
   if not args.lib:
-    libraries.setup(sof_dir, lib_cache, update_sof)
+    binds = libraries.setup(sof_dir, lib_cache, update_sof)
     command.extend(["--bind", f"{str(sof_dir)}/usr/lib", "/usr/lib"])
+    share(command, binds, "bind")
 
   # Setup application directories.
   if "config" in args.app_dirs:
