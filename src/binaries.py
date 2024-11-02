@@ -9,12 +9,17 @@ from shared import args, output, log, data
 # Get builtins and reserved words
 builtins = output(["bash", "-c", "compgen -bk"])
 
+# A list of current binaries.
+current = set()
+
 
 def add(binary):
   """
   @brief Add the list of binaries associated with the provided.
   @return A set of binaries
   """
+
+  global current
   ret = set()
 
   # If we have an absolute path, extract.
@@ -28,7 +33,6 @@ def add(binary):
     if not path:
       return ret
     path = path[0]
-    log("Found binary at", path)
 
   # /bin, /sbin and /usr/sbin are all symlinks, so we can't actually
   # put files there.
@@ -40,6 +44,7 @@ def add(binary):
 
   # Parse shell scripts.
   ret |= parse(path)
+  current |= ret
   return ret
 
 
@@ -50,6 +55,7 @@ def parse(path):
   @returns A set of all binaries used in the script.
   """
 
+  global current
   cache = Path(data, "sb", "cache")
   cache.mkdir(parents=True, exist_ok=True)
   sub = path.replace("/", ".")
@@ -120,5 +126,5 @@ def parse(path):
         file.write(ret_list[-1])
 
   if bin_cache.is_file():
-    ret = set(bin_cache.open("r").readline().strip().split(" "))
+    current |= set(bin_cache.open("r").readline().strip().split(" "))
   return ret

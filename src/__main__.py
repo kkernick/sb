@@ -330,7 +330,7 @@ def gen_command(application, application_path, application_folder):
       "git", "git-cvsserver", "git-receive-pack", "git-shell",
       "git-upload-archive", "git-upload-pack", "gitk", "scalar"
     ])
-    args.libraries.append("/usr/lib/git-core/")
+    libraries.current |= {"/usr/lib/git-core/"}
     share(command, ["/usr/share/git/"])
 
 
@@ -592,28 +592,25 @@ def gen_command(application, application_path, application_folder):
     share(command, ["/usr/bin"], "ro-bind")
   else:
     log("Generating binaries...")
-    bins = args.binaries
-    bins.append(application_path)
+    bins = set(args.binaries)
+    bins.add(application_path)
 
     # Add the debug shell
     if args.debug_shell:
-      bins.append("sh")
+      bins.add("sh")
 
     # Add strace
     if args.strace:
-      bins.append("strace")
+      bins.add("strace")
 
     # Add all the binaries
     for binary in bins:
 
       # Get the binary, and its dependencies
-      depends = binaries.add(binary)
-      share(command, depends, "ro-bind-try")
-
-      # Add libraries
-      if update_sof:
-        for depend in depends:
-          libraries.get(depend, libraries.current)
+      binaries.add(binary)
+    share(command, binaries.current, "ro-bind-try")
+    for bin in binaries.current:
+      libraries.get(bin, libraries.current)
   command.extend(["--symlink", "/usr/bin", "/bin"])
   command.extend(["--symlink", "/usr/bin", "/bin"])
   command.extend(["--symlink", "/usr/bin", "/sbin"])
@@ -629,7 +626,7 @@ def gen_command(application, application_path, application_folder):
   if not args.lib:
     command.extend(["--bind", f"{str(sof_dir)}/usr/lib", "/usr/lib"])
     if update_sof:
-      share(command, libraries.setup(sof_dir, lib_cache, update_sof), "bind")
+      share(command, libraries.setup(sof_dir, lib_cache, update_sof), "ro-bind")
 
   # Setup application directories.
   if "config" in args.app_dirs:
