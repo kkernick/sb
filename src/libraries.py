@@ -37,6 +37,25 @@ searched = {""}
 wildcards = set()
 
 
+def parse_ldd(to_load, recursive=True):
+  ret = {to_load}
+  for library in output(["ldd", to_load]):
+    split = library.split()
+
+    # Handle the esoteric syntax of ldd.
+    lib = None
+    if len(split) > 0 and split[0].startswith("/usr/lib/"):
+      lib = split[0]
+    elif len(split) > 2 and split[2] != "not":
+      lib = split[2]
+      lib = lib.replace("lib64", "lib")
+      if lib.startswith("/lib"):
+        lib = lib[4:]
+    if lib is not None:
+      ret |= get(lib) if recursive else {lib}
+  return ret
+
+
 def get(to_load):
   """
   @brief Get the current libraries for a binary.
@@ -66,13 +85,23 @@ def get(to_load):
     dir_cache = cache / sub
 
     if not dir_cache.is_file() or args.update_cache:
-      local_libraries = output(["sb-cache", str(to_load)])
-      if local_libraries:
-        with dir_cache.open("w") as file:
-          for library in local_libraries[:-1]:
-            if library != "" and library != "not":
-              file.write(f"{library} ")
-          file.write(local_libraries[-1])
+
+      libs = output(["find", str(to_load), "-executable", "-type", "f"])
+      running = set()
+      for lib in libs:
+        running |=  parse_ldd(lib, False)
+
+      internal = set()
+      for lib in running:
+        if lib.startswith(str(to_load) + "/"):
+          internal.add(lib)
+
+      with dir_cache.open("w") as file:
+        running = list(running - internal)
+        for library in running[:-1]:
+          if library != "" and library != "not":
+            file.write(f"{library} ")
+        file.write(running[-1])
 
     if dir_cache.is_file():
       libs = set(dir_cache.open("r").readline().strip().split(" "))
@@ -86,23 +115,7 @@ def get(to_load):
     return ret
 
   # Otherwise, add the library/binary to libraries, and then add all libraries needed via ldd.
-  ret |= {to_load}
-  for library in output(["ldd", to_load]):
-    split = library.split()
-
-    # Handle the esoteric syntax of ldd.
-    lib = None
-    if len(split) > 0 and split[0].startswith("/usr/lib"):
-      lib = split[0]
-    elif len(split) > 2 and split[2] != "not":
-      lib = split[2]
-      lib = lib.replace("lib64", "lib")
-      if lib.startswith("/lib"):
-        lib = lib[4:]
-
-    # If we have a library, check it as well.
-    if lib is not None:
-      ret |= get(lib)
+  ret |= parse_ldd(to_load)
   return ret
 
 
@@ -162,6 +175,7 @@ def setup(sof_dir, lib_cache, update_sof):
   sof_dir.mkdir(parents=True, exist_ok=True)
 
   # For each library, add it to the shared runtime.
+  # Threading does not lead to noticable results, unfortunately.
   for library in current:
 
     # Fix some issues that sometimes happen with find.

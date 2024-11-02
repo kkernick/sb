@@ -5,7 +5,6 @@ from subprocess import Popen, run
 from time import sleep
 from pathlib import Path
 from tempfile import TemporaryDirectory, NamedTemporaryFile
-from sys import argv
 from hashlib import new
 
 from shared import args, output, log, share, cache, config, data, home, runtime
@@ -238,7 +237,7 @@ def gen_command(application, application_path, application_folder):
 
   # Generate a hash of our command. We ignore switches
   # that do not change the output
-  raw = argv
+  raw = vars(args)
   for arg in ["--verbose", "--startup", "--dry", "--update-libraries"]:
    if arg in raw:
     raw.remove(arg)
