@@ -115,9 +115,10 @@ def run_application(application, application_path, application_folder, info_name
 
     # If it's cached, make a copy on a TMPFS.
     if args.cached_home:
-      cache_home = TemporaryDirectory()
-      run(["cp", "-r", str(home_dir) + "/.", cache_home.name])
-      command.extend(["--bind", cache_home.name, "/home"])
+      command.extend([
+        "--overlay-src", str(home_dir),
+        "--tmp-overlay", "/home",
+      ])
     else:
       command.extend(["--bind", str(home_dir), "/home"])
 
@@ -222,6 +223,9 @@ def run_application(application, application_path, application_folder, info_name
       log(f"Updating {dest} from file enclave")
       Path(dest).open("wb").write(Path(file).open("rb").read())
 
+  # Cleanup residual files from bind mounting
+  run(["find", str(local_dir), "-size", "0", "-delete"])
+  run(["find", str(local_dir), "-empty", "-delete"])
 
 # Generate the cacheable part of the command.
 def gen_command(application, application_path, application_folder):
@@ -235,7 +239,7 @@ def gen_command(application, application_path, application_folder):
   # Generate a hash of our command. We ignore switches
   # that do not change the output
   raw = argv
-  for arg in ["--verbose", "--startup", "--dry"]:
+  for arg in ["--verbose", "--startup", "--dry", "--update-libraries"]:
    if arg in raw:
     raw.remove(arg)
   h = new("SHA256")
@@ -610,7 +614,7 @@ def gen_command(application, application_path, application_folder):
       binaries.add(binary)
     share(command, binaries.current, "ro-bind-try")
     for bin in binaries.current:
-      libraries.get(bin, libraries.current)
+      libraries.current |= libraries.get(bin)
   command.extend(["--symlink", "/usr/bin", "/bin"])
   command.extend(["--symlink", "/usr/bin", "/bin"])
   command.extend(["--symlink", "/usr/bin", "/sbin"])
@@ -620,11 +624,23 @@ def gen_command(application, application_path, application_folder):
   # If we aren't just passing through /lib, setup our SOF.
   if update_sof:
     for library in args.libraries:
-      libraries.get(library, libraries.current)
+      libraries.current |= libraries.get(library)
 
   # If we're updating the SOF, generate all the libraries needed based on those that were explicitly provided.
   if not args.lib:
-    command.extend(["--bind", f"{str(sof_dir)}/usr/lib", "/usr/lib"])
+    path = Path(f"{str(sof_dir)}/usr/lib/")
+    path.mkdir(parents=True, exist_ok=True)
+
+    # We technically need /usr/lib to be mutable to create directories, but
+    # rather than letting the program actually write to libraries in the temp
+    # folder, which taint other instances of the program, we just use a
+    # temporary overlay that discards those changes.
+    command.extend(["--overlay-src", str(path), "--tmp-overlay", "/usr/lib"])
+
+    # Using OverlayFS, we can keep both the main /usr/lib "RO", and the
+    # subsequent sub-folders. To do this, we need two sources for the --ro-overlay
+    # The first is the actual folder in /usr/lib/, which avoids us having to copy
+    # files, and the second is an empty path in the SOF directory.
     if update_sof:
       share(command, libraries.setup(sof_dir, lib_cache, update_sof), "ro-bind")
 
@@ -643,10 +659,21 @@ def gen_command(application, application_path, application_folder):
     share(command, [f"/usr/lib/{application}"])
 
   # Setup any paths explicitly provided.
+  # Files must be simply bound in, which leads to unfortunate residual files
+  # in the static SB in $XDG_DATA_HOME
+  # Folder, however, we can overlay, which makes things a lot better.
   for path in args.rw:
-    share(command, [path], "bind-try")
+    p = Path(path)
+    if p.is_file() or p.is_dir():
+      share(command, [path], "bind-try")
+    else:
+      log("Warning: path:", path, "Does not exist!")
   for path in args.ro:
-    share(command, [path])
+    p = Path(path)
+    if p.is_file() or p.is_dir():
+      share(command, [path], "ro-bind-try")
+    else:
+      log("Warning: path:", path, "Does not exist!")
 
   # Write the command cache.
   with cmd_cache.open("w") as file:

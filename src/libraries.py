@@ -19,6 +19,7 @@ will delete both caches.
 """
 
 from pathlib import Path
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from shared import args, output, log, data
 
@@ -36,18 +37,20 @@ searched = {""}
 wildcards = set()
 
 
-def get(to_load, current=set()):
+def get(to_load):
   """
   @brief Get the current libraries for a binary.
   @param to_load: The binary or library
-  @pararm current: The list of current libraries we should add to
+  @returns The libraries needed for the binary
   """
 
   global searched, wildcards
 
+  ret = set()
+
   # If the binary/library has already been searched, just return, otherwise add it.
   if to_load in searched or to_load == "":
-    return
+    return ret
   searched.add(to_load)
 
   # If its a directory, then use the directory cache.
@@ -73,17 +76,17 @@ def get(to_load, current=set()):
 
     if dir_cache.is_file():
       libs = set(dir_cache.open("r").readline().strip().split(" "))
-      current |= libs
-      current.add(to_load)
-    return
+      ret |= libs
+      ret.add(to_load)
+    return ret
 
   # If there's a wildcard, expand it.
   if "*" in to_load:
     wildcards.add(to_load)
-    return
+    return ret
 
   # Otherwise, add the library/binary to libraries, and then add all libraries needed via ldd.
-  current |= {to_load}
+  ret |= {to_load}
   for library in output(["ldd", to_load]):
     split = library.split()
 
@@ -99,8 +102,8 @@ def get(to_load, current=set()):
 
     # If we have a library, check it as well.
     if lib is not None:
-      get(lib, current)
-  return
+      ret |= get(lib)
+  return ret
 
 
 def setup(sof_dir, lib_cache, update_sof):
@@ -133,10 +136,12 @@ def setup(sof_dir, lib_cache, update_sof):
     # Run this however many times it takes before all dependencies are found.
     log("Determining library dependencies...")
     unsearched = current - searched
-    while unsearched:
-      for lib in unsearched:
-        get(lib, current)
-      unsearched = current - searched
+    with ThreadPoolExecutor() as executor:
+      while unsearched:
+        futures = {executor.submit(get, lib): lib for lib in unsearched}
+        for future in as_completed(futures):
+          current |= future.result()
+        unsearched = current - searched
 
   # When updating, we need to overwrite the lib_cache.
   with lib_cache.open("w") as cache:
