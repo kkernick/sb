@@ -246,7 +246,13 @@ def gen_command(application, application_path, application_folder):
         log("Using cached library definitions")
         libraries.current = set([library for library in lib_cache.open("r").read().split(" ")])
       else:
+        log("Creating libary cache")
         update_sof = True
+    else:
+      log("Using pre-existing SOF")
+  else:
+    log("Regenerating library cache")
+
 
   if cmd_cache.is_file():
     with cmd_cache.open("r") as file:
@@ -255,6 +261,14 @@ def gen_command(application, application_path, application_folder):
       if hash == cached and sof_dir.is_dir() and not args.update_libraries:
         log("Using cached command")
         return info[1].split(" ")
+      else:
+        update_sof = True
+        if hash != cached:
+          log("Outdated command cache. Updating...")
+        elif not sof_dir.is_dir():
+          log("Updating command cache with library cache...")
+        else:
+          log("Regenerating command cache")
 
 
   # Get the basic stuff.
@@ -608,9 +622,9 @@ def gen_command(application, application_path, application_folder):
 
   # If we're updating the SOF, generate all the libraries needed based on those that were explicitly provided.
   if not args.lib:
-    binds = libraries.setup(sof_dir, lib_cache, update_sof)
     command.extend(["--bind", f"{str(sof_dir)}/usr/lib", "/usr/lib"])
-    share(command, binds, "bind")
+    if update_sof:
+      share(command, libraries.setup(sof_dir, lib_cache, update_sof), "bind")
 
   # Setup application directories.
   if "config" in args.app_dirs:
@@ -634,10 +648,10 @@ def gen_command(application, application_path, application_folder):
 
   # Write the command cache.
   with cmd_cache.open("w") as file:
+    log("Writing command cache")
     file.write(hash)
     file.write("\n")
     file.write(" ".join(command))
-
   return command
 
 

@@ -32,7 +32,7 @@ current = set()
 searched = {""}
 
 
-# A set of wildcard libraries, so that we can con
+# A set of wildcard libraries
 wildcards = set()
 
 
@@ -114,70 +114,67 @@ def setup(sof_dir, lib_cache, update_sof):
   global current
   binds = set()
 
-  # If we are explicitly told to update the libraries, or the SOF dir doesn't exist, then update.
-  if args.update_libraries or not sof_dir.is_dir():
-
-    # Make the directory if it doesn't exist.
-    if not sof_dir.is_dir():
-      sof_dir.mkdir(parents=True, exist_ok=True)
-
-    # If we want to update the SOF, perform the recursive library dependency check.
-    if update_sof:
-
-      log("Finding wildcard libraries...")
-      command = ["find", "/usr/lib", "-mindepth", "1", "-maxdepth", "1", "-executable"]
-      for library in wildcards:
-        command.extend(["-name", library[library.rfind("/") + 1:], "-o"])
-      # Remove the trailing -o
-      command = command[:-1]
-      current |= set(output(command))
-
-      # We simply get libraries based on everything within libraries that hasn't been searched.
-      # Run this however many times it takes before all dependencies are found.
-      log("Determining library dependencies...")
-      unsearched = current - searched
-      while unsearched:
-        for lib in unsearched:
-          get(lib, current)
-        unsearched = current - searched
-
-    # When updating, we need to overwrite the lib_cache.
-    with lib_cache.open("w") as cache:
-      for lib in current:
-        cache.write(lib)
-        cache.write(" ")
-
-    # Now, create our library folder, by copying everything in libraries into the folder.
-    # We use a SHARED folder, and then create hard-links off of that, to reduce duplication
-    # between multiple applications running under SB.
-    log("Creating /lib...")
-
-    # Create the shared runtime.
-    runtime_lib = Path("/tmp", "sb", "shared")
-    runtime_lib.mkdir(parents=True, exist_ok=True)
-
-    # Create the application-specific folder.
+  # Make the directory if it doesn't exist.
+  if not sof_dir.is_dir():
     sof_dir.mkdir(parents=True, exist_ok=True)
 
-    # For each library, add it to the shared runtime.
-    for library in current:
+  # If we want to update the SOF, perform the recursive library dependency check.
+  if update_sof:
 
-      # Fix some issues that sometimes happen with find.
-      if not library.startswith("/usr/lib") and not library.startswith("/usr/bin"):
-        log(f"Ignoring invalid library: {library}")
-        continue
+    log("Finding wildcard libraries...")
+    command = ["find", "/usr/lib", "-mindepth", "1", "-maxdepth", "1", "-executable"]
+    for library in wildcards:
+      command.extend(["-name", library[library.rfind("/") + 1:], "-o"])
+    # Remove the trailing -o
+    command = command[:-1]
+    current |= set(output(command))
 
-      # Get the path to the library, and where it should end up in the shared runtime.
-      real_path = Path(library)
-      runtime_path = Path(f"{runtime_lib}/{library}")
+    # We simply get libraries based on everything within libraries that hasn't been searched.
+    # Run this however many times it takes before all dependencies are found.
+    log("Determining library dependencies...")
+    unsearched = current - searched
+    while unsearched:
+      for lib in unsearched:
+        get(lib, current)
+      unsearched = current - searched
 
-      # If the library isn't a directory, then write it.
-      if not real_path.is_dir():
-        write(library, runtime_path, real_path, sof_dir)
+  # When updating, we need to overwrite the lib_cache.
+  with lib_cache.open("w") as cache:
+    for lib in current:
+      cache.write(lib)
+      cache.write(" ")
 
-      # If it IS a directory, then return it for binding.
-      elif real_path.is_dir():
-        binds.add(str(real_path))
+  # Now, create our library folder, by copying everything in libraries into the folder.
+  # We use a SHARED folder, and then create hard-links off of that, to reduce duplication
+  # between multiple applications running under SB.
+  log("Creating /lib...")
+
+  # Create the shared runtime.
+  runtime_lib = Path("/tmp", "sb", "shared")
+  runtime_lib.mkdir(parents=True, exist_ok=True)
+
+  # Create the application-specific folder.
+  sof_dir.mkdir(parents=True, exist_ok=True)
+
+  # For each library, add it to the shared runtime.
+  for library in current:
+
+    # Fix some issues that sometimes happen with find.
+    if not library.startswith("/usr/lib") and not library.startswith("/usr/bin"):
+      log(f"Ignoring invalid library: {library}")
+      continue
+
+    # Get the path to the library, and where it should end up in the shared runtime.
+    real_path = Path(library)
+    runtime_path = Path(f"{runtime_lib}/{library}")
+
+    # If the library isn't a directory, then write it.
+    if not real_path.is_dir():
+      write(library, runtime_path, real_path, sof_dir)
+
+    # If it IS a directory, then return it for binding.
+    elif real_path.is_dir():
+      binds.add(str(real_path))
   return binds
 
 
@@ -191,7 +188,8 @@ def write(library, runtime_path, real_path, sof_dir):
   """
 
   # If the library isn't in the shared folder, then add it.
-  if not runtime_path.is_file():
+  if not runtime_path.is_file() and str(real_path).startswith("/usr/lib"):
+    log("Adding library:", str(runtime_path))
 
     # Make any needed directories.
     runtime_path.parents[0].mkdir(parents=True, exist_ok=True)
