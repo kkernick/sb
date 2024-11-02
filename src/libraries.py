@@ -188,7 +188,7 @@ def write(library, runtime_path, real_path, sof_dir):
   """
 
   # If the library isn't in the shared folder, then add it.
-  if not runtime_path.is_file() and str(real_path).startswith("/usr/lib"):
+  if not runtime_path.is_file() and str(real_path).startswith("/usr/lib/"):
     log("Adding library:", str(runtime_path))
 
     # Make any needed directories.
