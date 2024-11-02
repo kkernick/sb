@@ -86,18 +86,24 @@ def get(to_load):
 
     if not dir_cache.is_file() or args.update_cache:
 
-      libs = output(["find", str(to_load), "-executable", "-type", "f"])
+      libs = output(["find", str(to_load), "-mindepth", "1", "-executable", "-type", "f"])
       running = set()
-      for lib in libs:
-        running |=  parse_ldd(lib, False)
+
+      with ThreadPoolExecutor() as executor:
+        futures = {executor.submit(parse_ldd, lib): lib for lib in libs}
+        for future in as_completed(futures):
+          result = future.result()
+          running |= result
 
       internal = set()
       for lib in running:
         if lib.startswith(str(to_load) + "/"):
           internal.add(lib)
 
+      running = list(running - internal)
+      if not running:
+        return ret
       with dir_cache.open("w") as file:
-        running = list(running - internal)
         for library in running[:-1]:
           if library != "" and library != "not":
             file.write(f"{library} ")
@@ -208,7 +214,6 @@ def write(library, runtime_path, real_path, sof_dir):
 
   # If the library isn't in the shared folder, then add it.
   if not runtime_path.is_file() and str(real_path).startswith("/usr/lib/"):
-    log("Adding library:", str(runtime_path))
 
     # Make any needed directories.
     runtime_path.parents[0].mkdir(parents=True, exist_ok=True)
