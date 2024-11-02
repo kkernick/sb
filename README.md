@@ -152,7 +152,7 @@ With everything said, it may seem daunting to actually create a profile, especia
 ### Chromium
 
 ```bash
-sb chromium "$@" --portals Flatpak Desktop Notifications FileChooser Camera OpenURI --sockets wayland pipewire xorg --electron --app-dirs etc share lib --zypak --own org.mpris.MediaPlayer2.chromium.instance2 --home --share net --file-passthrough-rw --dry-startup --cached-home
+sb chromium "$@" --portals Flatpak Desktop Notifications FileChooser Camera OpenURI --sockets wayland pipewire xorg --electron --app-dirs etc share lib --zypak --own org.mpris.MediaPlayer2.chromium.instance2 --libraries /usr/lib/chromium/chromium --home --share net --file-passthrough-rw --dry-startup --cached-home
 ```
 
 This profile runs `chromium` underneath Wayland, with Pipewire for sound. Xorg passthrough is due to an issue with VA-API on AMD. `FileChooser` is allowed for Portal access for Downloading/Uploading. We give a custom home directory, networking, allow it to make modifications to passthrough files, like PDFs, and dry-startup the browser so there's no delay after a reboot. `--cached-home` copies the custom home to TMPFS for each instance, ensuring a clean slate each time.

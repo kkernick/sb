@@ -7,6 +7,7 @@ source=("git+https://github.com/kkernick/sb.git")
 sha256sums=("SKIP")
 depends=(python findutils glibc which xdg-dbus-proxy bubblewrap strace zypak)
 makedepends=(zip)
+optdepends=('kdialog: To notify when sb-startup completes')
 arch=("any")
 provides=("sb")
 
