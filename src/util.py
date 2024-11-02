@@ -48,4 +48,4 @@ def desktop_entry():
   # Write the sandboxed desktop entry to the user's application folder.
   with open(f"{data}/applications/{name}", "w") as f:
     f.write(buffer)
-  return
+  exit(0)

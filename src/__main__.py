@@ -232,9 +232,14 @@ def gen_command(application, application_path, application_folder):
   lib_cache = Path(local_dir, "lib.cache")
   cmd_cache = Path(local_dir, "cmd.cache")
 
-  # Generate a hash of our command.
+  # Generate a hash of our command. We ignore switches
+  # that do not change the output
+  raw = argv
+  for arg in ["--verbose", "--startup", "--dry"]:
+   if arg in raw:
+    raw.remove(arg)
   h = new("SHA256")
-  h.update("".join(argv).encode())
+  h.update("".join(raw).encode())
   hash = h.hexdigest()
 
   # If we don't explicitly want to update the libraries, the SOF exists, there is a library cache,
