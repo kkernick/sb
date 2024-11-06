@@ -1,13 +1,12 @@
 pkgname=sb-git
 pkgdesc="Sandbox Applications"
-pkgver=r114.34d96e5
+pkgver=r115.54d6440
 pkgrel=1
 
 source=("git+https://github.com/kkernick/sb.git")
 sha256sums=("SKIP")
 depends=(python findutils glibc which xdg-dbus-proxy bubblewrap strace zypak)
 makedepends=(zip)
-optdepends=('kdialog: To notify when sb-startup completes')
 arch=("any")
 provides=("sb")
 

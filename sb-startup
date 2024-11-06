@@ -3,7 +3,3 @@
 for profile in $(ls $HOME/.local/bin/*.sb); do
   $profile --dry --startup
 done
-
-if command -v kdialog 2>&1 >/dev/null; then
-  kdialog --passivepopup "SB Dry Startup Complete\!" 1
-fi 

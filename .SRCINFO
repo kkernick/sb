@@ -1,6 +1,6 @@
 pkgbase = sb-git
 	pkgdesc = Sandbox Applications
-	pkgver = r112.125b683
+	pkgver = r115.54d6440
 	pkgrel = 1
 	arch = any
 	makedepends = zip
@@ -12,7 +12,6 @@ pkgbase = sb-git
 	depends = bubblewrap
 	depends = strace
 	depends = zypak
-	optdepends = kdialog: To notify when sb-startup completes
 	provides = sb
 	source = git+https://github.com/kkernick/sb.git
 	sha256sums = SKIP
