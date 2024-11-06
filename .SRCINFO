@@ -1,6 +1,6 @@
 pkgbase = sb-git
 	pkgdesc = Sandbox Applications
-	pkgver = r116.21f3e02
+	pkgver = r117.639d4a1
 	pkgrel = 1
 	arch = any
 	makedepends = zip
@@ -11,7 +11,7 @@ pkgbase = sb-git
 	depends = xdg-dbus-proxy
 	depends = bubblewrap
 	optdepends = strace: for --strace, useful for debugging
-	optdepends = zpyak: for --zypak, required for Chromium/Electron
+	optdepends = zypak: for --zypak, required for Chromium/Electron
 	optdepends = hardened_malloc: for --hardened-malloc
 	provides = sb
 	source = git+https://github.com/kkernick/sb.git
