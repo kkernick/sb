@@ -72,9 +72,6 @@ def dbus_proxy(portals, application_folder, info_name):
     "--ro-bind", "/usr/lib", "/usr/lib",
     "--ro-bind", "/usr/lib64", "/usr/lib64",
     "--ro-bind", "/usr/bin", "/usr/bin",
-    "--ro-bind-try", "/etc/ld.so.conf", "/etc/ld.so.conf",
-    "--ro-bind-try", "/etc/ld.so.conf.d", "/etc/ld.so.conf.d",
-    "--ro-bind-try", "/etc/ld.so.preload", "/etc/ld.so.preload",
     "--clearenv",
     "--bind", runtime, runtime,
     "--ro-bind", info_name, "/.flatpak-info",
@@ -112,12 +109,6 @@ def run_application(application, application_path, application_folder, info_name
   # Add the flatpak-info.
   command.extend(["--ro-bind-try", info_name, f"{runtime}/flatpak-info"])
   command.extend(["--ro-bind-try", info_name, "/.flatpak-info"])
-  
-  command.extend([
-    "--ro-bind-try", "/etc/ld.so.conf", "/etc/ld.so.conf",
-    "--ro-bind-try", "/etc/ld.so.conf.d", "/etc/ld.so.conf.d",
-    "--ro-bind-try", "/etc/ld.so.preload", "/etc/ld.so.preload"
-  ])
 
   # If we have a home directory, add it.
   if args.home:
