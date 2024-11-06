@@ -340,7 +340,10 @@ def gen_command(application, application_path, application_folder):
     share(command, ["/usr/share/git/"])
 
   if args.hardened_malloc:
-    command.extend(["--setenv", "LD_PRELOAD", "/usr/lib/libhardened_malloc.so"])
+    if args.zypak:
+      command.extend(["--setenv", "ZYPAK_LD_PRELOAD", "/usr/lib/libhardened_malloc.so"])
+    else:
+      command.extend(["--setenv", "LD_PRELOAD", "/usr/lib/libhardened_malloc.so"])
     libraries.wildcards.add("libhardened_malloc*")
 
   if args.zsh:
