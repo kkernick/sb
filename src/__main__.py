@@ -91,6 +91,8 @@ def dbus_proxy(portals, application_folder, info_name):
 
   if args.xdg_open:
     command.extend(["--talk=org.freedesktop.portal.OpenURI"])
+  if args.verbose:
+    command.extend(["--log"])
 
   log(" ".join(command))
   Popen(command)
@@ -160,7 +162,7 @@ def run_application(application, application_path, application_folder, info_name
     command.append("sh")
   else:
     if args.strace:
-      command.extend(["strace", "-ff"])
+      command.extend(["strace", "-ffz"])
 
     # Zypak must be run on the direct binary, so if we're passed
     # a shell script, parse it
