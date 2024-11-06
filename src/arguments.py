@@ -198,6 +198,9 @@ def parse():
   # Give the application git.
   parser.add_argument("--git", action="store_true", default=False, help="Give the application git")
 
+  # Use hardened malloc
+  parser.add_argument("--hardened-malloc", action="store_true", default=False, help="Use hardened_malloc within the sandbox")
+
   # Make a desktop entry for this sandboxed application.
   parser.add_argument("--make-desktop-entry", action="store_true", default=False, help="Create a desktop entry for the application.")
 

@@ -1,12 +1,17 @@
 pkgname=sb-git
 pkgdesc="Sandbox Applications"
-pkgver=r115.54d6440
+pkgver=r116.21f3e02
 pkgrel=1
 
 source=("git+https://github.com/kkernick/sb.git")
 sha256sums=("SKIP")
-depends=(python findutils glibc which xdg-dbus-proxy bubblewrap strace zypak)
+depends=(python findutils glibc which xdg-dbus-proxy bubblewrap)
 makedepends=(zip)
+optdepends=(
+'strace: for --strace, useful for debugging'
+'zpyak: for --zypak, required for Chromium/Electron'
+'hardened_malloc: for --hardened-malloc'
+)
 arch=("any")
 provides=("sb")
 

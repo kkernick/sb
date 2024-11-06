@@ -64,12 +64,17 @@ def main():
 # Run the DBUS Proxy.
 def dbus_proxy(portals, application_folder, info_name):
   command = ["bwrap"]
+  if args.hardened_malloc:
+    command.extend(["--setenv", "LD_PRELOAD", "/usr/lib/libhardened_malloc.so"])
   command.extend([
     "--new-session",
     "--symlink", "/usr/lib64", "/lib64",
     "--ro-bind", "/usr/lib", "/usr/lib",
     "--ro-bind", "/usr/lib64", "/usr/lib64",
     "--ro-bind", "/usr/bin", "/usr/bin",
+    "--ro-bind-try", "/etc/ld.so.conf", "/etc/ld.so.conf",
+    "--ro-bind-try", "/etc/ld.so.conf.d", "/etc/ld.so.conf.d",
+    "--ro-bind-try", "/etc/ld.so.preload", "/etc/ld.so.preload",
     "--clearenv",
     "--bind", runtime, runtime,
     "--ro-bind", info_name, "/.flatpak-info",
@@ -93,7 +98,6 @@ def dbus_proxy(portals, application_folder, info_name):
     command.extend(["--talk=org.freedesktop.portal.OpenURI"])
   if args.verbose:
     command.extend(["--log"])
-
   log(" ".join(command))
   Popen(command)
 
@@ -108,6 +112,12 @@ def run_application(application, application_path, application_folder, info_name
   # Add the flatpak-info.
   command.extend(["--ro-bind-try", info_name, f"{runtime}/flatpak-info"])
   command.extend(["--ro-bind-try", info_name, "/.flatpak-info"])
+  
+  command.extend([
+    "--ro-bind-try", "/etc/ld.so.conf", "/etc/ld.so.conf",
+    "--ro-bind-try", "/etc/ld.so.conf.d", "/etc/ld.so.conf.d",
+    "--ro-bind-try", "/etc/ld.so.preload", "/etc/ld.so.preload"
+  ])
 
   # If we have a home directory, add it.
   if args.home:
@@ -338,6 +348,9 @@ def gen_command(application, application_path, application_folder):
     libraries.current |= {"/usr/lib/git-core/"}
     share(command, ["/usr/share/git/"])
 
+  if args.hardened_malloc:
+    command.extend(["--setenv", "LD_PRELOAD", "/usr/lib/libhardened_malloc.so"])
+    libraries.wildcards.add("libhardened_malloc*")
 
   if args.zsh:
     args.ro.extend([
