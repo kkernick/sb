@@ -551,7 +551,7 @@ def gen_command(application, application_path, application_folder):
         ])
         if update_sof:
             libraries.wildcards.add("libpipewire*")
-            libraries.current |= {"/usr/lib/pipewire-0.3/", "/usr/lib/spa-0.2/"}
+            libraries.current |= {"/usr/lib/pipewire-0.3/", "/usr/lib/spa-0.2/", "/usr/lib/pulseaudio/"}
 
     # add Xorg. This is a vulnerability.
     if "xorg" in args.sockets:
