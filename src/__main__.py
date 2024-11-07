@@ -40,13 +40,6 @@ def main():
     temp = TemporaryDirectory()
     info = NamedTemporaryFile()
 
-    # LD_PRELOAD does not cooperate with zypak very well, at least for Chromium.
-    # LD_PRELOAD is also a value with some restrictions, and one that can be
-    # trivially unset.
-    # To resolve this, we create the privileged /etc/ld.so.preload that ensures that
-    # if --hardened--malloc is passed, all processes within the sandbox use the allocator.
-    preload = NamedTemporaryFile()
-
     log(f"Running {application_name}")
     log(f"\tTemp: {temp}")
 
@@ -65,7 +58,7 @@ def main():
 
     # Then, run the program.
     log("Launching ", program, "at", path)
-    run_application(program, path, application_folder, info.name, temp.name, preload)
+    run_application(program, path, application_folder, info.name, temp.name)
 
 
 # Run the DBUS Proxy.
@@ -107,7 +100,7 @@ def dbus_proxy(portals, application_folder, info_name):
 
 
 # Run the application.
-def run_application(application, application_path, application_folder, info_name, temp, preload):
+def run_application(application, application_path, application_folder, info_name, temp):
     command = ["bwrap", "--new-session", "--die-with-parent"]
     local_dir =    Path(data, "sb", application)
     if not local_dir.is_dir():
@@ -139,18 +132,18 @@ def run_application(application, application_path, application_folder, info_name
     # Add the tmpfs.
     command.extend(["--tmpfs", temp])
 
-    # Typically, hardened malloc works by simply passing LD_PRELOAD
-    # along --setenv. Even when running under zypak, the ZYPAK_LD_PRELOAD
-    # does the job in Electron. However, and for a reason I'm not entirely sure,
-    # Chromium will not use hardened malloc underneath zypak; being the most
-    # important application sandbox, we've created a temporary ld.so.preload
-    # for the sandbox. This "privileged preload" does not have the same
-    # fragility of LD_PRELOAD (ID matching, being able to just unset it),
-    # so it also improves the sandbox.
     if args.hardened_malloc:
-        preload.write("/usr/lib/libhardened_malloc.so\n".encode())
-        preload.flush()
-        command.extend(["--ro-bind", str(preload.name), "/etc/ld.so.preload"])
+        # Typically, hardened malloc works by simply passing LD_PRELOAD
+        # along --setenv. Even when running under zypak, the ZYPAK_LD_PRELOAD
+        # does the job in Electron. However, and for a reason I'm not entirely sure,
+        # Chromium will not use hardened malloc underneath zypak; being the most
+        # important application sandbox, we've created a temporary ld.so.preload
+        # for the sandbox. This "privileged preload" does not have the same
+        # fragility of LD_PRELOAD (ID matching, being able to just unset it),
+        # so it also improves the sandbox.
+        preload = Path("/tmp", "sb", application, "ld.so.preload")
+        preload.open("w").write("/usr/lib/libhardened_malloc.so\n")
+        command.extend(["--ro-bind", str(preload.resolve()), "/etc/ld.so.preload"])
 
     # Get the cached portion of the command.
     command.extend(gen_command(application, application_path, application_folder))
@@ -253,8 +246,8 @@ def run_application(application, application_path, application_folder, info_name
 def gen_command(application, application_path, application_folder):
 
     # Get all our locations.
-    sof_dir =    Path("/tmp", "sb", application)
-    local_dir =    Path(data, "sb", application)
+    sof_dir = Path("/tmp", "sb", application)
+    local_dir = Path(data, "sb", application)
     lib_cache = Path(local_dir, "lib.cache")
     cmd_cache = Path(local_dir, "cmd.cache")
 
@@ -365,8 +358,6 @@ def gen_command(application, application_path, application_folder):
         else:
             command.extend(["--setenv", "LD_PRELOAD", "/usr/lib/libhardened_malloc.so"])
         libraries.wildcards.add("libhardened_malloc*")
-
-
 
     if args.zsh:
         args.ro.extend([
