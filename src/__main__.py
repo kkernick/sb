@@ -145,7 +145,10 @@ def run_application(application, application_path, application_folder, info_name
         # for the sandbox. This "privileged preload" does not have the same
         # fragility of LD_PRELOAD (ID matching, being able to just unset it),
         # so it also improves the sandbox.
-        preload = Path("/tmp", "sb", application, "ld.so.preload")
+        preload = Path("/tmp", "sb", application)
+        preload.mkdir(exists_ok=True, parents=True)
+
+        preload /= "ld.so.preload"
         preload.open("w").write("/usr/lib/libhardened_malloc.so\n")
         command.extend(["--ro-bind", str(preload.resolve()), "/etc/ld.so.preload"])
 
