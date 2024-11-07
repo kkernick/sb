@@ -1,5 +1,5 @@
 #!/bin/bash
 
 for profile in $(ls $HOME/.local/bin/*.sb); do
-  $profile --dry --startup
+  $profile --dry --startup --update-libraries
 done

@@ -1,6 +1,6 @@
 pkgbase = sb-git
 	pkgdesc = Sandbox Applications
-	pkgver = r122.348fba6
+	pkgver = r125.5a129a3
 	pkgrel = 1
 	arch = any
 	makedepends = zip
