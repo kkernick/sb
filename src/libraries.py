@@ -212,7 +212,7 @@ def write(library, runtime_path, real_path, sof_dir):
     @param sof_dir: The path to the program's SOF.
     """
 
-    if str(real_path.parents[0]) != "/usr/lib":
+    if not str(real_path).startswith("/usr/lib"):
         return
 
     # If the library isn't in the shared folder, then add it.
