@@ -19,27 +19,27 @@ home = environ["HOME"]
 
 # Run a command, put the results in a list.
 def output(command):
-  process = run(command, stdout=PIPE, stderr=PIPE)
-  return [out for out in process.stdout.decode().split("\n") if out]
+    process = run(command, stdout=PIPE, stderr=PIPE)
+    return [out for out in process.stdout.decode().split("\n") if out]
 
 
 def log(*messages):
-  """
-  @brief Log messages, but only if verbose printing.
-  """
-  if args.verbose:
-    print(*messages)
+    """
+    @brief Log messages, but only if verbose printing.
+    """
+    if args.verbose:
+        print(*messages)
 
 
 # Share a list of files under a specified mode.
 def share(command: list, paths: list, mode = "ro-bind-try"):
-  for path in paths:
-    p = Path(path)
-    if p.is_symlink():
-      true = str(p.readlink())
-      if not true.startswith("/"):
-        true = f"{str(p.parent)}/{true}"
-      command.extend([f"--{mode}", true, true])
-      command.extend(["--symlink", true, path])
-    else:
-      command.extend([f"--{mode}", path, path])
+    for path in paths:
+        p = Path(path)
+        if p.is_symlink():
+            true = str(p.readlink())
+            if not true.startswith("/"):
+                true = f"{str(p.parent)}/{true}"
+            command.extend([f"--{mode}", true, true])
+            command.extend(["--symlink", true, path])
+        else:
+            command.extend([f"--{mode}", path, path])
