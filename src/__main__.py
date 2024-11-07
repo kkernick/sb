@@ -132,6 +132,10 @@ def run_application(application, application_path, application_folder, info_name
     # Add the tmpfs.
     command.extend(["--tmpfs", temp])
 
+
+    # Get the cached portion of the command.
+    command.extend(gen_command(application, application_path, application_folder))
+
     if args.hardened_malloc:
         # Typically, hardened malloc works by simply passing LD_PRELOAD
         # along --setenv. Even when running under zypak, the ZYPAK_LD_PRELOAD
@@ -144,9 +148,6 @@ def run_application(application, application_path, application_folder, info_name
         preload = Path("/tmp", "sb", application, "ld.so.preload")
         preload.open("w").write("/usr/lib/libhardened_malloc.so\n")
         command.extend(["--ro-bind", str(preload.resolve()), "/etc/ld.so.preload"])
-
-    # Get the cached portion of the command.
-    command.extend(gen_command(application, application_path, application_folder))
 
     # Handle unknown arguments. If they're files, deal with them, otherwise
     enclave_contents = {}
