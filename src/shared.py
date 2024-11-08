@@ -46,5 +46,11 @@ def share(command: list, paths: list, mode = "ro-bind-try"):
             command.extend([f"--{mode}", path, path])
 
 
+def env(variable):
+    if  variable in environ:
+        return ["--setenv", variable, environ[variable]]
+    return []
+
+
 nobody = output(["id", "-u", "nobody"])[0]
 real = output(["id", "-u"])[0]

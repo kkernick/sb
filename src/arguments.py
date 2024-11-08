@@ -29,7 +29,7 @@ def parse():
         "--portals",
         action="extend",
         nargs="*",
-        default=["Flatpak"],
+        default=[],
         help="A list of XDG Portals to expose to the application",
     )
 

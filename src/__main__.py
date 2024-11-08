@@ -7,7 +7,7 @@ from pathlib import Path
 from tempfile import TemporaryDirectory, NamedTemporaryFile
 from hashlib import new
 
-from shared import args, output, log, share, cache, config, data, home, runtime, session, nobody, real
+from shared import args, output, log, share, cache, config, data, home, runtime, session, nobody, real, env
 from util import desktop_entry
 
 import binaries
@@ -312,12 +312,8 @@ def gen_command(application, application_path, application_folder):
         "--setenv", "XDG_RUNTIME_DIR", local_runtime,
         "--setenv", "HOME", "/home/sb",
         "--setenv", "PATH", "/usr/bin",
-        "--setenv", "XDG_CONFIG_DIR", "/home/sb/.config",
-        "--setenv", "XDG_CACHE_HOME", "/home/sb/.cache",
-        "--setenv", "XDG_DATA_HOME", "/home/sb/.local/share",
-        "--setenv", "XDG_STATE_HOME", "/home/sb/.local/state",
-
     ])
+    command.extend(env("XDG_CURRENT_DESKTOP") + env("DESKTOP_SESSION"))
 
     command.extend([
         "--dir", local_runtime,
@@ -395,8 +391,7 @@ def gen_command(application, application_path, application_folder):
         args.binaries.extend(["zsh", "mv"])
         libraries.current |= {"/usr/lib/zsh/"}
 
-        command.extend(["--setenv", "SHELL", environ["SHELL"]])
-
+        command.extend(env("SHELL"))
 
     if args.include:
         args.ro.extend([
@@ -466,8 +461,7 @@ def gen_command(application, application_path, application_folder):
         args.dri = True
         args.qt = True
 
-        command.extend(["--setenv", "KDE_FULL_SESSION", "true"])
-
+        command.extend(env("KDE_FULL_SESSION"))
 
     # Add QT
     if args.qt or args.qt5:
@@ -544,8 +538,8 @@ def gen_command(application, application_path, application_folder):
                 f"{data}/mime",
                 f"{data}/pixmaps",
             ])
-        if "XDG_SESSION_DESKTOP" in environ:
-            command.extend(["--setenv", "XDG_SESSION_DESKTOP", environ["XDG_SESSION_DESKTOP"]])
+        command.extend(env("XDG_SESSION_DESKTOP"))
+        command.extend(env("FREETYPE_PROPERTIES"))
         if update_sof:
             for lib in [
                 "libvulkan*", "libglapi*", "*mesa*", "*Mesa*", "libdrm", "libGLX*", "libEGL*",
@@ -561,7 +555,7 @@ def gen_command(application, application_path, application_folder):
             "/usr/share/X11/xkb",
             "/etc/xkb"
         ])
-        command.extend(["--setenv", "WAYLAND_DISPLAY", environ["WAYLAND_DISPLAY"]])
+        command.extend(env("WAYLAND_DISPLAY"))
         command.extend(["--setenv", "XDG_SESSION_TYPE", "wayland"])
 
 
@@ -581,7 +575,7 @@ def gen_command(application, application_path, application_folder):
     # add Xorg. This is a vulnerability.
     if "xorg" in args.sockets:
         if "DISPLAY" in environ:
-            command.extend(["--setenv", "DISPLAY", environ["DISPLAY"]])
+            command.extend(env("DISPLAY"))
         share(command, ["/tmp/.X11-unix/X0"])
         for xauth in output(["find", runtime, "-maxdepth", "1", "-name", "xauth_*"]):
             command.extend(["--ro-bind-try", xauth, f"{local_runtime}/{xauth.split("/")[-1]}"])
@@ -604,10 +598,7 @@ def gen_command(application, application_path, application_folder):
         ])
         if update_sof:
             args.ro.append("/usr/lib/locale/")
-        command.extend([
-            "--setenv", "LANG", environ["LANG"],
-            "--setenv", "LANGUAGE", environ["LANGUAGE"],
-        ])
+        command.extend(env("LANG") + env("LANGUAGE"))
         args.binaries.append("locale")
 
     # Hunspell
