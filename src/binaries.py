@@ -22,6 +22,9 @@ def add(binary):
     global current
     ret = set()
 
+    if binary.split("/")[-1] in args["ignore"]:
+        return ret
+
     # If we have an absolute path, extract.
     if binary.startswith("/"):
         path = binary
@@ -97,6 +100,8 @@ def parse(path):
 
                     # If we hit a here_doc, skip lines until we reach the end.
                     if "<<" in stripped:
+                        index = stripped.find("<<")
+                        stripped = stripped[:index] + " << " + stripped[index + 2:]
                         s = stripped.split(" ")
                         here_doc = s[s.index("<<") + 1].strip("'\"")
                         continue
@@ -126,5 +131,6 @@ def parse(path):
                 file.write(ret_list[-1])
 
     if bin_cache.is_file():
-        current |= set(bin_cache.open("r").readline().strip().split(" "))
+        ret |= set(bin_cache.open("r").readline().strip().split(" "))
+
     return ret

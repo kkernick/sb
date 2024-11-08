@@ -37,8 +37,8 @@ searched = {""}
 wildcards = set()
 
 
-def parse_ldd(to_load, recursive=True):
-    ret = {to_load}
+def parse_ldd(to_load, recursive=True, local=False):
+    ret = set() if local else {to_load}
     for library in output(["ldd", to_load]):
         split = library.split()
 
@@ -52,11 +52,11 @@ def parse_ldd(to_load, recursive=True):
             if lib.startswith("/lib"):
                 lib = lib[4:]
         if lib is not None:
-            ret |= get(lib) if recursive else {lib}
+            ret |= get(lib, local) if recursive else {lib}
     return ret
 
 
-def get(to_load):
+def get(to_load, local=False):
     """
     @brief Get the current libraries for a binary.
     @param to_load: The binary or library
@@ -68,9 +68,10 @@ def get(to_load):
     ret = set()
 
     # If the binary/library has already been searched, just return, otherwise add it.
-    if to_load in searched or to_load == "":
+    if to_load in searched or to_load == "" or to_load.split("/")[-1] in args["ignore"]:
         return ret
-    searched.add(to_load)
+    if not local:
+        searched.add(to_load)
 
     # If its a directory, then use the directory cache.
     if Path(to_load).is_dir():
@@ -97,12 +98,26 @@ def get(to_load):
 
             internal = set()
             for lib in running:
-                if lib.startswith(str(to_load) + "/"):
-                    internal.add(lib)
+                if local:
+                    parent = str(Path(lib).parent)
+                    if to_load.endswith("/") and not parent.endswith("/"):
+                        parent += "/"
+                    elif parent.endswith("/") and not to_load.endswith("/"):
+                        parent = parent[:-1]
 
-            running = list(running - internal)
+                    if parent.startswith(to_load):
+                        continue
+                elif not lib.startswith(str(to_load) + "/"):
+                    continue
+                internal.add(lib)
+
+            if local:
+                running = list(internal)
+            else:
+                running = list(running - internal)
             if not running:
                 return ret
+
             with dir_cache.open("w") as file:
                 for library in running[:-1]:
                     if library != "" and library != "not":
@@ -121,7 +136,7 @@ def get(to_load):
         return ret
 
     # Otherwise, add the library/binary to libraries, and then add all libraries needed via ldd.
-    ret |= parse_ldd(to_load)
+    ret |= parse_ldd(to_load, local)
     return ret
 
 

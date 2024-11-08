@@ -28,33 +28,40 @@ def main():
     else:
         program = path
 
-    # Setup the .flatpak info values.
-    application_name=f"app.application.{program}"
-
-    # Create the application's runtime folder
-    application_folder=Path(runtime, "app", application_name)
-    application_folder.mkdir(parents=True, exist_ok=True)
-
-    # The .flatpak-info is just a temporary file, but the application's temporary directory is a seperate TMPFS,
-    # separate from the global /tmp.
     temp = TemporaryDirectory()
-    info = NamedTemporaryFile()
+    if not args["portals"] and not args["see"] and not args["talk"] and not args["own"]:
+        log("No portals requiried, disabling dbus-proxy")
+        application_folder = None
+        info = Path()
+    else:
+        log("Creating dbus proxy...")
 
-    log(f"Running {application_name}")
-    log(f"\tTemp: {temp}")
+        # Setup the .flatpak info values.
+        application_name=f"app.application.{program}"
 
-    # Write the .flatpak-info file so the application thinks its running in flatpak and thus portals work.
-    info.write(b"[Application]\n")
-    name_str=f"name={application_name}"
-    info.write(name_str.encode())
-    info.flush()
+        # Create the application's runtime folder
+        application_folder=Path(runtime, "app", application_name)
+        application_folder.mkdir(parents=True, exist_ok=True)
 
-    # Setup the DBux Proxy. This is needed to mediate Dbus calls, and enable Portals.
-    log("Launching D-Bus Proxy")
-    dbus_proxy(args["portals"], application_folder, info.name)
+        # The .flatpak-info is just a temporary file, but the application's temporary directory is a seperate TMPFS,
+        # separate from the global /tmp.
+        info = NamedTemporaryFile()
 
-    # We need to wait a slight amount of time for the Proxy to get up and running.
-    sleep(0.01)
+        log(f"Running {application_name}")
+        log(f"\tTemp: {temp}")
+
+        # Write the .flatpak-info file so the application thinks its running in flatpak and thus portals work.
+        info.write(b"[Application]\n")
+        name_str=f"name={application_name}"
+        info.write(name_str.encode())
+        info.flush()
+
+        # Setup the DBux Proxy. This is needed to mediate Dbus calls, and enable Portals.
+        log("Launching D-Bus Proxy")
+        dbus_proxy(args["portals"], application_folder, info.name)
+
+        # We need to wait a slight amount of time for the Proxy to get up and running.
+        sleep(0.01)
 
     # Then, run the program.
     log("Launching ", program, "at", path)
@@ -107,8 +114,9 @@ def run_application(application, application_path, application_folder, info_name
         local_dir.mkdir(parents=True)
 
     # Add the flatpak-info.
-    command.extend(["--ro-bind-try", info_name, f"/run/{real}/flatpak-info"])
-    command.extend(["--ro-bind-try", info_name, "/.flatpak-info"])
+    if application_folder:
+        command.extend(["--ro-bind-try", info_name, f"/run/{real}/flatpak-info"])
+        command.extend(["--ro-bind-try", info_name, "/.flatpak-info"])
 
     # If we have a home directory, add it.
     if args["home"]:
@@ -196,7 +204,7 @@ def run_application(application, application_path, application_folder, info_name
         command.append("sh")
     else:
         if args["strace"]:
-            command.extend(["strace", "-ffz"])
+            command.extend(["strace", "-ffz", "-v", "-s", "100"])
 
         # Zypak must be run on the direct binary, so if we're passed
         # a shell script, parse it
@@ -330,21 +338,24 @@ def gen_command(application, application_path, application_folder):
 
     local_runtime = runtime
     command.extend([
-        #"--uid", nobody,
-        #"--gid", nobody,
         "--setenv", "DBUS_SESSION_BUS_ADDRESS", session,
         "--setenv", "XDG_RUNTIME_DIR", local_runtime,
         "--setenv", "HOME", "/home/sb",
         "--setenv", "PATH", "/usr/bin",
     ])
 
-    command.extend([
-        "--dir", local_runtime,
-        "--chmod", "0700", local_runtime,
-        "--ro-bind-try", f"{application_folder}/bus", f"{local_runtime}/bus",
-        "--bind-try", f"{runtime}/doc", f"{local_runtime}/doc",
-    ])
-    share(command, ["/run/dbus"])
+    # Only necessary if we need portals
+    if application_folder:
+        command.extend([
+            "--dir", local_runtime,
+            "--chmod", "0700", local_runtime,
+            "--ro-bind-try", f"{application_folder}/bus", f"{local_runtime}/bus",
+            "--bind-try", f"{runtime}/doc", f"{local_runtime}/doc",
+        ])
+        share(command, ["/run/dbus"])
+    else:
+        command.extend(["--uid", nobody, "--gid", nobody,])
+
 
     if args["lib"]:
         share(command, ["/usr/lib"])
@@ -671,6 +682,10 @@ def gen_command(application, application_path, application_folder):
         share(command, binaries.current, "ro-bind-try")
         for bin in binaries.current:
             libraries.current |= libraries.get(bin)
+    for binary in args["local"]:
+        for executable in output(["find", str(local_dir) + binary, "-mindepth", "1", "-executable", "-type", "f"]):
+            share(command, binaries.parse(executable))
+
     command.extend(["--symlink", "/usr/bin", "/bin"])
     command.extend(["--symlink", "/usr/bin", "/bin"])
     command.extend(["--symlink", "/usr/bin", "/sbin"])
@@ -681,6 +696,8 @@ def gen_command(application, application_path, application_folder):
     if update_sof:
         for library in args["libraries"]:
             libraries.current |= libraries.get(library)
+        for path in args["local"]:
+            libraries.current |= libraries.get(str(local_dir) + path, local=True)
 
     # If we're updating the SOF, generate all the libraries needed based on those that were explicitly provided.
     if not args["lib"]:

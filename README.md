@@ -1,6 +1,11 @@
 # SB
 
  Sandbox applications, securely.
+ 
+ | Idle Memory Usage | SOF on TMPFS | SOF on ZRAM | Actual Size |
+ | ----------------- | ------------ | ----------- | ----------- |
+ | 5.8 GB            | 7.6 GB       | 6.4 GB      | 1.8 GB      |
+ 
 
 ## Installation
 

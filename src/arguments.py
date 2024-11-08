@@ -81,8 +81,11 @@ def parse():
     # any folder within /lib, but it will be slow to generate the command and library cache.
     parser.add_argument("--lib", action="store_true", default=False, help="Mount /lib and others")
     parser.add_argument("--libraries", action="extend", nargs="*", default=[], help="A list of libraries needed in the sandbox")
+    parser.add_argument("--local", action="extend", nargs="*", default=[], help="A list of directories within the sandbox that the application creates, and needs library lookup.")
+
     parser.add_argument("--sof", action="store", default="tmpfs", choices=["tmpfs", "data", "zram"], help="Where the library SOF should be stored.")
 
+    parser.add_argument("--ignore", action="extend", nargs="*", default=[], help="Ignore libraries/binaries")
 
     # Force the program to recalculate library dependencies, overwriting the library and command cache.
     parser.add_argument("--update-libraries", action="store_true", default=False, help="Update SOF libraries")
