@@ -132,5 +132,4 @@ def parse(path):
 
     if bin_cache.is_file():
         ret |= set(bin_cache.open("r").readline().strip().split(" "))
-
     return ret

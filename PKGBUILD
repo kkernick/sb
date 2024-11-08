@@ -1,6 +1,6 @@
 pkgname=sb-git
 pkgdesc="Sandbox Applications"
-pkgver=r137.cf65e7d
+pkgver=r138.32bfef4
 pkgrel=1
 
 source=("git+https://github.com/kkernick/sb.git")
@@ -9,7 +9,6 @@ depends=(python findutils glibc which bubblewrap)
 makedepends=(zip)
 optdepends=(
 'strace: for --strace, useful for debugging'
-'zypak: for --zypak, required for Chromium/Electron'
 'hardened_malloc: for --hardened-malloc'
 'zram-generator: for --sof=zram'
 'xdg-dbus-proxy: for --portals, --see, --talk, --own for Flatpak Emulation'
@@ -35,6 +34,6 @@ package() {
   for service in sb.service; do
     install -Dm644 "$service" "$pkgdir/usr/lib/systemd/user/$service"
   done
-  
+
   install -Dm 644 sb.conf "$pkgdir/usr/lib/systemd/zram-generator.conf.d/sb.conf"
 }

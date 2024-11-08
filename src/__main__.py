@@ -80,6 +80,10 @@ def dbus_proxy(portals, application_folder, info_name):
         "--ro-bind", "/usr/lib64", "/usr/lib64",
         "--ro-bind", "/usr/bin", "/usr/bin",
         "--clearenv",
+        "--disable-userns",
+        "--assert-userns-disabled",
+        "--unshare-all",
+        "--unshare-user",
         "--bind", runtime, runtime,
         "--ro-bind", info_name, "/.flatpak-info",
         "--die-with-parent",
@@ -205,34 +209,7 @@ def run_application(application, application_path, application_folder, info_name
     else:
         if args["strace"]:
             command.extend(["strace", "-ffz", "-v", "-s", "100"])
-
-        # Zypak must be run on the direct binary, so if we're passed
-        # a shell script, parse it
-        if args["zypak"]:
-            command.extend(["zypak-wrapper"])
-
-            binary = output(["which", application_path])[0]
-            application = [application_path]
-
-            # If we get an exception, it's a binary.
-            try:
-                with open(binary) as file:
-                    content = file.readlines()
-                    for line in content:
-                        # Get the line with electron, and split the "electron asar" pair.
-                        if "electron" in line:
-                            split = line.split()
-                            for x in range(len(split)):
-                                if "electron" in split[x]:
-                                    application = split[x:]
-                                    if "/usr/lib" not in application[0]:
-                                        application[0] = f"/usr/lib/{application[0]}/electron"
-                                    break
-            except UnicodeDecodeError:
-                pass
-            command.extend(application)
-        else:
-            command.append(application_path)
+        command.append(application_path)
 
     # Now, we tack on all the unknown arguments.
     for argument in args["unknown"]:
@@ -373,16 +350,6 @@ def gen_command(application, application_path, application_folder):
     if args["xdg_open"]:
         args["binaries"].extend(["xdg-open"])
 
-    if args["zypak"]:
-        args["binaries"].extend([
-            "zypak-helper",
-            "zypak-sandbox",
-            "zypak-wrapper",
-            "zypak-wrapper.sh",
-        ])
-        if update_sof:
-            libraries.wildcards.add("libzypak*")
-
     # Add python, if needed.
     if args["python"]:
         version = f"python{args["python"]}"
@@ -404,10 +371,7 @@ def gen_command(application, application_path, application_folder):
         share(command, ["/usr/share/git/"])
 
     if args["hardened_malloc"]:
-        if args["zypak"]:
-            command.extend(["--setenv", "ZYPAK_LD_PRELOAD", "/usr/lib/libhardened_malloc.so"])
-        else:
-            command.extend(["--setenv", "LD_PRELOAD", "/usr/lib/libhardened_malloc.so"])
+        command.extend(["--setenv", "LD_PRELOAD", "/usr/lib/libhardened_malloc.so"])
         libraries.wildcards.add("libhardened_malloc*")
 
     if args["zsh"]:
@@ -469,6 +433,8 @@ def gen_command(application, application_path, application_folder):
         if not args["proc"]:
             log("/proc is needed for electron applications. Enabling...")
             args["proc"] = True
+        if "user" not in args["share"]:
+            args["share"].append("user")
 
     # Add KDE
     if args["kde"]:
@@ -650,6 +616,8 @@ def gen_command(application, application_path, application_folder):
         ])
         if update_sof:
             libraries.wildcards.add("libnss*")
+    if "user" not in args["share"]:
+        command.extend(["--disable-userns", "--assert-userns-disabled"])
 
     # Add variables
     for variable in args["env"]:

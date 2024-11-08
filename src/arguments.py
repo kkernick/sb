@@ -187,10 +187,6 @@ def parse():
     # Run the program in the sandbox under strace to debug missing files.
     parser.add_argument("--strace", action="store_true", default=False, help="Launch the application underneath strace")
 
-    # Use zypak for chromium. This supercedes the deprecated --enable-namespaces flag, as it
-    # does not give the application dangerous permissions in the sandbox.
-    parser.add_argument("--zypak", action="store_true", default=False, help="Launch the application underneath zypak")
-
     # Give the application xdg-open to open files with the default application.
     parser.add_argument("--xdg-open", action="store_true", default=False, help="Give the application xdg-open to launch default applications")
 
