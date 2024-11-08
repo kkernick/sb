@@ -3,6 +3,7 @@ Description = Dry Run SB profiles
 
 [Service]
 Type=oneshot
+ExecStartPre=/bin/sleep 1
 ExecStart=sb-startup
 
 [Install]
