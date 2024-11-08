@@ -484,7 +484,7 @@ def gen_command(application, application_path, application_folder):
 
 
     # Add QT
-    if args["qt"] or args["q5"]:
+    if args["qt"] or args["qt5"]:
         log("Adding QT...")
         share(command, ["/usr/share/qt6"])
         if args["qt5"]:

@@ -233,7 +233,6 @@ def parse():
     # The key is a case insensitive matching of anything above.
     # The value is not enforced, users are expected to know better.
     config = Path(environ["XDG_CONFIG_HOME"], "sb", "sb.conf")
-    print(config)
     config.parent.mkdir(parents=True, exist_ok=True)
     if config.is_file():
         for line in config.open("r").readlines():
@@ -241,7 +240,6 @@ def parse():
                 key, value = line.split("=")
                 key = key.lower()
                 value = value.strip("\n")
-                print(argv)
                 if key in arguments and not any(arg.startswith(f"--{key}") for arg in argv):
                     arguments[key] = value
             except Exception as e:
