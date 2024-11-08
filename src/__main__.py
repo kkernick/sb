@@ -311,6 +311,7 @@ def gen_command(application, application_path, application_folder):
         "--setenv", "DBUS_SESSION_BUS_ADDRESS", session,
         "--setenv", "XDG_RUNTIME_DIR", local_runtime,
         "--setenv", "HOME", "/home/sb",
+        "--setenv", "PATH", "/usr/bin",
     ])
 
     command.extend([
