@@ -132,6 +132,22 @@ def run_application(application, application_path, application_folder, info_name
     # Add the tmpfs.
     command.extend(["--tmpfs", temp])
 
+    # Environment variables should not be cached, since they can change at any time.
+    # Therefore, we generate the environment variables for each launch.
+    command.append("--clearenv")
+    command.extend(env("XDG_CURRENT_DESKTOP") + env("DESKTOP_SESSION"))
+    if args.zsh:
+        command.extend(env("SHELL"))
+    if args.kde:
+        command.extend(env("KDE_FULL_SESSION"))
+    if args.dri:
+        command.extend(env("XDG_SESSION_DESKTOP"))
+    if "wayland" in args.sockets:
+        command.extend(env("WAYLAND_DISPLAY"))
+    if "xorg" in args.sockets:
+        command.extend(env("DISPLAY"))
+    if args.locale:
+        command.extend(env("LANG") + env("LANGUAGE"))
 
     # Get the cached portion of the command.
     command.extend(gen_command(application, application_path, application_folder))
@@ -250,7 +266,17 @@ def run_application(application, application_path, application_folder, info_name
 def gen_command(application, application_path, application_folder):
 
     # Get all our locations.
-    sof_dir = Path("/tmp", "sb", application)
+    print(args.sof)
+    if args.sof == "data":
+        sof_dir = Path(data, "sb", application, "sof")
+    elif args.sof == "zram" and Path("/run", "sb").is_dir():
+        sof_dir = Path("/run", "sb", application)
+    else:
+        sof_dir = Path("/tmp", "sb", application)
+
+    log("SOF:", str(sof_dir))
+
+
     local_dir = Path(data, "sb", application)
     lib_cache = Path(local_dir, "lib.cache")
     cmd_cache = Path(local_dir, "cmd.cache")
@@ -305,7 +331,6 @@ def gen_command(application, application_path, application_folder):
 
     local_runtime = runtime
     command.extend([
-        "--clearenv",
         #"--uid", nobody,
         #"--gid", nobody,
         "--setenv", "DBUS_SESSION_BUS_ADDRESS", session,
@@ -313,7 +338,6 @@ def gen_command(application, application_path, application_folder):
         "--setenv", "HOME", "/home/sb",
         "--setenv", "PATH", "/usr/bin",
     ])
-    command.extend(env("XDG_CURRENT_DESKTOP") + env("DESKTOP_SESSION"))
 
     command.extend([
         "--dir", local_runtime,
@@ -391,8 +415,6 @@ def gen_command(application, application_path, application_folder):
         args.binaries.extend(["zsh", "mv"])
         libraries.current |= {"/usr/lib/zsh/"}
 
-        command.extend(env("SHELL"))
-
     if args.include:
         args.ro.extend([
             "/usr/include",
@@ -461,7 +483,6 @@ def gen_command(application, application_path, application_folder):
         args.dri = True
         args.qt = True
 
-        command.extend(env("KDE_FULL_SESSION"))
 
     # Add QT
     if args.qt or args.qt5:
@@ -538,7 +559,6 @@ def gen_command(application, application_path, application_folder):
                 f"{data}/mime",
                 f"{data}/pixmaps",
             ])
-        command.extend(env("XDG_SESSION_DESKTOP"))
         if update_sof:
             for lib in [
                 "libvulkan*", "libglapi*", "*mesa*", "*Mesa*", "libdrm", "libGLX*", "libEGL*",
@@ -554,7 +574,6 @@ def gen_command(application, application_path, application_folder):
             "/usr/share/X11/xkb",
             "/etc/xkb"
         ])
-        command.extend(env("WAYLAND_DISPLAY"))
         command.extend(["--setenv", "XDG_SESSION_TYPE", "wayland"])
 
 
@@ -573,8 +592,6 @@ def gen_command(application, application_path, application_folder):
 
     # add Xorg. This is a vulnerability.
     if "xorg" in args.sockets:
-        if "DISPLAY" in environ:
-            command.extend(env("DISPLAY"))
         share(command, ["/tmp/.X11-unix/X0"])
         for xauth in output(["find", runtime, "-maxdepth", "1", "-name", "xauth_*"]):
             command.extend(["--ro-bind-try", xauth, f"{local_runtime}/{xauth.split("/")[-1]}"])
@@ -597,7 +614,6 @@ def gen_command(application, application_path, application_folder):
         ])
         if update_sof:
             args.ro.append("/usr/lib/locale/")
-        command.extend(env("LANG") + env("LANGUAGE"))
         args.binaries.append("locale")
 
     # Hunspell

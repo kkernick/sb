@@ -1,6 +1,6 @@
 pkgbase = sb-git
 	pkgdesc = Sandbox Applications
-	pkgver = r131.29a4002
+	pkgver = r133.3f6bb9c
 	pkgrel = 1
 	arch = any
 	makedepends = zip
@@ -13,6 +13,7 @@ pkgbase = sb-git
 	optdepends = strace: for --strace, useful for debugging
 	optdepends = zypak: for --zypak, required for Chromium/Electron
 	optdepends = hardened_malloc: for --hardened-malloc
+	optdepends = zram-generator: for --sof=zram
 	provides = sb
 	source = git+https://github.com/kkernick/sb.git
 	sha256sums = SKIP
