@@ -312,6 +312,11 @@ def gen_command(application, application_path, application_folder):
         "--setenv", "XDG_RUNTIME_DIR", local_runtime,
         "--setenv", "HOME", "/home/sb",
         "--setenv", "PATH", "/usr/bin",
+        "--setenv", "XDG_CONFIG_DIR", "/home/sb/.config",
+        "--setenv", "XDG_CACHE_HOME", "/home/sb/.cache",
+        "--setenv", "XDG_DATA_HOME", "/home/sb/.local/share",
+        "--setenv", "XDG_STATE_HOME", "/home/sb/.local/state",
+
     ])
 
     command.extend([
@@ -382,12 +387,15 @@ def gen_command(application, application_path, application_folder):
             "/etc/group",
             f"{home}/.zshrc", f"{config}/environment.d",
         ])
+
         args.devices.extend(["/dev/pts/"])
         args.proc = True
 
         # For shell and coredump.
         args.binaries.extend(["zsh", "mv"])
         libraries.current |= {"/usr/lib/zsh/"}
+
+        command.extend(["--setenv", "SHELL", environ["SHELL"]])
 
 
     if args.include:
@@ -457,6 +465,8 @@ def gen_command(application, application_path, application_folder):
 
         args.dri = True
         args.qt = True
+
+        command.extend(["--setenv", "KDE_FULL_SESSION", "true"])
 
 
     # Add QT
@@ -552,6 +562,8 @@ def gen_command(application, application_path, application_folder):
             "/etc/xkb"
         ])
         command.extend(["--setenv", "WAYLAND_DISPLAY", environ["WAYLAND_DISPLAY"]])
+        command.extend(["--setenv", "XDG_SESSION_TYPE", "wayland"])
+
 
     # Add the pipewire socket, and its libraries.
     if "pipewire" in args.sockets:
