@@ -28,7 +28,7 @@ def log(*messages):
     """
     @brief Log messages, but only if verbose printing.
     """
-    if args.verbose:
+    if args["verbose"]:
         print(*messages)
 
 

@@ -84,7 +84,7 @@ def get(to_load):
 
         dir_cache = cache / sub
 
-        if not dir_cache.is_file() or args.update_cache:
+        if not dir_cache.is_file() or args["update_cache"]:
 
             libs = output(["find", str(to_load), "-mindepth", "1", "-executable", "-type", "f"])
             running = set()
@@ -174,9 +174,9 @@ def setup(sof_dir, lib_cache, update_sof):
     log("Creating /lib...")
 
     # Create the shared runtime.
-    if args.sof == "data":
+    if args["sof"] == "data":
         runtime_lib = Path(data, "sb", "shared")
-    elif args.sof == "zram":
+    elif args["sof"] == "zram":
         runtime_lib = Path("/run", "sb", "shared")
     else:
         runtime_lib = Path("/tmp", "sb", "shared")

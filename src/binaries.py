@@ -66,7 +66,7 @@ def parse(path):
     bin_cache = cache / sub
     ret = set()
 
-    if not bin_cache.is_file() or args.update_cache:
+    if not bin_cache.is_file() or args["update_cache"]:
         try:
 
             # Try and open the file

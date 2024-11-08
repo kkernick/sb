@@ -19,14 +19,14 @@ def desktop_entry():
   exec.remove("--make-desktop-entry")
 
   # Pop twice to remove it and the name itself.
-  if args.desktop_entry:
+  if args["desktop_entry"]:
     i = exec.index("--desktop-entry")
     exec.pop(i)
     exec.pop(i)
   exec.insert(2, '"$@"')
 
   # Get the name, and setup the buffer and binary.
-  name = args.desktop_entry if args.desktop_entry else f"{args.program}.desktop"
+  name = args["desktop_entry"] if args["desktop_entry"] else f"{args["program"]}.desktop"
   exec = " ".join(exec)
   binary = f"{home}/.local/bin/{name}.sb"
   buffer = ""
