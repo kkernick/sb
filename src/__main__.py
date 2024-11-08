@@ -539,7 +539,6 @@ def gen_command(application, application_path, application_folder):
                 f"{data}/pixmaps",
             ])
         command.extend(env("XDG_SESSION_DESKTOP"))
-        command.extend(env("FREETYPE_PROPERTIES"))
         if update_sof:
             for lib in [
                 "libvulkan*", "libglapi*", "*mesa*", "*Mesa*", "libdrm", "libGLX*", "libEGL*",
