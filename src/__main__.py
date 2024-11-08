@@ -7,7 +7,7 @@ from pathlib import Path
 from tempfile import TemporaryDirectory, NamedTemporaryFile
 from hashlib import new
 
-from shared import args, output, log, share, cache, config, data, home, runtime
+from shared import args, output, log, share, cache, config, data, home, runtime, session, nobody, real
 from util import desktop_entry
 
 import binaries
@@ -107,7 +107,7 @@ def run_application(application, application_path, application_folder, info_name
         local_dir.mkdir(parents=True)
 
     # Add the flatpak-info.
-    command.extend(["--ro-bind-try", info_name, f"{runtime}/flatpak-info"])
+    command.extend(["--ro-bind-try", info_name, f"/run/{real}/flatpak-info"])
     command.extend(["--ro-bind-try", info_name, "/.flatpak-info"])
 
     # If we have a home directory, add it.
@@ -302,11 +302,22 @@ def gen_command(application, application_path, application_folder):
     # Get the basic stuff.
     log("Setting up...")
     command = []
+
+    local_runtime = runtime
     command.extend([
-        "--dir", runtime,
-        "--chmod", "0700", runtime,
-        "--ro-bind-try", f"{application_folder}/bus", f"{runtime}/bus",
-        "--bind-try", f"{runtime}/doc", f"{runtime}/doc",
+        "--clearenv",
+        #"--uid", nobody,
+        #"--gid", nobody,
+        "--setenv", "DBUS_SESSION_BUS_ADDRESS", session,
+        "--setenv", "XDG_RUNTIME_DIR", local_runtime,
+        "--setenv", "HOME", "/home/sb",
+    ])
+
+    command.extend([
+        "--dir", local_runtime,
+        "--chmod", "0700", local_runtime,
+        "--ro-bind-try", f"{application_folder}/bus", f"{local_runtime}/bus",
+        "--bind-try", f"{runtime}/doc", f"{local_runtime}/doc",
     ])
     share(command, ["/run/dbus"])
 
@@ -534,17 +545,18 @@ def gen_command(application, application_path, application_folder):
 
     # Add the wayland socket and XKB
     if "wayland" in args.sockets:
+        command.extend(["--ro-bind-try", f"{runtime}/wayland-0", f"{local_runtime}/wayland-0"])
         share(command, [
-            f"{runtime}/wayland-0",
             "/usr/share/X11/xkb",
             "/etc/xkb"
         ])
+        command.extend(["--setenv", "WAYLAND_DISPLAY", environ["WAYLAND_DISPLAY"]])
 
     # Add the pipewire socket, and its libraries.
     if "pipewire" in args.sockets:
+        command.extend(["--ro-bind-try", f"{runtime}/pipewire-0", f"{local_runtime}/pipewire-0"])
+        command.extend(["--ro-bind-try", f"{runtime}/pulse", f"{local_runtime}/pulse"])
         share(command, [
-            f"{runtime}/pipewire-0",
-            f"{runtime}/pulse",
             f"{config}/pulse"
             "/etc/pipewire",
             "/usr/share/pipewire",
@@ -558,7 +570,8 @@ def gen_command(application, application_path, application_folder):
         if "DISPLAY" in environ:
             command.extend(["--setenv", "DISPLAY", environ["DISPLAY"]])
         share(command, ["/tmp/.X11-unix/X0"])
-        share(command, output(["find", runtime, "-maxdepth", "1", "-name", "xauth_*"]))
+        for xauth in output(["find", runtime, "-maxdepth", "1", "-name", "xauth_*"]):
+            command.extend(["--ro-bind-try", xauth, f"{local_runtime}/{xauth.split("/")[-1]}"])
 
     # Extend the hostname if needed, otherwise use a fake one.
     if args.real_hostname:

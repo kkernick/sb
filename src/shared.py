@@ -16,6 +16,7 @@ cache = environ["XDG_CACHE_HOME"]
 data = environ["XDG_DATA_HOME"]
 home = environ["HOME"]
 
+session = environ["DBUS_SESSION_BUS_ADDRESS"]
 
 # Run a command, put the results in a list.
 def output(command):
@@ -43,3 +44,7 @@ def share(command: list, paths: list, mode = "ro-bind-try"):
             command.extend(["--symlink", true, path])
         else:
             command.extend([f"--{mode}", path, path])
+
+
+nobody = output(["id", "-u", "nobody"])[0]
+real = output(["id", "-u"])[0]
