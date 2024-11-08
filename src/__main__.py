@@ -157,7 +157,7 @@ def run_application(application, application_path, application_folder, info_name
     if "wayland" in args["sockets"]:
         command.extend(env("WAYLAND_DISPLAY"))
     if "xorg" in args["sockets"]:
-        command.extend(env("DISPLAY"))
+        command.extend(env("DISPLAY") + env("XAUTHORITY") + env("ICEAUTHORITY"))
     if args["locale"]:
         command.extend(env("LANG") + env("LANGUAGE"))
 
@@ -208,7 +208,7 @@ def run_application(application, application_path, application_folder, info_name
         command.append("sh")
     else:
         if args["strace"]:
-            command.extend(["strace", "-ffz", "-v", "-s", "100"])
+            command.extend(["strace", "-ff", "-v", "-s", "100"])
         command.append(application_path)
 
     # Now, we tack on all the unknown arguments.
