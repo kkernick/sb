@@ -355,10 +355,8 @@ def gen_command(application, application_path, application_folder):
         version = f"python{args["python"]}"
         args["binaries"].extend([version, "python"])
         if update_sof:
-            libraries.current |= {
-                f"lib{version}.so",
-                f"/usr/lib/{version}/"
-            }
+            libraries.current |= {f"lib{version}.so"}
+            libraries.directories |= {f"/usr/lib/{version}/"}
 
     # Git
     if args["git"]:
@@ -367,7 +365,7 @@ def gen_command(application, application_path, application_folder):
             "git", "git-cvsserver", "git-receive-pack", "git-shell",
             "git-upload-archive", "git-upload-pack", "gitk", "scalar"
         ])
-        libraries.current |= {"/usr/lib/git-core/"}
+        libraries.directories |= {"/usr/lib/git-core/"}
         share(command, ["/usr/share/git/"])
 
     if args["hardened_malloc"]:
@@ -387,14 +385,14 @@ def gen_command(application, application_path, application_folder):
 
         # For shell and coredump.
         args["binaries"].extend(["zsh", "mv"])
-        libraries.current |= {"/usr/lib/zsh/"}
+        libraries.directories |= {"/usr/lib/zsh/"}
 
     if args["include"]:
         args["ro"].extend([
             "/usr/include",
             "/usr/local/include"
         ])
-        libraries.current |= {"/usr/lib/clang", "/usr/lib/gcc"}
+        libraries.directories |= {"/usr/lib/clang", "/usr/lib/gcc"}
 
     # Add electron
     if args["electron"]:
@@ -425,7 +423,7 @@ def gen_command(application, application_path, application_folder):
             args["ro"].append(f"/usr/lib/{electron_string}")
 
             if update_sof:
-                libraries.current |= {f"/usr/lib/{electron_string}"}
+                libraries.directories |= {f"/usr/lib/{electron_string}"}
 
         # Enable needed features.
         args["dri"] = True
@@ -454,7 +452,7 @@ def gen_command(application, application_path, application_folder):
         if update_sof:
             libraries.wildcards.add("libKF*")
             libraries.wildcards.add("lib*Kirigami*")
-            libraries.current |= {"/usr/lib/kf6/"}
+            libraries.directories |= {"/usr/lib/kf6/"}
 
         args["dri"] = True
         args["qt"] = True
@@ -467,10 +465,10 @@ def gen_command(application, application_path, application_folder):
         if args["qt5"]:
             share(command, ["/usr/share/qt5"])
         if update_sof:
-            libraries.current |= {"/usr/lib/qt6/"}
+            libraries.directories |= {"/usr/lib/qt6/"}
             libraries.wildcards.add("libQt*")
             if args["qt5"]:
-                libraries.current |= {"/usr/lib/qt5/", "/usr/lib/qt/"}
+                libraries.directories |= {"/usr/lib/qt5/", "/usr/lib/qt/"}
         args["dri"] = True
 
     # Add GTK
@@ -491,7 +489,7 @@ def gen_command(application, application_path, application_folder):
             libraries.wildcards.add("libgtk*")
             libraries.wildcards.add("libgdk*")
             libraries.wildcards.add("libgio*")
-            libraries.current |= {"/usr/lib/gdk-pixbuf-2.0/", "/usr/lib/gtk-3.0"}
+            libraries.directories |= {"/usr/lib/gdk-pixbuf-2.0/", "/usr/lib/gtk-3.0"}
         args["dri"] = True
 
 
@@ -541,7 +539,7 @@ def gen_command(application, application_path, application_folder):
                 "libVkLayer*", "libgbm*", "libva*", "*egl*", "*EGL*"
                 ]:
                     libraries.wildcards.add(lib)
-            libraries.current |= {"/usr/lib/dri", "/usr/lib/gbm"}
+            libraries.directories |= {"/usr/lib/dri", "/usr/lib/gbm"}
 
     # Add the wayland socket and XKB
     if "wayland" in args["sockets"]:
@@ -564,7 +562,7 @@ def gen_command(application, application_path, application_folder):
         ])
         if update_sof:
             libraries.wildcards.add("libpipewire*")
-            libraries.current |= {"/usr/lib/pipewire-0.3/", "/usr/lib/spa-0.2/", "/usr/lib/pulseaudio/"}
+            libraries.directories |= {"/usr/lib/pipewire-0.3/", "/usr/lib/spa-0.2/", "/usr/lib/pulseaudio/"}
 
     # add Xorg. This is a vulnerability.
     if "xorg" in args["sockets"]:
@@ -589,7 +587,7 @@ def gen_command(application, application_path, application_folder):
             f"{config}/plasma-localerc"
         ])
         if update_sof:
-            args["ro"].append("/usr/lib/locale/")
+            libraries.directories |= {"/usr/lib/locale/"}
         args["binaries"].append("locale")
 
     # Hunspell
@@ -683,7 +681,10 @@ def gen_command(application, application_path, application_folder):
         # The first is the actual folder in /usr/lib/, which avoids us having to copy
         # files, and the second is an empty path in the SOF directory.
         if update_sof:
-            share(command, libraries.setup(sof_dir, lib_cache, update_sof), "ro-bind")
+            for dir in libraries.directories:
+                libraries.current |= libraries.get(dir)
+            share(command, libraries.directories, "ro-bind")
+            libraries.setup(sof_dir, lib_cache, update_sof)
 
     # Setup application directories.
     if "config" in args["app_dirs"]:

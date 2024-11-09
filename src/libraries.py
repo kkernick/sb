@@ -36,6 +36,8 @@ searched = {""}
 # A set of wildcard libraries
 wildcards = set()
 
+# A list of subdirectories to be overlain
+directories = set()
 
 def parse_ldd(to_load, recursive=True, local=False):
     ret = set() if local else {to_load}
@@ -66,6 +68,9 @@ def get(to_load, local=False):
     global searched, wildcards
 
     ret = set()
+
+    if directories and any(to_load.startswith(dir) for dir in directories):
+        return ret
 
     # If the binary/library has already been searched, just return, otherwise add it.
     if to_load in searched or to_load == "" or to_load.split("/")[-1] in args["ignore"]:
@@ -149,7 +154,6 @@ def setup(sof_dir, lib_cache, update_sof):
     """
 
     global current
-    binds = set()
 
     # Make the directory if it doesn't exist.
     if not sof_dir.is_dir():
@@ -176,6 +180,12 @@ def setup(sof_dir, lib_cache, update_sof):
                 for future in as_completed(futures):
                     current |= future.result()
                 unsearched = current - searched
+
+                out_of_bounds = set()
+                for lib in unsearched:
+                    if any(lib.startswith(dir) for dir in directories):
+                        out_of_bounds.add(lib)
+                unsearched -= out_of_bounds
 
     # When updating, we need to overwrite the lib_cache.
     with lib_cache.open("w") as cache:
@@ -216,11 +226,6 @@ def setup(sof_dir, lib_cache, update_sof):
         # If the library isn't a directory, then write it.
         if not real_path.is_dir():
             write(library, runtime_path, real_path, sof_dir)
-
-        # If it IS a directory, then return it for binding.
-        elif real_path.is_dir():
-            binds.add(str(real_path))
-    return binds
 
 
 def write(library, runtime_path, real_path, sof_dir):
