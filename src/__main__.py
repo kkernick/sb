@@ -151,7 +151,7 @@ def run_application(application, application_path, application_folder, info_name
     if args["zsh"]:
         command.extend(env("SHELL"))
     if args["kde"]:
-        command.extend(env("KDE_FULL_SESSION"))
+        command.extend(env("KDE_FULL_SESSION") + env("KDE_SESSION_VERSION"))
     if args["dri"]:
         command.extend(env("XDG_SESSION_DESKTOP"))
     if "wayland" in args["sockets"]:
@@ -180,57 +180,43 @@ def run_application(application, application_path, application_folder, info_name
         preload.open("w").write("/usr/lib/libhardened_malloc.so\n")
         command.extend(["--ro-bind", str(preload.resolve()), "/etc/ld.so.preload"])
 
-    # Handle unknown arguments. If they're files, deal with them, otherwise
-    enclave_contents = {}
-    file_enclave = None
-    if not args["do_not_allow_file_passthrough"]:
-        for argument in args["unknown"]:
-
-            # Try and treat the argument as a file, or a directory.
-            path = Path(argument)
-
-            # If a directory, we just bind mount it.
-            if path.is_dir():
-                share(command, [argument], mode = "bind-try" if args["file_passthrough_rw"] else "ro-bind-try")
-
-            # If a file, we may do an enclave depending on the user.
-            elif path.is_file():
-                if args["file_enclave"]:
-                    if file_enclave is None:
-                        file_enclave = TemporaryDirectory()
-                    command.extend(["--bind", file_enclave.name, "/enclave"])
-                else:
-                    share(command, [argument], mode = "bind-try" if args["file_passthrough_rw"] else "ro-bind-try")
-
-
     # Either launch the debug shell, run under strace, or run the command accordingly.
     if args["debug_shell"]:
         command.append("sh")
     else:
         if args["strace"]:
             command.extend(["strace", "-ff", "-v", "-s", "100"])
-        command.append(application_path)
 
-    # Now, we tack on all the unknown arguments.
-    for argument in args["unknown"]:
-        file = Path(argument)
+    post = []
+    writeback = {}
+    if args["file_passthrough"] != "off":
+        enclave = TemporaryDirectory()
+        command.extend(["--bind", enclave.name, "/enclave"])
 
-        # If it's a file, we move it to the enclave if needed, otherwise just append it.
-        if file.is_file():
-            if file_enclave is not None:
-                enclave_file = Path(file_enclave.name, file.name)
-                log(f"Adding {argument} to file enclave")
-                enclave_contents[enclave_file.resolve()] = file.resolve()
-                enclave_file.open("wb").write(file.open("rb").read())
+        mode = "--ro-bind-try" if args["file_passthrough"] == "ro" else "--bind-try"
+        for argument in args["unknown"]:
+            path = Path(argument)
 
-                run(["chmod", "666", enclave_file.resolve()])
-                command.append(f"/enclave/{file.name}")
+            if path.is_dir() or path.is_file():
+                dest = "/enclave" + argument
+                if path.is_dir():
+                    command.extend([mode, str(path), dest])
+
+                # If a file, we may do an enclave depending on the user.
+                elif path.is_file():
+                    if args["file_passthrough"] == "writeback":
+                        enclave_file = Path(str(enclave.name) + argument)
+                        enclave_file.parent.mkdir(parents=True, exist_ok=True)
+                        enclave_file.open("wb").write(path.open("rb").read())
+                        run(["chmod", "666", enclave_file.resolve()])
+                        writeback[enclave_file] = path
+                    else:
+                        command.extend([mode, str(path), dest])
+                post.append(dest)
             else:
-                command.append(argument)
-
-        # Everything else is just appended.
-        else:
-            command.append(argument)
+                post.append(argument)
+    command.append(application_path)
+    command.extend(post)
 
     # So long as we aren't dry-running, run the program.
     if not args["dry"]:
@@ -238,10 +224,8 @@ def run_application(application, application_path, application_folder, info_name
         run(command)
 
     # If we have RW acess, and there's things in the enclave, update the source.
-    if args["file_passthrough_rw"]:
-        for file, dest in enclave_contents.items():
-            log(f"Updating {dest} from file enclave")
-            Path(dest).open("wb").write(Path(file).open("rb").read())
+    for enclave_file, real_file in writeback.items():
+        real_file.open("wb").write(enclave_file.open("rb").read())
 
     # Cleanup residual files from bind mounting
     run(["find", str(local_dir), "-size", "0", "-delete"])
@@ -259,7 +243,6 @@ def gen_command(application, application_path, application_folder):
         sof_dir = Path("/tmp", "sb", application)
 
     log("SOF:", str(sof_dir))
-
 
     local_dir = Path(data, "sb", application)
     lib_cache = Path(local_dir, "lib.cache")
@@ -373,12 +356,12 @@ def gen_command(application, application_path, application_folder):
         libraries.wildcards.add("libhardened_malloc*")
 
     if args["zsh"]:
-        args["ro"].extend([
+        share(command, [
             "/etc/shells", "/usr/share/zsh/", "/etc/zsh/",
             "/etc/profile", "/usr/share/terminfo", "/var/run/utmp",
-            "/etc/group",
-            f"{home}/.zshrc", f"{config}/environment.d",
-        ])
+            "/etc/group", f"{home}/.zshrc", f"{config}/environment.d"],
+            "ro-bind-try"
+        )
 
         args["devices"].extend(["/dev/pts/"])
         args["proc"] = True
@@ -527,7 +510,7 @@ def gen_command(application, application_path, application_folder):
         share(command, [
                 "/usr/share/fontconfig", "/usr/share/fonts", "/etc/fonts",
                 f"{home}/.fonts",
-                f"{config}/fontconfig", f"{data}/fontconfig", f"{cache}/fontconfig"
+                f"{config}/fontconfig", f"{data}/fontconfig", f"{cache}/fontconfig",
                 "/usr/share/themes", "/usr/share/color-schemes", "/usr/share/icons", "/usr/share/cursors", "/usr/share/pixmaps",
                 "/usr/share/mime",
                 f"{data}/mime",
@@ -619,8 +602,13 @@ def gen_command(application, application_path, application_folder):
 
     # Add variables
     for variable in args["env"]:
-        split = variable.split("=")
-        command.extend(["--setenv", split[0], "=".join(split[1:])])
+        if "=" in variable:
+            split = variable.split("=")
+            command.extend(["--setenv", split[0], "=".join(split[1:])])
+        elif variable in environ:
+            command.extend(["--setenv", variable, environ[variable]])
+        else:
+            log("Unrecognize environment variable:", variable)
 
 
     # Add binaries.

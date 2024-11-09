@@ -167,18 +167,7 @@ def parse():
     # usually quite safe.
     parser.add_argument("--share-cache", action="store_true", default=False, help="Give the application to the non-sandboxed .cache folder in the home directory.")
 
-    # How the Sandbox should handle file arguments.
-    # By default, any file argument passed to the command (IE application.sb ~/myfile) will be read-only bind mounted into the
-    # sandbox, so that the application can read it.
-    # --do-not-allow-file-passthrough will prohibit this functionality
-    # --file-passthrough-rw will allow the application modification of this file.
-    # --file-enclave is useful if permissions or other issues prevent the traditional passthrough from functioning (Noteably
-    # applications that do not directly write to files, but instead create a temporary, and move that file to overwrite the
-    # original. A file enclave will copy all passed files to a TMPFS, allow the program to modify it, and then update those files
-    # once the program closes.
-    parser.add_argument("--do-not-allow-file-passthrough", action="store_true", default=False, help="If the program is passed an argument to a file, do not expose this file to the sandbox.")
-    parser.add_argument("--file-passthrough-rw", action="store_true", default=False, help="File passthrough is done with write privileges")
-    parser.add_argument("--file-enclave", action="store_true", default=False, help="Pass through files in a mediated enclave. This ensures that programs will have sufficient permission to read/write, but the real file will not be updated until the program closes.")
+    parser.add_argument("--file-passthrough", action="store", default="ro", choices=["off", "ro", "rw", "writeback"], help="How file arguments should be parsed.")
 
     # Open a debug shell into the sandbox, rather than running the program. You may need to run --update-libraries to ensure
     # the shell program has needed libraries.

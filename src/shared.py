@@ -35,15 +35,18 @@ def log(*messages):
 # Share a list of files under a specified mode.
 def share(command: list, paths: list, mode = "ro-bind-try"):
     for path in paths:
+
+        dest = path
+        if dest.startswith("/home/"):
+            split = dest.split("/")
+            dest = f"/{split[1]}/sb/{"/".join(split[3:])}"
+
         p = Path(path)
         if p.is_symlink():
             true = str(p.readlink())
-            if not true.startswith("/"):
-                true = f"{str(p.parent)}/{true}"
-            command.extend([f"--{mode}", true, true])
-            command.extend(["--symlink", true, path])
+            command.extend([f"--{mode}", true, dest])
         else:
-            command.extend([f"--{mode}", path, path])
+            command.extend([f"--{mode}", path, dest])
 
 
 def env(variable):
