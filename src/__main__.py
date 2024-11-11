@@ -180,13 +180,6 @@ def run_application(application, application_path, application_folder, info_name
         preload.open("w").write("/usr/lib/libhardened_malloc.so\n")
         command.extend(["--ro-bind", str(preload.resolve()), "/etc/ld.so.preload"])
 
-    # Either launch the debug shell, run under strace, or run the command accordingly.
-    if args["debug_shell"]:
-        command.append("sh")
-    else:
-        if args["strace"]:
-            command.extend(["strace", "-ff", "-v", "-s", "100"])
-
     post = []
     writeback = {}
     if args["file_passthrough"] != "off":
@@ -215,8 +208,17 @@ def run_application(application, application_path, application_folder, info_name
                 post.append(dest)
             else:
                 post.append(argument)
-    command.append(application_path)
-    command.extend(post)
+
+
+    # Either launch the debug shell, run under strace, or run the command accordingly.
+    if args["strace"]:
+        command.extend(["strace", "-ff", "-v", "-s", "100"])
+
+    if args["debug_shell"]:
+        command.append("sh")
+    else:
+        command.append(application_path)
+        command.extend(post)
 
     # So long as we aren't dry-running, run the program.
     if not args["dry"]:
@@ -640,6 +642,7 @@ def gen_command(application, application_path, application_folder):
         for executable in output(["find", str(local_dir) + binary, "-mindepth", "1", "-executable", "-type", "f"]):
             share(command, binaries.parse(executable))
 
+
     command.extend(["--symlink", "/usr/bin", "/bin"])
     command.extend(["--symlink", "/usr/bin", "/bin"])
     command.extend(["--symlink", "/usr/bin", "/sbin"])
@@ -651,7 +654,8 @@ def gen_command(application, application_path, application_folder):
         for library in args["libraries"]:
             libraries.current |= libraries.get(library)
         for path in args["local"]:
-            libraries.current |= libraries.get(str(local_dir) + path, local=True)
+            depends = libraries.get(str(local_dir) + path, local=True)
+            libraries.current |= depends
 
     # If we're updating the SOF, generate all the libraries needed based on those that were explicitly provided.
     if not args["lib"]:

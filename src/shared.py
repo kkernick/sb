@@ -44,6 +44,8 @@ def share(command: list, paths: list, mode = "ro-bind-try"):
         p = Path(path)
         if p.is_symlink():
             true = str(p.readlink())
+            if not true.startswith("/"):
+                true = f"{p.parent}/{true}"
             command.extend([f"--{mode}", true, dest])
         else:
             command.extend([f"--{mode}", path, dest])

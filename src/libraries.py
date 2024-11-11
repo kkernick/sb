@@ -54,6 +54,8 @@ def parse_ldd(to_load, recursive=True, local=False):
             if lib.startswith("/lib"):
                 lib = lib[4:]
         if lib is not None:
+            if local and not lib.startswith("/usr"):
+                continue
             ret |= get(lib, local) if recursive else {lib}
     return ret
 
@@ -96,7 +98,7 @@ def get(to_load, local=False):
             running = set()
 
             with ThreadPoolExecutor() as executor:
-                futures = {executor.submit(parse_ldd, lib): lib for lib in libs}
+                futures = {executor.submit(parse_ldd, lib, False, local): lib for lib in libs}
                 for future in as_completed(futures):
                     result = future.result()
                     running |= result
@@ -116,23 +118,21 @@ def get(to_load, local=False):
                     continue
                 internal.add(lib)
 
-            if local:
-                running = list(internal)
-            else:
-                running = list(running - internal)
+            running = list(internal if local else running - internal)
             if not running:
                 return ret
-
             with dir_cache.open("w") as file:
                 for library in running[:-1]:
                     if library != "" and library != "not":
                         file.write(f"{library} ")
                 file.write(running[-1])
 
+
         if dir_cache.is_file():
             libs = set(dir_cache.open("r").readline().strip().split(" "))
             ret |= libs
-            ret.add(to_load)
+            if not local:
+                ret.add(to_load)
         return ret
 
     # If there's a wildcard, expand it.
