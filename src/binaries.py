@@ -12,6 +12,8 @@ builtins = output(["bash", "-c", "compgen -bk"])
 # A list of current binaries.
 current = set()
 
+# Already parsed shell scripts in case of dependency loops.
+discovered = set()
 
 def add(binary):
     """
@@ -57,6 +59,12 @@ def parse(path):
     @param path: The path of the shell script
     @returns A set of all binaries used in the script.
     """
+
+    global discovered
+
+    if path in discovered:
+        return set()
+    discovered.add(path)
 
     global current
     cache = Path(data, "sb", "cache")

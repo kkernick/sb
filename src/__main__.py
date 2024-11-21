@@ -43,7 +43,7 @@ def main():
         application_folder=Path(runtime, "app", application_name)
         application_folder.mkdir(parents=True, exist_ok=True)
 
-        # The .flatpak-info is just a temporary file, but the application's temporary directory is a seperate TMPFS,
+        # The .flatpak-info is just a temporary file, but the application's temporary directory is a separate TMPFS,
         # separate from the global /tmp.
         info = NamedTemporaryFile()
 
@@ -139,7 +139,7 @@ def run_application(application, application_path, application_folder, info_name
     if args["share_cache"]:
         share(command, [f"{home}/.cache"], "bind")
     else:
-        command.extend(["--bind", temp, f"{home}/.cache"])
+        command.extend(["--bind", temp, "/home/sb/.cache"])
 
     # Add the tmpfs.
     command.extend(["--tmpfs", temp])
@@ -225,7 +225,7 @@ def run_application(application, application_path, application_folder, info_name
         log("Command:", " ".join(command))
         run(command)
 
-    # If we have RW acess, and there's things in the enclave, update the source.
+    # If we have RW access, and there's things in the enclave, update the source.
     for enclave_file, real_file in writeback.items():
         real_file.open("wb").write(enclave_file.open("rb").read())
 
@@ -269,7 +269,7 @@ def gen_command(application, application_path, application_folder):
                 log("Using cached library definitions")
                 libraries.current = set([library for library in lib_cache.open("r").read().split(" ")])
             else:
-                log("Creating libary cache")
+                log("Creating library cache")
                 update_sof = True
         else:
             log("Using pre-existing SOF")
