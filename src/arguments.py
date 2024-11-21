@@ -60,7 +60,7 @@ def parse():
         action="extend",
         nargs="*",
         choices=["wayland", "pipewire", "xorg"],
-        default=["wayland"],
+        default=[],
         help="A list of sockets to give the application various functionality"
     )
 
