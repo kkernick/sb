@@ -144,16 +144,17 @@ def run_application(application, application_path, application_folder, info_name
     # Add the tmpfs.
     command.extend(["--tmpfs", temp])
 
+    # Environment variables should not be cached, since they can change at any time.
+    # Therefore, we generate the environment variables for each launch.
+    command.append("--clearenv")
+    
     # Only necessary when portals are used.
     if application_folder:
         command.extend([
             "--setenv", "DBUS_SESSION_BUS_ADDRESS", session,
             "--setenv", "XDG_RUNTIME_DIR", runtime
         ])
-
-    # Environment variables should not be cached, since they can change at any time.
-    # Therefore, we generate the environment variables for each launch.
-    command.append("--clearenv")
+            
     command.extend(env("XDG_CURRENT_DESKTOP") + env("DESKTOP_SESSION"))
     if args["zsh"]:
         command.extend(env("SHELL"))
