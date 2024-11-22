@@ -144,6 +144,13 @@ def run_application(application, application_path, application_folder, info_name
     # Add the tmpfs.
     command.extend(["--tmpfs", temp])
 
+    # Only necessary when portals are used.
+    if application_folder:
+        command.extend([
+            "--setenv", "DBUS_SESSION_BUS_ADDRESS", session,
+            "--setenv", "XDG_RUNTIME_DIR", runtime
+        ])
+
     # Environment variables should not be cached, since they can change at any time.
     # Therefore, we generate the environment variables for each launch.
     command.append("--clearenv")
@@ -301,8 +308,6 @@ def gen_command(application, application_path, application_folder):
 
     local_runtime = runtime
     command.extend([
-        "--setenv", "DBUS_SESSION_BUS_ADDRESS", session,
-        "--setenv", "XDG_RUNTIME_DIR", local_runtime,
         "--setenv", "HOME", "/home/sb",
         "--setenv", "PATH", "/usr/bin",
     ])
