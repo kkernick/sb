@@ -231,8 +231,12 @@ def parse():
                 key, value = line.split("=")
                 key = key.lower()
                 value = value.strip("\n")
-                if key in arguments and not any(arg.startswith(f"--{key}") for arg in argv):
+                if key in arguments and not any(arg.startswith(f"--{key.replace("_", "-")}") for arg in argv):
+                    if value == "True" or value == "False":
+                        value = value == "True"
                     arguments[key] = value
+                else:
+                    print("Unrecognized or overwritten option:", key)
             except Exception as e:
                 print("Invalid configuration:", line, e)
     return arguments
