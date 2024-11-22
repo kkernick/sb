@@ -165,7 +165,6 @@ def setup(sof_dir, lib_cache, update_sof):
             log("Finding wildcard libraries...")
             command = ["find", "/usr/lib", "-mindepth", "1", "-maxdepth", "1", "-executable"]
             for library in wildcards:
-                print(library)
                 command.extend(["-name", library[library.rfind("/") + 1:], "-o"])
             # Remove the trailing -o
             command = command[:-1]
