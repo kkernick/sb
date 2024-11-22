@@ -16,7 +16,7 @@ import libraries
 
 def main():
     # If we are making a desktop entry, or on startup and it's not a startup app, do the action and return.
-    if args["make_desktop_entry"]:
+    if args["make_desktop_entry"] or args["make_script"]:
         desktop_entry()
     if args["startup"] and not args["dry_startup"]:
         return
@@ -187,28 +187,29 @@ def run_application(application, application_path, application_folder, info_name
         command.extend(["--bind", enclave.name, "/enclave"])
 
         mode = "--ro-bind-try" if args["file_passthrough"] == "ro" else "--bind-try"
-        for argument in args["unknown"]:
-            path = Path(argument)
+        for source, write in [(args["unknown"], True), (args["files"], False)]:
+            for argument in source:
+                path = Path(argument)
 
-            if path.is_dir() or path.is_file():
-                dest = "/enclave" + argument
-                if path.is_dir():
-                    command.extend([mode, str(path), dest])
-
-                # If a file, we may do an enclave depending on the user.
-                elif path.is_file():
-                    if args["file_passthrough"] == "writeback":
-                        enclave_file = Path(str(enclave.name) + argument)
-                        enclave_file.parent.mkdir(parents=True, exist_ok=True)
-                        enclave_file.open("wb").write(path.open("rb").read())
-                        run(["chmod", "666", enclave_file.resolve()])
-                        writeback[enclave_file] = path
-                    else:
+                if path.is_dir() or path.is_file():
+                    dest = "/enclave" + argument
+                    if path.is_dir():
                         command.extend([mode, str(path), dest])
-                post.append(dest)
-            else:
-                post.append(argument)
 
+                    # If a file, we may do an enclave depending on the user.
+                    elif path.is_file():
+                        if args["file_passthrough"] == "writeback":
+                            enclave_file = Path(str(enclave.name) + argument)
+                            enclave_file.parent.mkdir(parents=True, exist_ok=True)
+                            enclave_file.open("wb").write(path.open("rb").read())
+                            run(["chmod", "666", enclave_file.resolve()])
+                            writeback[enclave_file] = path
+                        else:
+                            command.extend([mode, str(path), dest])
+                    if write:
+                        post.append(dest)
+                elif write:
+                    post.append(argument)
 
     # Either launch the debug shell, run under strace, or run the command accordingly.
     if args["strace"]:

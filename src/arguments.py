@@ -168,6 +168,7 @@ def parse():
     parser.add_argument("--share-cache", action="store_true", default=False, help="Give the application to the non-sandboxed .cache folder in the home directory.")
 
     parser.add_argument("--file-passthrough", action="store", default="ro", choices=["off", "ro", "rw", "writeback"], help="How file arguments should be parsed.")
+    parser.add_argument("--files", action="extend", nargs="*", default=[], help="A list of files/directories to be provided via file-passthrough, but that aren't command line arguments to the program")
 
     # Open a debug shell into the sandbox, rather than running the program. You may need to run --update-libraries to ensure
     # the shell program has needed libraries.
@@ -200,6 +201,8 @@ def parse():
     # If the desktop entry for the application does not follow the application.desktop convention, explicitly specify the
     # name of the desktop entry as found in /usr/share/applications.
     parser.add_argument("--desktop-entry", action="store", default=None, help="The application's desktop entry, if it cannot be deduced automatically. For example, chromium.desktop")
+
+    parser.add_argument("--make-script", action="store_true", default=False, help="Create the .sb shell script in ~/.local/bin")
 
     # Be verbose in logging.
     parser.add_argument("--verbose", action="store_true", default=False, help="Verbose logging")

@@ -17,7 +17,10 @@ def desktop_entry():
 
     # Firstly, remove this part of the command so we don't write it into the executable.
     exec = argv
-    exec.remove("--make-desktop-entry")
+    if "--make-desktop-entry" in exec:
+        exec.remove("--make-desktop-entry")
+    if "--make-script" in exec:
+        exec.remove("--make-script")
 
     # Pop twice to remove it and the name itself.
     if args["desktop_entry"]:
@@ -32,7 +35,16 @@ def desktop_entry():
     binary = f"{home}/.local/bin/{name}.sb"
     buffer = ""
 
+    # Actually write the sandbox binary.
+    with open(binary, "w") as b:
+        b.write("#!/bin/sh\n")
+        b.write(f"{exec}")
+    run(["chmod", "+x", binary])
+
     # Read the original application file, but replace the Exec Line with the path to the sandbox binary.
+    if not args["make_desktop_entry"]:
+        exit(0)
+
     path = Path(f"/usr/share/applications/{name}")
     if not path.is_file():
         path = Path(f"{data}/applications/{name}")
@@ -50,12 +62,6 @@ def desktop_entry():
                 buffer += (f"Exec={binary} {" ".join(line.split()[1:])}\n")
             else:
                 buffer += line
-
-    # Actually write the sandbox binary.
-    with open(binary, "w") as b:
-        b.write("#!/bin/sh\n")
-        b.write(f"{exec}")
-    run(["chmod", "+x", binary])
 
     # Write the sandboxed desktop entry to the user's application folder.
     with open(f"{data}/applications/{name}", "w") as f:

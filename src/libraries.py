@@ -161,14 +161,15 @@ def setup(sof_dir, lib_cache, update_sof):
 
     # If we want to update the SOF, perform the recursive library dependency check.
     if update_sof:
-
-        log("Finding wildcard libraries...")
-        command = ["find", "/usr/lib", "-mindepth", "1", "-maxdepth", "1", "-executable"]
-        for library in wildcards:
-            command.extend(["-name", library[library.rfind("/") + 1:], "-o"])
-        # Remove the trailing -o
-        command = command[:-1]
-        current |= set(output(command))
+        if wildcards:
+            log("Finding wildcard libraries...")
+            command = ["find", "/usr/lib", "-mindepth", "1", "-maxdepth", "1", "-executable"]
+            for library in wildcards:
+                print(library)
+                command.extend(["-name", library[library.rfind("/") + 1:], "-o"])
+            # Remove the trailing -o
+            command = command[:-1]
+            current |= set(output(command))
 
         # We simply get libraries based on everything within libraries that hasn't been searched.
         # Run this however many times it takes before all dependencies are found.
