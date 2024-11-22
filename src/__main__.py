@@ -113,7 +113,7 @@ def dbus_proxy(portals, application_folder, info_name):
 # Run the application.
 def run_application(application, application_path, application_folder, info_name, temp):
     command = ["bwrap", "--new-session", "--die-with-parent"]
-    local_dir =    Path(data, "sb", application)
+    local_dir = Path(data, "sb", application)
     if not local_dir.is_dir():
         local_dir.mkdir(parents=True)
 
@@ -147,15 +147,9 @@ def run_application(application, application_path, application_folder, info_name
     # Environment variables should not be cached, since they can change at any time.
     # Therefore, we generate the environment variables for each launch.
     command.append("--clearenv")
-    
-    # Only necessary when portals are used.
+    command.extend(env("XDG_RUNTIME_DIR") + env("XDG_CURRENT_DESKTOP") + env("DESKTOP_SESSION"))
     if application_folder:
-        command.extend([
-            "--setenv", "DBUS_SESSION_BUS_ADDRESS", session,
-            "--setenv", "XDG_RUNTIME_DIR", runtime
-        ])
-            
-    command.extend(env("XDG_CURRENT_DESKTOP") + env("DESKTOP_SESSION"))
+        command.extend(["--setenv", "DBUS_SESSION_BUS_ADDRESS", session])
     if args["zsh"]:
         command.extend(env("SHELL"))
     if args["kde"]:
