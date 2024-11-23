@@ -1,0 +1,2 @@
+#!/bin/sh
+sb chromium "$@" --portals Documents Desktop Notifications FileChooser Camera OpenURI --sockets wayland pipewire xorg --electron --app-dirs etc share lib --own org.mpris.MediaPlayer2.chromium.instance2 --libraries /usr/lib/chromium/chromium --home --share net --file-passthrough=rw --cached-home --dry-startup

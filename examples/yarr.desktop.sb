@@ -1,0 +1,2 @@
+#!/bin/sh
+sb yarr "$@" --share net --home --proc --devices /dev/null

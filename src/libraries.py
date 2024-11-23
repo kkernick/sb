@@ -211,7 +211,7 @@ def setup(sof_dir, lib_cache, update_sof):
     sof_dir.mkdir(parents=True, exist_ok=True)
 
     # For each library, add it to the shared runtime.
-    # Threading does not lead to noticable results, unfortunately.
+    # Threading does not lead to noticeable results, unfortunately.
     for library in current:
 
         # Fix some issues that sometimes happen with find.

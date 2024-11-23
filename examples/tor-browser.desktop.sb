@@ -1,0 +1,2 @@
+#!/bin/sh
+sb tor-browser "$@" --home --sockets wayland --ignore makepkg --devices /dev/null /dev/urandom --share net user --ro /opt/tor-browser --gtk --qt --binaries env getconf --local /home/sb/.local/opt/tor-browser/app/Browser/ --proc

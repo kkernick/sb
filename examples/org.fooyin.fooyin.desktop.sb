@@ -1,0 +1,2 @@
+#!/bin/sh
+sb fooyin "$@" --portals Documents Desktop Notifications FileChooser --sockets wayland pipewire --kde --home --proc --own org.mpris.MediaPlayer2.fooyin --lib --share-cache
