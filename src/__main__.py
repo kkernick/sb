@@ -13,6 +13,9 @@ from util import desktop_entry
 import binaries
 import libraries
 
+temp_dir = "/run/sb/temp" if args["sof"] == "zram" else "/tmp"
+Path(temp_dir).mkdir(exist_ok=True, parents=True)
+
 
 def main():
     # If we are making a desktop entry, or on startup and it's not a startup app, do the action and return.
@@ -28,7 +31,7 @@ def main():
     else:
         program = path
 
-    temp = TemporaryDirectory()
+    temp = TemporaryDirectory(prefix=program + "-", suffix="-temp", dir=temp_dir)
     if not args["portals"] and not args["see"] and not args["talk"] and not args["own"]:
         log("No portals requiried, disabling dbus-proxy")
         application_folder = None
@@ -45,7 +48,7 @@ def main():
 
         # The .flatpak-info is just a temporary file, but the application's temporary directory is a separate TMPFS,
         # separate from the global /tmp.
-        info = NamedTemporaryFile()
+        info = NamedTemporaryFile(prefix=program + "-", suffix="-flatpak-info", dir=temp_dir)
 
         log(f"Running {application_name}")
         log(f"\tTemp: {temp}")
@@ -185,7 +188,7 @@ def run_application(application, application_path, application_folder, info_name
     post = []
     writeback = {}
     if args["file_passthrough"] != "off":
-        enclave = TemporaryDirectory()
+        enclave = TemporaryDirectory(prefix=application + "-", suffix="-enclave", dir=temp_dir)
         command.extend(["--bind", enclave.name, "/enclave"])
 
         mode = "--ro-bind-try" if args["file_passthrough"] == "ro" else "--bind-try"
