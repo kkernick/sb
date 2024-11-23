@@ -176,3 +176,14 @@ Once a sandbox has been created, use `--make-script` to create a script you can 
 * Use `--hardened-malloc`.
 * When creating profiles start broad, such as using `--sys`, `--etc`, `--usr-share` until the application launches, and then narrow down what files are needed where.
 * Don't use `--lib` or `--bin`. The SOF works quite well.
+
+## Configuration
+
+You can set a default value to any of the above switches by creating a configuration file at `$XDG_CONFIG_HOME/sb/sb.conf`. In it, place case-insensitive keys, such as `HARDENED_MALLOC` or `sOf` with values, such as `True`, or `zram`, separated by `=`, and with each keypair separated by a newline:
+
+```
+SOF=zram
+HARDENED_MALLOC=True
+```
+
+If a profile does not explicitly provide a value for one of these keys (If a profile specifies `--sof` it will override), the configuration value will be used instead of the default.

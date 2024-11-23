@@ -33,3 +33,9 @@ There are also optional dependencies that allow the use of various switches:
 2. `hardened_malloc`: for --hardened-malloc, highly recommended
 3. `zram-generator`: for --sof=zram, highly recommended
 4. `xdg-dbus-proxy`: for --portals, --see, --talk, --own for Flatpak Emulation, highly recommended.
+
+## Scripts and Services
+
+* `sb.conf` is a zram configuration. If you have `zram-generator` installed and want `sb` to use zram as an SOF backing, copy it to `/usr/lib/systemd/zram-generator.conf.d`
+* `sb.service` is a user systemd service that dry runs applications tagged with `--dry-startup`. To use, copy it to `/usr/lib/systemd/user/`, copy `sb-startup` to somewhere in your PATH, and then run `systemctl daemon-reload --user` followed by `systemctl enable sb --user`.
+* `sb-refresh` will refresh all caches. Use it when upgrading `sb`, or when you feel like it.
