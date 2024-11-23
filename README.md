@@ -29,10 +29,10 @@ Additionally, `sb` has the following runtime dependencies that you will need ins
 5. `bubblewrap>=0.11`
 
 There are also optional dependencies that allow the use of various switches:
-1. `strace`: for --strace, useful for debugging
-2. `hardened_malloc`: for --hardened-malloc, highly recommended
-3. `zram-generator`: for --sof=zram, highly recommended
-4. `xdg-dbus-proxy`: for --portals, --see, --talk, --own for Flatpak Emulation, highly recommended.
+1. `strace`: for `--strace`, useful for debugging
+2. `hardened_malloc`: for `--hardened-malloc`, highly recommended
+3. `zram-generator`: for `--sof=zram`, highly recommended
+4. `xdg-dbus-proxy`: for `--portals`, `--see`, `--talk`, `--own` for Flatpak Emulation, highly recommended.
 
 ## Scripts and Services
 
