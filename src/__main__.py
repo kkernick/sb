@@ -478,6 +478,7 @@ def gen_command(application, application_path, application_folder):
             libraries.wildcards.add("libgtk*")
             libraries.wildcards.add("libgdk*")
             libraries.wildcards.add("libgio*")
+            libraries.wildcards.add("librsvg*")
             libraries.directories |= {"/usr/lib/gdk-pixbuf-2.0/", "/usr/lib/gtk-3.0"}
         args["dri"] = True
 
