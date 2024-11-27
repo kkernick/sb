@@ -701,10 +701,12 @@ def gen_command(application, application_path, application_folder):
         # The first is the actual folder in /usr/lib/, which avoids us having to copy
         # files, and the second is an empty path in the SOF directory.
         if update_sof:
+            valid = []
             for dir in libraries.directories:
                 if Path(dir).is_dir():
                     libraries.current |= libraries.get(dir)
-            share(command, libraries.directories, "ro-bind")
+                    valid.append(dir)
+            share(command, valid, "ro-bind")
             libraries.setup(sof_dir, lib_cache, update_sof)
 
     # Setup application directories.
