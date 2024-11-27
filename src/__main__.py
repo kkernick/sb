@@ -55,8 +55,9 @@ def main():
 
         # Write the .flatpak-info file so the application thinks its running in flatpak and thus portals work.
         info.write(b"[Application]\n")
-        name_str=f"name={application_name}"
-        info.write(name_str.encode())
+        info.write(f"name={application_name}\n".encode())
+        info.write(b"[Instance]\n")
+        info.write(f"app-path={path}\n".encode())
         info.flush()
 
         # Setup the DBux Proxy. This is needed to mediate Dbus calls, and enable Portals.
@@ -475,12 +476,34 @@ def gen_command(application, application_path, application_folder):
         ])
         command.extend(["--setenv", "GTK_USE_PORTAL", "1"])
         if update_sof:
-            libraries.wildcards.add("libgtk*")
-            libraries.wildcards.add("libgdk*")
-            libraries.wildcards.add("libgio*")
-            libraries.wildcards.add("librsvg*")
-            libraries.directories |= {"/usr/lib/gdk-pixbuf-2.0/", "/usr/lib/gtk-3.0"}
+            libraries.wildcards |= {
+                "libgvfs*",
+                "librsvg*",
+                "libgio*",
+                "libgdk*",
+                "libgtk*"
+            }
+            libraries.directories |= {
+                "/usr/lib/gdk-pixbuf-2.0/",
+                "/usr/lib/gtk-3.0",
+                "/usr/lib/tinysparql-3.0/",
+                "/usr/lib/gio",
+                "/usr/lib/gvfs"
+            }
         args["dri"] = True
+
+    if args["gst"]:
+        args["binaries"].extend([
+            "gst-inspect-1.0"
+            "gst-launch-1.0"
+            "gst-stats-1.0"
+            "gst-tester-1.0"
+            "gst-typefind-1.0"
+        ])
+        libraries.directories |= {"/usr/lib/girepository-1.0/", "/usr/lib/gstreamer-1.0/"}
+        libraries.wildcards.add("libgst*")
+
+        share(command, ["/usr/share/gir-1.0/", "/usr/share/gstreamer-1.0/"])
 
 
     # Mount devices, or the dev
