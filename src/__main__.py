@@ -702,7 +702,8 @@ def gen_command(application, application_path, application_folder):
         # files, and the second is an empty path in the SOF directory.
         if update_sof:
             for dir in libraries.directories:
-                libraries.current |= libraries.get(dir)
+                if Path(dir).is_dir():
+                    libraries.current |= libraries.get(dir)
             share(command, libraries.directories, "ro-bind")
             libraries.setup(sof_dir, lib_cache, update_sof)
 
