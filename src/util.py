@@ -60,6 +60,8 @@ def desktop_entry():
         for line in f.readlines():
             if line.startswith("Exec="):
                 buffer += (f"Exec={binary} {" ".join(line.split()[1:])}\n")
+            elif line.startswith("TryExec="):
+                buffer += (f"TryExec={binary} {" ".join(line.split()[1:])}\n")
             else:
                 buffer += line
 
