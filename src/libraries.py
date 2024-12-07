@@ -219,6 +219,9 @@ def setup(sof_dir, lib_cache, update_sof):
             log(f"Ignoring invalid library: {library}")
             continue
 
+        if any(library.startswith(dir) for dir in directories):
+            continue
+
         # Get the path to the library, and where it should end up in the shared runtime.
         real_path = Path(library)
         runtime_path = Path(f"{runtime_lib}/{library}")

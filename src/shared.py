@@ -37,7 +37,8 @@ def share(command: list, paths: list, mode = "ro-bind-try"):
     for path in paths:
 
         dest = path
-        if dest.startswith("/home/"):
+
+        if not args["real_user"] and dest.startswith("/home/"):
             split = dest.split("/")
             dest = f"/{split[1]}/sb/{"/".join(split[3:])}"
 

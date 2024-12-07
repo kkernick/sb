@@ -140,10 +140,7 @@ def run_application(application, application_path, application_folder, info_name
         else:
             command.extend(["--bind", str(home_dir), "/home"])
 
-    if args["share_cache"]:
-        share(command, [f"{home}/.cache"], "bind")
-    else:
-        command.extend(["--bind", temp, "/home/sb/.cache"])
+    command.extend(["--bind", temp, cache if args["real_user"] else "/home/sb/.cache"])
 
     # Add the tmpfs.
     command.extend(["--tmpfs", temp])
@@ -184,7 +181,9 @@ def run_application(application, application_path, application_folder, info_name
 
         preload /= "ld.so.preload"
         preload.open("w").write("/usr/lib/libhardened_malloc.so\n")
-        command.extend(["--ro-bind", str(preload.resolve()), "/etc/ld.so.preload"])
+
+        if not args["etc"]:
+            command.extend(["--ro-bind", str(preload.resolve()), "/etc/ld.so.preload"])
 
     post = []
     writeback = {}
@@ -193,6 +192,7 @@ def run_application(application, application_path, application_folder, info_name
         command.extend(["--bind", enclave.name, "/enclave"])
 
         mode = "--ro-bind-try" if args["file_passthrough"] == "ro" else "--bind-try"
+
         for source, write in [(args["unknown"], True), (args["files"], False)]:
             for argument in source:
                 path = Path(argument)
@@ -307,7 +307,7 @@ def gen_command(application, application_path, application_folder):
 
     local_runtime = runtime
     command.extend([
-        "--setenv", "HOME", "/home/sb",
+        "--setenv", "HOME", home if args["real_user"] else "/home/sb",
         "--setenv", "PATH", "/usr/bin",
     ])
 
@@ -330,7 +330,9 @@ def gen_command(application, application_path, application_folder):
         command.extend(["--dir", "/usr/lib"])
 
     # Symlink lib (In the sandbox, not to the host)
-    share(command, ["/etc/ld.so.preload", "/etc/ld.so.cache"])
+    if not args["etc"]:
+        share(command, ["/etc/ld.so.preload", "/etc/ld.so.cache"])
+
     command.extend([
         "--symlink", "/usr/lib", "/lib",
         "--symlink", "/usr/lib", "/lib64",

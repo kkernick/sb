@@ -162,12 +162,6 @@ def parse():
     parser.add_argument("--home", action="store_true", default=False, help="Create a permanent home directory for the application at $XDG_DATA_HOME/sb/application")
     parser.add_argument("--cached-home", action="store_true", default=False, help="Copy the SOF home into the application's temporary RAM folder. Modifications to the home will not persist, but will be isolated from instances and faster. Applications that use profile locks, like Chrome, can run multiple instances at once.")
 
-    # Some applications, like Fooyin, store files in the cache, such as Thumbnails, to which the path
-    # is not actually correct, since it's cache is not the actual home cache. This gives the application
-    # access to the actual user ~/.cache folder, which while giving the application some access, is
-    # usually quite safe.
-    parser.add_argument("--share-cache", action="store_true", default=False, help="Give the application to the non-sandboxed .cache folder in the home directory.")
-
     parser.add_argument("--file-passthrough", action="store", default="ro", choices=["off", "ro", "rw", "writeback"], help="How file arguments should be parsed.")
     parser.add_argument("--files", action="extend", nargs="*", default=[], help="A list of files/directories to be provided via file-passthrough, but that aren't command line arguments to the program")
 
@@ -183,6 +177,9 @@ def parse():
 
     # Use the real hostname of the computer.
     parser.add_argument("--real-hostname", action="store_true", default=False, help="Give the application the hostname")
+
+    # Don't obscure user
+    parser.add_argument("--real-user", action="store_true", default=False, help="Give the application the hostname")
 
     # Passthrough locale information.
     parser.add_argument("--locale", action="store_true", default=False, help="Give the application locale information")
