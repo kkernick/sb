@@ -1,0 +1,88 @@
+#!/bin/python
+
+from pathlib import Path
+from os import environ
+from subprocess import run
+
+bin = Path(environ["HOME"], ".local", "bin")
+
+def generate(profile):
+    print("PROFILE:", profile.name)
+
+    print("Setting up strace...")
+    run([profile, "--strace", "--update-libraries", "--dry"])
+
+    old = set()
+
+    while True:
+        print("Close the app (If it launches) once you are ready")
+        result = run([profile, "--verbose", "--strace"], capture_output=True)
+
+        busses = set()
+        paths = set()
+
+        stdout = result.stdout.decode().split("\n")
+        for x, line in enumerate(stdout):
+            if line.startswith("*HIDDEN*"):
+                str = stdout[x - 1].split()[2]
+
+                if str not in old:
+                    busses.add(str)
+
+        for error in result.stderr.decode().split("\n"):
+            if "ENOENT" in error or "EACCES" in error and "resumed" not in error:
+                start = error.find('"/')
+                if start == -1:
+                    continue
+
+                end = error.find('"', start + 1)
+                if end == -1:
+                    continue
+
+                str = f"{"ENOENT" if "ENOENT" in error else "EACCES"}: {error[start + 1:end]}"
+                if str not in old:
+                    paths.add(str)
+
+        if busses:
+            print("The application tried to use the following DBus busses:")
+            for bus in busses:
+                print(bus)
+
+        if paths:
+            print("The application tried to access the following paths:")
+            for path in paths:
+                if Path(path.split()[1]).exists():
+                    print(path)
+        else:
+            print("No new file accesses since last run!")
+
+        if input("Make your changes to the profile, and press enter to run again. Enter anything else to quit\n"):
+
+            print("Removing strace")
+            run([profile, "--update-libraries", "--dry"])
+            return
+        old |= busses
+        old |= paths
+
+
+def main():
+    while True:
+        profiles = [file for file in bin.glob("*.sb") if file.is_file()]
+        binary = None
+        while binary is None:
+            print("Which profile? Q to Quit")
+            for index, profile in enumerate(profiles):
+                print(index, ":", profile.name)
+            index = input(": ")
+            if index == "Q" or index == "q":
+                return
+            index = int(index)
+            if index < len(profiles):
+                generate(profiles[index])
+                break
+            else:
+                print("Invalid selection")
+
+
+if __name__ == "__main__":
+    main()
