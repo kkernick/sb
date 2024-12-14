@@ -28,7 +28,7 @@ build() {
 
 package() {
   cd $srcdir/sb
-  for binary in sb sb-startup sb-refresh; do
+  for binary in sb sb-startup sb-refresh sb-gen; do
     install -Dm755 "$binary" "$pkgdir/usr/bin/$binary"
   done
   for service in sb.service; do
