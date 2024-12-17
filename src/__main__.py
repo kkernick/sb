@@ -458,6 +458,7 @@ def gen_command(application, application_path, application_folder):
             share(command, ["/usr/share/qt5"])
         if update_sof:
             libraries.directories |= {"/usr/lib/qt6/"}
+            libraries.directories |= {"/usr/lib/kf6/"}
             libraries.wildcards.add("libQt*")
             if args["qt5"]:
                 libraries.directories |= {"/usr/lib/qt5/", "/usr/lib/qt/"}
