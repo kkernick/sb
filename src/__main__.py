@@ -31,7 +31,6 @@ def main():
     else:
         program = path
 
-    temp = TemporaryDirectory(prefix=program + "-", suffix="-temp", dir=temp_dir)
     if not args["portals"] and not args["see"] and not args["talk"] and not args["own"]:
         log("No portals requiried, disabling dbus-proxy")
         application_folder = None
@@ -51,7 +50,6 @@ def main():
         info = NamedTemporaryFile(prefix=program + "-", suffix="-flatpak-info", dir=temp_dir)
 
         log(f"Running {application_name}")
-        log(f"\tTemp: {temp}")
 
         # Write the .flatpak-info file so the application thinks its running in flatpak and thus portals work.
         info.write(b"[Application]\n")
@@ -69,7 +67,7 @@ def main():
 
     # Then, run the program.
     log("Launching ", program, "at", path)
-    run_application(program, path, application_folder, info.name, temp.name)
+    run_application(program, path, application_folder, info.name)
 
 
 # Run the DBUS Proxy.
@@ -115,7 +113,7 @@ def dbus_proxy(portals, application_folder, info_name):
 
 
 # Run the application.
-def run_application(application, application_path, application_folder, info_name, temp):
+def run_application(application, application_path, application_folder, info_name):
     command = ["bwrap", "--new-session", "--die-with-parent"]
     local_dir = Path(data, "sb", application)
     if not local_dir.is_dir():
@@ -140,10 +138,9 @@ def run_application(application, application_path, application_folder, info_name
         else:
             command.extend(["--bind", str(home_dir), "/home"])
 
-    command.extend(["--bind", temp, cache if args["real_user"] else "/home/sb/.cache"])
-
     # Add the tmpfs.
-    command.extend(["--tmpfs", temp])
+    command.extend(["--tmpfs", cache if args["real_user"] else "/home/sb/.cache"])
+    command.extend(["--tmpfs", "/tmp"])
 
     # Environment variables should not be cached, since they can change at any time.
     # Therefore, we generate the environment variables for each launch.
@@ -449,7 +446,6 @@ def gen_command(application, application_path, application_folder):
         args["dri"] = True
         args["qt"] = True
 
-
     # Add QT
     if args["qt"] or args["qt5"]:
         log("Adding QT...")
@@ -490,8 +486,10 @@ def gen_command(application, application_path, application_folder):
                 "/usr/lib/gdk-pixbuf-2.0/",
                 "/usr/lib/gtk-3.0",
                 "/usr/lib/tinysparql-3.0/",
+                "/usr/lib/gtk-4.0",
                 "/usr/lib/gio",
-                "/usr/lib/gvfs"
+                "/usr/lib/gvfs",
+                "/usr/lib/gconv"
             }
         args["dri"] = True
 
@@ -506,7 +504,16 @@ def gen_command(application, application_path, application_folder):
         libraries.directories |= {"/usr/lib/girepository-1.0/", "/usr/lib/gstreamer-1.0/"}
         libraries.wildcards.add("libgst*")
 
-        share(command, ["/usr/share/gir-1.0/", "/usr/share/gstreamer-1.0/"])
+    if args["webkit"]:
+        libraries.directories |= {"/usr/lib/girepository-1.0/", "/usr/lib/webkitgtk-6.0/"}
+        libraries.wildcards |= {"libjavascriptcoregtk*", "libwebkitgtk*"}
+        share(command, ["/dev/urandom", "/dev/null"], "dev-bind")
+        share(command, ["/usr/share/gir-1.0", "/etc/gcrypt"])
+        if not args["proc"]:
+            args["proc"] = True
+        if "user" not in args["share"]:
+            args["share"].append("user")
+
 
 
     # Mount devices, or the dev
@@ -551,7 +558,7 @@ def gen_command(application, application_path, application_folder):
             ])
         if update_sof:
             for lib in [
-                "libvulkan*", "libglapi*", "*mesa*", "*Mesa*", "libdrm", "libGLX*", "libEGL*",
+                "libvulkan*", "libglapi*", "*mesa*", "*Mesa*", "libdrm", "libGL*", "libEGL*",
                 "libVkLayer*", "libgbm*", "libva*", "*egl*", "*EGL*"
                 ]:
                     libraries.wildcards.add(lib)
