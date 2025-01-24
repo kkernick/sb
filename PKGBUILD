@@ -1,6 +1,6 @@
 pkgname=sb-git
 pkgdesc="Sandbox Applications"
-pkgver=r170.15651c0
+pkgver=r171.a67c76f
 pkgrel=1
 
 source=("git+https://github.com/kkernick/sb.git")
@@ -29,7 +29,7 @@ build() {
 
 package() {
   cd $srcdir/sb
-  for binary in sb sb-startup sb-refresh sb-gen; do
+  for binary in sb sb-startup sb-refresh sb-gen sb-seccomp; do
     install -Dm755 "$binary" "$pkgdir/usr/bin/$binary"
   done
   for service in sb.service; do
