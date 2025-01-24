@@ -53,6 +53,12 @@ def parse_ldd(to_load, recursive=True, local=False):
             lib = lib.replace("lib64", "lib")
             if lib.startswith("/lib"):
                 lib = lib[4:]
+
+            # Some libraries are statically linked via relative paths (IE /usr/bin/../lib)
+            # This is dumb, and it breaks our parser, so replace it with the actual path.
+            if lib.startswith("/usr/bin/../lib"):
+                lib = "/usr" + lib[11:]
+
         if lib is not None:
             if local and not lib.startswith("/usr"):
                 continue
@@ -71,7 +77,7 @@ def get(to_load, local=False):
 
     ret = set()
 
-    if directories and any(to_load.startswith(dir) and to_load != dir for dir in directories):
+    if directories and any(to_load.startswith(dir) for dir in directories):
         return ret
 
     # If the binary/library has already been searched, just return, otherwise add it.
