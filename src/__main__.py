@@ -104,8 +104,6 @@ def dbus_proxy(portals, application_folder, info_name):
     command.extend([f'--talk={portal}' for portal in args["talk"]])
     command.extend([f'--own={portal}' for portal in args["own"]])
 
-    if args["xdg_open"]:
-        command.extend(["--talk=org.freedesktop.portal.OpenURI"])
     if args["verbose"]:
         command.extend(["--log"])
     log(" ".join(command))
@@ -139,7 +137,7 @@ def run_application(application, application_path, application_folder, info_name
             command.extend(["--bind", str(home_dir), "/home"])
 
     # Add the tmpfs.
-    command.extend(["--tmpfs", cache if args["real_user"] else "/home/sb/.cache"])
+    command.extend(["--tmpfs", "/home/sb/.cache"])
     command.extend(["--tmpfs", "/tmp"])
 
     # Environment variables should not be cached, since they can change at any time.
@@ -150,7 +148,14 @@ def run_application(application, application_path, application_folder, info_name
         command.extend(["--setenv", "DBUS_SESSION_BUS_ADDRESS", session])
 
     if args["shell"]:
+
+        # Trying to support every possible shell and all its configuration is outside the scope of SB
+        # Shells can be manually added by the user.
         command.extend(["--setenv", "SHELL", "/usr/bin/sh"])
+
+        # Some applications source /etc/passwd for shell information. Because we abstract the real
+        # user to an SB with the same UID (Unless no Portals), we want to create a fake passwd
+        # that includes the information it wants.
         passwd = NamedTemporaryFile(prefix=application + "-", suffix="-passwd", dir=temp_dir)
         passwd.write(b"[Application]\n")
         passwd.write(f"sb:x:{real}:{real}:SB:/home/sb:/usr/bin/sh\n".encode())
@@ -163,8 +168,6 @@ def run_application(application, application_path, application_folder, info_name
         command.extend(env("XDG_SESSION_DESKTOP"))
     if "wayland" in args["sockets"]:
         command.extend(env("WAYLAND_DISPLAY"))
-    if "xorg" in args["sockets"]:
-        command.extend(env("DISPLAY") + env("XAUTHORITY") + env("ICEAUTHORITY"))
     if args["locale"]:
         command.extend(env("LANG") + env("LANGUAGE"))
 
@@ -172,23 +175,14 @@ def run_application(application, application_path, application_folder, info_name
     command.extend(gen_command(application, application_path, application_folder))
 
     if args["hardened_malloc"]:
-        # Typically, hardened malloc works by simply passing LD_PRELOAD
-        # along --setenv. Even when running under zypak, the ZYPAK_LD_PRELOAD
-        # does the job in Electron. However, and for a reason I'm not entirely sure,
-        # Chromium will not use hardened malloc underneath zypak; being the most
-        # important application sandbox, we've created a temporary ld.so.preload
-        # for the sandbox. This "privileged preload" does not have the same
-        # fragility of LD_PRELOAD (ID matching, being able to just unset it),
-        # so it also improves the sandbox.
-        preload = Path(data if args["sof"] == "data" else "/run" if args["sof"] == "zram" else "/tmp", "sb", application)
-        preload.mkdir(exist_ok=True, parents=True)
+        preload = NamedTemporaryFile(prefix=application + "-", suffix="-ld.so.preload", dir=temp_dir)
+        preload.write(b"/usr/lib/libhardened_malloc.so\n")
+        preload.flush()
+        command.extend(["--ro-bind", preload.name, "/etc/ld.so.preload"])
 
-        preload /= "ld.so.preload"
-        preload.open("w").write("/usr/lib/libhardened_malloc.so\n")
-
-        if not args["etc"]:
-            command.extend(["--ro-bind", str(preload.resolve()), "/etc/ld.so.preload"])
-
+    # Now we iterate through unrecognized files and explicit files, adding them to the post command (After
+    # the application such they are used as arguments). If we're using writeback, we keep a list of files
+    # that need to be updated after the program closes.
     post = []
     writeback = {}
     if args["file_passthrough"] != "off":
@@ -295,6 +289,7 @@ def run_application(application, application_path, application_folder, info_name
     run(["find", str(local_dir), "-size", "0", "-delete"])
     run(["find", str(local_dir), "-empty", "-delete"])
 
+
 # Generate the cacheable part of the command.
 def gen_command(application, application_path, application_folder):
 
@@ -362,7 +357,7 @@ def gen_command(application, application_path, application_folder):
 
     local_runtime = runtime
     command.extend([
-        "--setenv", "HOME", home if args["real_user"] else "/home/sb",
+        "--setenv", "HOME", "/home/sb",
         "--setenv", "PATH", "/usr/bin",
     ])
 
@@ -385,17 +380,13 @@ def gen_command(application, application_path, application_folder):
         command.extend(["--dir", "/usr/lib"])
 
     # Symlink lib (In the sandbox, not to the host)
-    if not args["etc"]:
-        share(command, ["/etc/ld.so.preload", "/etc/ld.so.cache"])
+    share(command, ["/etc/ld.so.preload", "/etc/ld.so.cache"])
 
     command.extend([
         "--symlink", "/usr/lib", "/lib",
         "--symlink", "/usr/lib", "/lib64",
         "--symlink", "/usr/lib", "/usr/lib64",
     ])
-
-    if args["xdg_open"]:
-        args["binaries"].extend(["xdg-open"])
 
     # Add python, if needed.
     if args["python"]:
@@ -404,16 +395,6 @@ def gen_command(application, application_path, application_folder):
         if update_sof:
             libraries.current |= {f"lib{version}.so"}
             libraries.directories |= {f"/usr/lib/{version}/"}
-
-    # Git
-    if args["git"]:
-        share(command, ["/dev/null"], "dev-bind")
-        args["binaries"].extend([
-            "git", "git-cvsserver", "git-receive-pack", "git-shell",
-            "git-upload-archive", "git-upload-pack", "gitk", "scalar"
-        ])
-        libraries.directories |= {"/usr/lib/git-core/"}
-        share(command, ["/usr/share/git/"])
 
     if args["hardened_malloc"]:
         command.extend(["--setenv", "LD_PRELOAD", "/usr/lib/libhardened_malloc.so"])
@@ -441,31 +422,17 @@ def gen_command(application, application_path, application_folder):
     # Add electron
     if args["electron"]:
         log("Adding electron...")
-
-        # NSS junk
-        if update_sof:
-            libraries.wildcards.add("libsoftokn3*")
-            libraries.wildcards.add("libfreeblpriv3*")
-            libraries.wildcards.add("libsensors*")
-            libraries.wildcards.add("libnssckbi*")
-
         share(command, ["/sys/block", "/sys/dev"])
         share(command, ["/dev/null", "/dev/urandom", "/dev/shm"], "dev-bind")
 
         if args["electron_version"]:
-            # Extend existing args so they can be handled.
-            if args["electron_version"] == "stable":
-                electron_string = f"electron{environ["ELECTRON_VERSION"]}"
-            else:
-                electron_string = f"electron{args["electron_version"]}"
+            electron_string = f"electron{args["electron_version"]}"
 
             args["binaries"].extend([
                 f"/usr/lib/{electron_string}/electron",
                 f"/usr/bin/{electron_string}",
 
             ])
-            args["ro"].append(f"/usr/lib/{electron_string}")
-
             if update_sof:
                 libraries.directories |= {f"/usr/lib/{electron_string}"}
 
@@ -548,29 +515,6 @@ def gen_command(application, application_path, application_folder):
             }
         args["dri"] = True
 
-    if args["gst"]:
-        args["binaries"].extend([
-            "gst-inspect-1.0"
-            "gst-launch-1.0"
-            "gst-stats-1.0"
-            "gst-tester-1.0"
-            "gst-typefind-1.0"
-        ])
-        libraries.directories |= {"/usr/lib/girepository-1.0/", "/usr/lib/gstreamer-1.0/"}
-        libraries.wildcards.add("libgst*")
-
-    if args["webkit"]:
-        libraries.directories |= {"/usr/lib/girepository-1.0/", "/usr/lib/webkitgtk-6.0/"}
-        libraries.wildcards |= {"libjavascriptcoregtk*", "libwebkitgtk*"}
-        share(command, ["/dev/urandom", "/dev/null"], "dev-bind")
-        share(command, ["/usr/share/gir-1.0", "/etc/gcrypt"])
-        if not args["proc"]:
-            args["proc"] = True
-        if "user" not in args["share"]:
-            args["share"].append("user")
-
-
-
     # Mount devices, or the dev
     if args["dev"]:
         command.extend(["--dev", "/dev"])
@@ -581,12 +525,6 @@ def gen_command(application, application_path, application_folder):
     # Mount system directories.
     if args["proc"]:
         command.extend(["--proc", "/proc"])
-    if args["etc"]:
-        share(command, ["/etc"])
-    if args["usr_share"]:
-        share(command, ["/usr/share"])
-    if args["sys"]:
-        share(command, ["/sys"], "dev-bind-try")
 
     # Add DRI stuff.
     if args["dri"]:
@@ -641,18 +579,6 @@ def gen_command(application, application_path, application_folder):
         if update_sof:
             libraries.wildcards.add("libpipewire*")
             libraries.directories |= {"/usr/lib/pipewire-0.3/", "/usr/lib/spa-0.2/", "/usr/lib/pulseaudio/"}
-
-    # add Xorg. This is a vulnerability.
-    if "xorg" in args["sockets"]:
-        share(command, ["/tmp/.X11-unix/X0"])
-        for xauth in output(["find", runtime, "-maxdepth", "1", "-name", "xauth_*"]):
-            command.extend(["--ro-bind-try", xauth, f"{local_runtime}/{xauth.split("/")[-1]}"])
-
-    # Extend the hostname if needed, otherwise use a fake one.
-    if args["real_hostname"]:
-        share(command, ["/etc/hostname"])
-    else:
-        command.extend(["--hostname", "sandbox"])
 
     # Add locale information
     if args["locale"]:
@@ -729,12 +655,9 @@ def gen_command(application, application_path, application_folder):
             # Get the binary, and its dependencies
             binaries.add(binary)
         share(command, binaries.current, "ro-bind-try")
-        for bin in binaries.current:
-            libraries.current |= libraries.get(bin)
-    for binary in args["local"]:
-        for executable in output(["find", str(local_dir) + binary, "-mindepth", "1", "-executable", "-type", "f"]):
-            share(command, binaries.parse(executable))
-
+        if update_sof:
+            for bin in binaries.current:
+                libraries.current |= libraries.get(bin)
 
     command.extend(["--symlink", "/usr/bin", "/bin"])
     command.extend(["--symlink", "/usr/bin", "/bin"])
@@ -746,9 +669,6 @@ def gen_command(application, application_path, application_folder):
     if update_sof:
         for library in args["libraries"]:
             libraries.current |= libraries.get(library)
-        for path in args["local"]:
-            depends = libraries.get(str(local_dir) + path, local=True)
-            libraries.current |= depends
 
     # If we're updating the SOF, generate all the libraries needed based on those that were explicitly provided.
     if not args["lib"]:
@@ -765,13 +685,14 @@ def gen_command(application, application_path, application_folder):
         # subsequent sub-folders. To do this, we need two sources for the --ro-overlay
         # The first is the actual folder in /usr/lib/, which avoids us having to copy
         # files, and the second is an empty path in the SOF directory.
-        if update_sof:
-            valid = []
-            for dir in libraries.directories:
-                if Path(dir).is_dir():
+        valid = []
+        for dir in libraries.directories:
+            if Path(dir).is_dir():
+                if update_sof:
                     libraries.current |= libraries.get(dir)
-                    valid.append(dir)
-            share(command, valid, "ro-bind")
+                valid.append(dir)
+        share(command, valid, "ro-bind")
+        if update_sof:
             libraries.setup(sof_dir, lib_cache, update_sof)
 
     # Setup application directories.

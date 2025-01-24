@@ -77,11 +77,11 @@ def get(to_load, local=False):
 
     ret = set()
 
-    if directories and any(to_load.startswith(dir) for dir in directories):
+    if directories and any(to_load.startswith(dir) and to_load != dir for dir in directories):
         return ret
 
     # If the binary/library has already been searched, just return, otherwise add it.
-    if to_load in searched or to_load == "" or to_load.split("/")[-1] in args["ignore"]:
+    if to_load in searched or to_load == "":
         return ret
     if not local:
         searched.add(to_load)

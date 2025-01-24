@@ -24,9 +24,6 @@ def add(binary):
     global current
     ret = set()
 
-    if binary.split("/")[-1] in args["ignore"]:
-        return ret
-
     # If we have an absolute path, extract.
     if binary.startswith("/"):
         path = binary

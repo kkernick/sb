@@ -59,7 +59,7 @@ def parse():
         "--sockets",
         action="extend",
         nargs="*",
-        choices=["wayland", "pipewire", "xorg"],
+        choices=["wayland", "pipewire"],
         default=[],
         help="A list of sockets to give the application various functionality"
     )
@@ -94,11 +94,8 @@ def parse():
     # any folder within /lib, but it will be slow to generate the command and library cache.
     parser.add_argument("--lib", action="store_true", default=False, help="Mount /lib and others")
     parser.add_argument("--libraries", action="extend", nargs="*", default=[], help="A list of libraries needed in the sandbox")
-    parser.add_argument("--local", action="extend", nargs="*", default=[], help="A list of directories within the sandbox that the application creates, and needs library lookup.")
 
     parser.add_argument("--sof", action="store", default="tmpfs", choices=["tmpfs", "data", "zram"], help="Where the library SOF should be stored.")
-
-    parser.add_argument("--ignore", action="extend", nargs="*", default=[], help="Ignore libraries/binaries")
 
     # Force the program to recalculate library dependencies, overwriting the library and command cache.
     parser.add_argument("--update-libraries", action="store_true", default=False, help="Update SOF libraries")
@@ -131,12 +128,8 @@ def parse():
     parser.add_argument("--dev", action="store_true", default=False, help="Mount the /dev filesystem")
     parser.add_argument("--devices", action="extend", nargs="*", default=[], help="A list of devices to include in the sandbox")
 
-
     # Root folders
     parser.add_argument("--proc", action="store_true", default=False, help="Mount the /proc filesystem")
-    parser.add_argument("--etc", action="store_true", default=False, help="Mount the /etc folder")
-    parser.add_argument("--sys", action="store_true", default=False, help="Mount the /sys folder")
-    parser.add_argument("--usr-share", action="store_true", default=False, help="Give the application access to /usr/share")
 
     # Share files needed for GPU acceleration.
     parser.add_argument("--dri", action="store_true", default=False, help="Give the application access to DRI/GPU, Vulkan, Devices, and graphical things")
@@ -159,8 +152,6 @@ def parse():
 
     # Bring in GTK files and configuration. This isn't well tested besides in use of Electron.
     parser.add_argument("--gtk", action="store_true", default=False, help="Give the application access to GTK3/4 configuration (Implies --dri)")
-    parser.add_argument("--gst", action="store_true", default=False, help="Give the application access to GStreamer")
-    parser.add_argument("--webkit", action="store_true", default=False, help="Give the application access to Webkit")
 
     # Shell
     parser.add_argument("--shell", action="store_true", default=False, help="Give the application the user shell.")
@@ -186,23 +177,11 @@ def parse():
     # Run the program in the sandbox under strace to debug missing files.
     parser.add_argument("--strace", action="store_true", default=False, help="Launch the application underneath strace")
 
-    # Give the application xdg-open to open files with the default application.
-    parser.add_argument("--xdg-open", action="store_true", default=False, help="Give the application xdg-open to launch default applications")
-
-    # Use the real hostname of the computer.
-    parser.add_argument("--real-hostname", action="store_true", default=False, help="Give the application the hostname")
-
-    # Don't obscure user
-    parser.add_argument("--real-user", action="store_true", default=False, help="Give the application the hostname")
-
     # Passthrough locale information.
     parser.add_argument("--locale", action="store_true", default=False, help="Give the application locale information")
 
     # Passthrough spellchecking via hunspell.
     parser.add_argument("--hunspell", action="store_true", default=False, help="Give the application dictionaries")
-
-    # Give the application git.
-    parser.add_argument("--git", action="store_true", default=False, help="Give the application git")
 
     # Use hardened malloc
     parser.add_argument("--hardened-malloc", action="store_true", default=False, help="Use hardened_malloc within the sandbox")
@@ -213,7 +192,6 @@ def parse():
     # If the desktop entry for the application does not follow the application.desktop convention, explicitly specify the
     # name of the desktop entry as found in /usr/share/applications.
     parser.add_argument("--desktop-entry", action="store", default=None, help="The application's desktop entry, if it cannot be deduced automatically. For example, chromium.desktop")
-
     parser.add_argument("--make-script", action="store_true", default=False, help="Create the .sb shell script in ~/.local/bin")
 
     # Be verbose in logging.
