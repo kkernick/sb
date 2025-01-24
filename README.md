@@ -2,14 +2,15 @@
 
 ```
 usage: sb [-h] [--portals [PORTALS ...]] [--see [SEE ...]] [--talk [TALK ...]] [--own [OWN ...]]
-[--share [{user,ipc,pid,net,uts,cgroup,all,none} ...]] [--sockets [{wayland,pipewire,xorg} ...]] [--bin]
-[--binaries [BINARIES ...]] [--lib] [--libraries [LIBRARIES ...]] [--local [LOCAL ...]] [--sof {tmpfs,data,zram}]
-[--ignore [IGNORE ...]] [--update-libraries] [--update-cache] [--env [ENV ...]] [--rw [RW ...]] [--ro [RO ...]]
-[--app-dirs [{config,cache,etc,share,data,lib} ...]] [--dev] [--devices [DEVICES ...]] [--proc] [--etc] [--sys] [--usr-share]
-[--dri] [--qt] [--qt5] [--electron] [--electron-version ELECTRON_VERSION] [--python PYTHON] [--kde] [--gtk] [--shell]
-[--include] [--home] [--cached-home] [--share-cache] [--file-passthrough {off,ro,rw,writeback}] [--files [FILES ...]]
-[--debug-shell] [--strace] [--xdg-open] [--real-hostname] [--locale] [--hunspell] [--git] [--hardened-malloc]
-[--make-desktop-entry] [--desktop-entry DESKTOP_ENTRY] [--make-script] [--verbose] [--dry] [--startup] [--dry-startup]
+[--share [{user,ipc,pid,net,uts,cgroup,all,none} ...]] [--sockets [{wayland,pipewire,xorg} ...]] [--syscalls [SYSCALLS ...]]
+[--seccomp-log] [--bin] [--binaries [BINARIES ...]] [--lib] [--libraries [LIBRARIES ...]] [--local [LOCAL ...]]
+[--sof {tmpfs,data,zram}] [--ignore [IGNORE ...]] [--update-libraries] [--update-cache] [--env [ENV ...]] [--rw [RW ...]]
+[--ro [RO ...]] [--app-dirs [{config,cache,etc,share,data,lib} ...]] [--dev] [--devices [DEVICES ...]] [--proc] [--etc]
+[--sys] [--usr-share] [--dri] [--qt] [--qt5] [--electron] [--electron-version ELECTRON_VERSION] [--python PYTHON] [--kde]
+[--gtk] [--gst] [--webkit] [--shell] [--include] [--home] [--cached-home] [--file-passthrough {off,ro,rw,writeback}]
+[--files [FILES ...]] [--debug-shell] [--strace] [--xdg-open] [--real-hostname] [--real-user] [--locale] [--hunspell] [--git]
+[--hardened-malloc] [--make-desktop-entry] [--desktop-entry DESKTOP_ENTRY] [--make-script] [--verbose] [--dry] [--startup]
+[--dry-startup]
 program
 ```
 
@@ -33,6 +34,7 @@ There are also optional dependencies that allow the use of various switches:
 2. `hardened_malloc`: for `--hardened-malloc`, highly recommended
 3. `zram-generator`: for `--sof=zram`, highly recommended
 4. `xdg-dbus-proxy`: for `--portals`, `--see`, `--talk`, `--own` for Flatpak Emulation, highly recommended.
+5. `python-libseccomp`: for `--syscalls`. Recommended; you can use `sb-seccomp` to generate the needed syscalls.
 
 ## Scripts and Services
 

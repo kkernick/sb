@@ -64,6 +64,19 @@ def parse():
         help="A list of sockets to give the application various functionality"
     )
 
+    # A list of syscalls that should be allowed by a seccomp filter.
+    parser.add_argument(
+        "--syscalls",
+        action="extend",
+        nargs="*",
+        default=[],
+        help="A list of permitted syscalls. Operates on a whitelist approach unless no syscalls provided. You can also specify these in $XDG_DATA_HOME/sb/$APP/syscalls.txt"
+    )
+
+    # Log it instead of enforcing it.
+    parser.add_argument("--seccomp-log", action="store_true", default=False, help="Log SECCOMP violations rather than killing the application")
+
+
     # Specify what binaries should be permitted.
     # --bin will merely mount /bin.
     # --binaries will use `which` to locate the binary, and will perform library dependency lookups.
@@ -207,7 +220,7 @@ def parse():
     parser.add_argument("--verbose", action="store_true", default=False, help="Verbose logging")
 
     # Dry and Startup related settings.
-    # --dry will do everything except run the program, such as createing the SOF folder.
+    # --dry will do everything except run the program, such as creating the SOF folder.
     # --startup should only be used by the systemd startup service, to let the program know that it's not being run by the user.
     # --dry-startup will let the startup service know that this application should be dry-run on boot, so that SOF folder's
     # can be generated immediately.

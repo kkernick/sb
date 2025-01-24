@@ -222,19 +222,69 @@ def run_application(application, application_path, application_folder, info_name
                     post.append(argument)
 
     # Either launch the debug shell, run under strace, or run the command accordingly.
-    if args["strace"]:
-        command.extend(["strace", "-ff", "-v", "-s", "100"])
+    def suffix_args():
+        if args["strace"]:
+            command.extend(["strace", "-ff", "-v", "-s", "100"])
 
-    if args["debug_shell"]:
-        command.append("sh")
-    else:
-        command.append(application_path)
-        command.extend(post)
+        if args["debug_shell"]:
+            command.append("sh")
+        else:
+            command.append(application_path)
+            command.extend(post)
+
 
     # So long as we aren't dry-running, run the program.
     if not args["dry"]:
-        log("Command:", " ".join(command))
-        run(command)
+
+        # If the user is either logging, has syscalls defined, or has a file, create a SECCOMP Filter.
+        syscall_file = Path(data, "sb", application, "syscalls.txt")
+        if args["syscalls"] or syscall_file.is_file() or args["seccomp_log"]:
+
+            # Combine our sources into a single list.
+            syscalls = set(args["syscalls"])
+            if syscall_file.is_file():
+                for line in syscall_file.open("r").readlines():
+                    for split in line.split(" "):
+                        stripped = split.strip("\n \t")
+                        if stripped:
+                            syscalls.add(stripped)
+
+            log("Permitted Syscalls:", len(syscalls), f"({"LOG" if args["seccomp_log"] else "ENFORCED"})")
+            
+            # Create our output and filter.
+            from seccomp import SyscallFilter, Attr, ALLOW, LOG, KILL_PROCESS
+            filter_bpf = NamedTemporaryFile(prefix=application + "-", suffix="-seccomp.bpf", dir=temp_dir)
+            filter = SyscallFilter(defaction=LOG if args["seccomp_log"] else KILL_PROCESS)
+
+            # Enforce that children have a subset of parent permissions.
+            filter.set_attr(Attr.CTL_NNP, True)
+            if args["verbose"]:
+                filter.set_attr(Attr.CTL_LOG, True)
+
+            # Add each syscall, attempting to convert them into integers as both formats are supported.
+            for syscall in syscalls:
+                try:
+                    try:
+                        filter.add_rule(ALLOW, int(syscall))
+                    except Exception:
+                        filter.add_rule(ALLOW, syscall)
+                except Exception as e:
+                    print("INVALID syscall:", syscall, ":", e)
+                    exit(1)
+                    
+            # Export, add it as stdin.
+            filter.export_bpf(filter_bpf)
+            filter_bpf.flush()
+            command.extend(["--seccomp", "0"])
+            suffix_args()
+            log("Command:", " ".join(command))
+
+            # Yup, this is the only way I found that actually got this to work.
+            run(f"cat {filter_bpf.name} | {" ".join(command)}", shell=True)
+        else:
+            suffix_args()
+            log("Command:", " ".join(command))
+            run(command)
 
     # If we have RW access, and there's things in the enclave, update the source.
     for enclave_file, real_file in writeback.items():

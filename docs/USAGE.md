@@ -191,3 +191,15 @@ HARDENED_MALLOC=True
 ```
 
 If a profile does not explicitly provide a value for one of these keys (If a profile specifies `--sof` it will override), the configuration value will be used instead of the default.
+
+## SECCOMP
+
+`sb` supports dynamic creation of BPF SECCOMP filters, which are then passed to the sandbox and enforce a subset of syscalls, reducing attack surface.
+
+You can provide such syscalls either using the `--syscalls` switch or, and the preferred option, is to create a `syscalls.txt` file in the `$XDG_DATA_HOME/sb/$APP` folder. The format of the latter is space-delimited. For both, you can either provide the syscall name directly (IE `write`), or the numerical value (IE $0$).
+
+SECCOMP Filters within `sb` subscribes to a Whitelisting approach, where only the specified syscalls are permitted within the sandbox; the exception to this is that if no `--syscalls` switch is provided, or the file does not exist, then no filtering will be done.
+
+To ease the creation of these filters, you can use the `sb-seccomp` utility, so long as your system has the audit framework working. Pass it the `sb` script to run (It'll tack on `--seccomp-log` to the execution), and the name of the program (So it can dynamically update a `syscalls.txt` if it exists), and the program will spit out the syscalls that the program used. You may need to run it multiple times to capture all syscalls.
+
+Once a list has been generated, you need not do anything to active the filter, so long as the `--seccomp-log` isn't activated. If you use `--verbose`, `sb` will inform you of the total permitted syscalls.

@@ -1,6 +1,6 @@
 pkgname=sb-git
 pkgdesc="Sandbox Applications"
-pkgver=r169.f6ad9b9
+pkgver=r170.15651c0
 pkgrel=1
 
 source=("git+https://github.com/kkernick/sb.git")
@@ -8,10 +8,11 @@ sha256sums=("SKIP")
 depends=(python findutils glibc which bubblewrap)
 makedepends=(zip)
 optdepends=(
-'strace: for --strace, useful for debugging'
-'hardened_malloc: for --hardened-malloc'
-'zram-generator: for --sof=zram'
-'xdg-dbus-proxy: for --portals, --see, --talk, --own for Flatpak Emulation'
+  'strace: for --strace, useful for debugging'
+  'hardened_malloc: for --hardened-malloc'
+  'zram-generator: for --sof=zram'
+  'xdg-dbus-proxy: for --portals, --see, --talk, --own for Flatpak Emulation'
+  'python-libseccomp: for --syscalls'
 )
 arch=("any")
 provides=("sb")
