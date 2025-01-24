@@ -148,8 +148,15 @@ def run_application(application, application_path, application_folder, info_name
     command.extend(env("XDG_RUNTIME_DIR") + env("XDG_CURRENT_DESKTOP") + env("DESKTOP_SESSION"))
     if application_folder:
         command.extend(["--setenv", "DBUS_SESSION_BUS_ADDRESS", session])
-    if args["zsh"]:
-        command.extend(env("SHELL"))
+
+    if args["shell"]:
+        command.extend(["--setenv", "SHELL", "/usr/bin/sh"])
+        passwd = NamedTemporaryFile(prefix=application + "-", suffix="-passwd", dir=temp_dir)
+        passwd.write(b"[Application]\n")
+        passwd.write(f"sb:x:{real}:{real}:SB:/home/sb:/usr/bin/sh\n".encode())
+        passwd.flush()
+        command.extend(["--ro-bind", passwd.name, "/etc/passwd"])
+
     if args["kde"]:
         command.extend(env("KDE_FULL_SESSION") + env("KDE_SESSION_VERSION"))
     if args["dri"]:
@@ -361,20 +368,17 @@ def gen_command(application, application_path, application_folder):
         command.extend(["--setenv", "LD_PRELOAD", "/usr/lib/libhardened_malloc.so"])
         libraries.wildcards.add("libhardened_malloc*")
 
-    if args["zsh"]:
+    if args["shell"]:
         share(command, [
-            "/etc/shells", "/usr/share/zsh/", "/etc/zsh/",
+            "/etc/shells",
             "/etc/profile", "/usr/share/terminfo", "/var/run/utmp",
-            "/etc/group", f"{home}/.zshrc", f"{config}/environment.d"],
-            "ro-bind-try"
-        )
-
-        args["devices"].extend(["/dev/pts/"])
+            "/etc/group", f"{config}/environment.d",
+        ])
+        libraries.directories |= {"/usr/lib/terminfo"}
+        args["dev"] = True
         args["proc"] = True
-
-        # For shell and coredump.
-        args["binaries"].extend(["zsh", "mv"])
-        libraries.directories |= {"/usr/lib/zsh/"}
+        args["binaries"].extend(["sh"])
+        log("WARNING: --shell requires global /dev and /proc access. This means full access to system devices!")
 
     if args["include"]:
         args["ro"].extend([

@@ -6,7 +6,7 @@ usage: sb [-h] [--portals [PORTALS ...]] [--see [SEE ...]] [--talk [TALK ...]] [
 [--binaries [BINARIES ...]] [--lib] [--libraries [LIBRARIES ...]] [--local [LOCAL ...]] [--sof {tmpfs,data,zram}]
 [--ignore [IGNORE ...]] [--update-libraries] [--update-cache] [--env [ENV ...]] [--rw [RW ...]] [--ro [RO ...]]
 [--app-dirs [{config,cache,etc,share,data,lib} ...]] [--dev] [--devices [DEVICES ...]] [--proc] [--etc] [--sys] [--usr-share]
-[--dri] [--qt] [--qt5] [--electron] [--electron-version ELECTRON_VERSION] [--python PYTHON] [--kde] [--gtk] [--zsh]
+[--dri] [--qt] [--qt5] [--electron] [--electron-version ELECTRON_VERSION] [--python PYTHON] [--kde] [--gtk] [--shell]
 [--include] [--home] [--cached-home] [--share-cache] [--file-passthrough {off,ro,rw,writeback}] [--files [FILES ...]]
 [--debug-shell] [--strace] [--xdg-open] [--real-hostname] [--locale] [--hunspell] [--git] [--hardened-malloc]
 [--make-desktop-entry] [--desktop-entry DESKTOP_ENTRY] [--make-script] [--verbose] [--dry] [--startup] [--dry-startup]

@@ -149,8 +149,8 @@ def parse():
     parser.add_argument("--gst", action="store_true", default=False, help="Give the application access to GStreamer")
     parser.add_argument("--webkit", action="store_true", default=False, help="Give the application access to Webkit")
 
-    # ZSH
-    parser.add_argument("--zsh", action="store_true", default=False, help="Give the application the ZSH shell.")
+    # Shell
+    parser.add_argument("--shell", action="store_true", default=False, help="Give the application the user shell.")
 
     # Include headers for C/C++
     parser.add_argument("--include", action="store_true", default=False, help="Give the application include headers, for clangd and other development tools")

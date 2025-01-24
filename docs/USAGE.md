@@ -95,7 +95,11 @@ These switches pertain to the sandbox environment, and common use cases.
 * `--python` specify a version of Python to provide to the sandbox.
 * `--kde` is a superset of `--qt` and pulls KDE configuration.
 * `--gtk` is a suprset of `--dri` and pulls in GTK3/4 configuration.
-* `--zsh` provides the ZSH shell to the sandbox.
+* `--shell` provides A shell to the sandbox.
+
+> [!warning]
+> `--shell` requires the use of `--dev`, which provides all devices to the sandbox. This can add considerable attack surface that may be unnecessary unless you need it. Additionally, it creates a fake `/etc/passwd` file to lie about the default shell `/usr/bin/sh`, which can conflict if you manually add the file (Which you shouldn't).
+
 * `--include` provides C/C++ system headers, such as for `clangd`
 * `--xdg-open` provides the `xdg-open` command to open files with the default handler outside the sandbox. *Not recommended*, modern applications should use the `OpenURI` portal instead.
 *  `--locale` provides the system local and localization settings.
