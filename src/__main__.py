@@ -250,11 +250,12 @@ def run_application(application, application_path, application_folder, info_name
                             syscalls.add(stripped)
 
             log("Permitted Syscalls:", len(syscalls), f"({"LOG" if args["seccomp_log"] else "ENFORCED"})")
-            
+
             # Create our output and filter.
-            from seccomp import SyscallFilter, Attr, ALLOW, LOG, KILL_PROCESS
+            from seccomp import SyscallFilter, Attr, ALLOW, LOG, ERRNO
+            from errno import EPERM
             filter_bpf = NamedTemporaryFile(prefix=application + "-", suffix="-seccomp.bpf", dir=temp_dir)
-            filter = SyscallFilter(defaction=LOG if args["seccomp_log"] else KILL_PROCESS)
+            filter = SyscallFilter(defaction=LOG if args["seccomp_log"] else ERRNO(EPERM))
 
             # Enforce that children have a subset of parent permissions.
             filter.set_attr(Attr.CTL_NNP, True)
@@ -271,7 +272,7 @@ def run_application(application, application_path, application_folder, info_name
                 except Exception as e:
                     print("INVALID syscall:", syscall, ":", e)
                     exit(1)
-                    
+
             # Export, add it as stdin.
             filter.export_bpf(filter_bpf)
             filter_bpf.flush()

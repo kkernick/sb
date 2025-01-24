@@ -203,3 +203,6 @@ SECCOMP Filters within `sb` subscribes to a Whitelisting approach, where only th
 To ease the creation of these filters, you can use the `sb-seccomp` utility, so long as your system has the audit framework working. Pass it the `sb` script to run (It'll tack on `--seccomp-log` to the execution), and the name of the program (So it can dynamically update a `syscalls.txt` if it exists), and the program will spit out the syscalls that the program used. You may need to run it multiple times to capture all syscalls.
 
 Once a list has been generated, you need not do anything to active the filter, so long as the `--seccomp-log` isn't activated. If you use `--verbose`, `sb` will inform you of the total permitted syscalls.
+
+> [!note]
+> Audit syscall names may not perfectly align with the real syscall names expected by SECCOMP. Particularly, `pread` and `pwrite` have numerical suffixes corresponding to architecture (IE `pread64`). These will not be reported by this script, and `sb` will error that the syscall is unrecognized. You may need to research the syscalls for your particular system to determine the actual name (Or, use the numerical value of the syscall instead)
