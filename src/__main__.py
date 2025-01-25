@@ -438,6 +438,12 @@ def gen_command(application, application_path, application_folder):
         log("Adding electron...")
         share(command, ["/sys/block", "/sys/dev"])
         share(command, ["/dev/null", "/dev/urandom", "/dev/shm"], "dev-bind")
+        # NSS junk
+        if update_sof:
+            libraries.wildcards.add("libsoftokn3*")
+            libraries.wildcards.add("libfreeblpriv3*")
+            libraries.wildcards.add("libsensors*")
+            libraries.wildcards.add("libnssckbi*")
 
         if args["electron_version"]:
             electron_string = f"electron{args["electron_version"]}"
