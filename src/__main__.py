@@ -9,6 +9,7 @@ from hashlib import new
 
 from shared import args, output, log, share, cache, config, data, home, runtime, session, nobody, real, env
 from util import desktop_entry
+from syscalls import syscall_groups
 
 import binaries
 import libraries
@@ -256,8 +257,8 @@ def run_application(application, application_path, application_folder, info_name
             if args["verbose"]:
                 filter.set_attr(Attr.CTL_LOG, True)
 
-            # Add each syscall, attempting to convert them into integers as both formats are supported.
-            for syscall in syscalls:
+            # Add syscalls
+            def add_rule(syscall):
                 try:
                     try:
                         filter.add_rule(ALLOW, int(syscall))
@@ -266,6 +267,14 @@ def run_application(application, application_path, application_folder, info_name
                 except Exception as e:
                     print("INVALID syscall:", syscall, ":", e)
                     exit(1)
+
+            # Add each syscall, attempting to convert them into integers as both formats are supported.
+            for syscall in syscalls:
+                if syscall in syscall_groups:
+                    for s in syscall_groups[syscall]:
+                        add_rule(s)
+                else:
+                    add_rule(syscall)
 
             # Export, add it as stdin.
             filter.export_bpf(filter_bpf)
