@@ -263,7 +263,6 @@ def run_application(application, application_path, application_folder, info_name
                 if syscall in included:
                     return
                 included.add(syscall)
-
                 try:
                     try:
                         filter.add_rule(ALLOW, int(syscall))
@@ -280,6 +279,23 @@ def run_application(application, application_path, application_folder, info_name
                         add_rule(s)
                 else:
                     add_rule(syscall)
+
+            if args["seccomp_group"]:
+                groups = set()
+                for syscall in included:
+                    added = False
+                    for key, value in syscall_groups.items():
+                        if syscall in value:
+                            groups.add(key)
+                            added = True
+                            break
+                    if not added:
+                        groups.add(syscall)
+                with syscall_file.open("w") as file:
+                    for group in groups:
+                        file.write(group + " ")
+                    file.close()
+
 
             # Export, add it as stdin.
             filter.export_bpf(filter_bpf)

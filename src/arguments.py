@@ -76,6 +76,8 @@ def parse():
     # Log it instead of enforcing it.
     parser.add_argument("--seccomp-log", action="store_true", default=False, help="Log SECCOMP violations rather than killing the application")
 
+    # Simplify groups.
+    parser.add_argument("--seccomp-group", action="store_true", default=False, help="Simplify SECCOMP policy using group definitions.")
 
     # Specify what binaries should be permitted.
     # --bin will merely mount /bin.

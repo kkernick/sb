@@ -2,7 +2,7 @@
 syscall_groups = {
 
     # Sockets and Internet Connectivity
-    "sockets": {"accept4", "bind", "connect", "getpeername", "getsockname", "getsockopt", "recvfrom", "recvmmsg", "recvmsg", "sendmmsg", "sendmsg", "sendto", "setsockopt", "socket", "listen", "shutdown", "socketpair", },
+    "sockets": {"accept4", "bind", "connect", "getpeername", "getsockname", "getsockopt", "recvfrom", "recvmmsg", "recvmsg", "sendmmsg", "sendmsg", "sendto", "setsockopt", "socket", "listen", "shutdown", "socketpair"},
 
     # Read/Create/Write files
     "files_r": {"fcntl", "fstat", "statx", "lseek", "openat", "openat2", "poll", "ppoll", "pread64", "close", "close_range", "flock", "futex", "read", "access", "faccessat2", "pselect6", "getxattr", "epoll_ctl", "epoll_pwait", "epoll_wait", "epoll_create1", "readlinkat", "readlink"},
