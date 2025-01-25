@@ -258,7 +258,12 @@ def run_application(application, application_path, application_folder, info_name
                 filter.set_attr(Attr.CTL_LOG, True)
 
             # Add syscalls
+            included = set()
             def add_rule(syscall):
+                if syscall in included:
+                    return
+                included.add(syscall)
+
                 try:
                     try:
                         filter.add_rule(ALLOW, int(syscall))
