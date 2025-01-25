@@ -6,7 +6,7 @@ syscall_groups = {
 
     # Read/Create/Write files
     "files_r": {"fcntl", "fstat", "statx", "lseek", "openat", "openat2", "poll", "ppoll", "pread64", "close", "close_range", "flock", "futex", "read", "access", "faccessat2", "pselect6", "getxattr", "epoll_ctl", "epoll_pwait", "epoll_wait", "epoll_create1", "readlinkat", "readlink"},
-    "files_c": {"newfstatat", "set_robust_list", "dup", "dup2", "creat", "linkat"},
+    "files_c": {"newfstatat", "set_robust_list", "dup", "dup2", "dup3", "creat", "linkat"},
     "files_w": {"pwrite64", "write", "ftruncate", "fallocate", "renameat", "rename", "unlink", "unlinkat", "fadvise64", "fsync", "fdatasync", "umask", "symlink", "chmod", "fchmod"},
 
     # Directory Get/Set
@@ -22,7 +22,7 @@ syscall_groups = {
     "fs_s": {"setfsgid", "setfsuid"},
 
     # Signals
-    "sig": {"rt_sigprocmask", "rt_sigreturn", "tgkill", "kill", "rt_sigaction", "sigaltstack"},
+    "sig": {"rt_sigprocmask", "rt_sigreturn", "tgkill", "kill", "rt_sigaction", "sigaltstack", "pidfd_send_signal"},
 
     # Scheduler Get/Set
     "sched_g": {"sched_yield", "sched_getaffinity", "getpriority", "sched_getparam", "sched_getscheduler"},
@@ -32,7 +32,7 @@ syscall_groups = {
     "info": {"uname", "getuid", "geteuid", "getegid", "getpid", "getgid", "getresgid", "getresuid"},
 
     # Process Get/Set
-    "process_g": {"exit", "exit_group", "wait4", "waitid", "prctl", "arch_prctl", "pidfd_open", "getpgrp", "getppid", "getpid", "gettid", "kcmp"},
+    "process_g": {"exit", "exit_group", "wait4", "waitid", "prctl", "arch_prctl", "pidfd_open", "getpgrp", "getppid", "getpgid", "gettid", "kcmp"},
     "process_s": {"setpgid", "setsid"},
 
     # Sub Process Spawning
@@ -52,5 +52,13 @@ syscall_groups = {
 
     # Pkey
     "pkey": {"pkey_alloc", "pkey_mprotect"},
+}
 
+syscall_apps: {
+    "dri": {
+        "files_r", "files_w", "files_c",
+        "mem_g", "mem_s",
+        "limits", "sig", "info", "sched_g", "dirs_g", "process_g", "time",
+        "ioctl", "eventfd2", "getrandom",
+    }
 }
