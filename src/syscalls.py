@@ -36,7 +36,7 @@ syscall_groups = {
     "process_s": {"setpgid", "setsid"},
 
     # Sub Process Spawning
-    "spawn": {"clone", "clone3", "execve", "rseq", "set_tid_address", "vfork"},
+    "spawn": {"clone", "clone3", "set_tid_address", "vfork"},
 
     # INotify
     "inotify": {"inotify_init", "inotify_init1", "inotify_add_watch", "inotify_rm_watch"},
