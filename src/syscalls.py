@@ -5,7 +5,7 @@ syscall_groups = {
     "sockets": {"accept4", "bind", "connect", "getpeername", "getsockname", "getsockopt", "recvfrom", "recvmmsg", "recvmsg", "sendmmsg", "sendmsg", "sendto", "setsockopt", "socket", "listen", "shutdown", "socketpair"},
 
     # Read/Create/Write files
-    "files_r": {"fcntl", "fstat", "statx", "lseek", "openat", "openat2", "poll", "ppoll", "pread64", "close", "close_range", "flock", "futex", "read", "access", "faccessat2", "pselect6", "getxattr", "epoll_ctl", "epoll_pwait", "epoll_wait", "epoll_create1", "readlinkat", "readlink"},
+    "files_r": {"fcntl", "fstat", "statx", "lseek", "open", "openat", "openat2", "poll", "ppoll", "pread64", "close", "close_range", "flock", "futex", "read", "access", "faccessat2", "pselect6", "getxattr", "epoll_ctl", "epoll_pwait", "epoll_wait", "epoll_create1", "readlinkat", "readlink"},
     "files_c": {"newfstatat", "set_robust_list", "dup", "dup2", "dup3", "creat", "linkat"},
     "files_w": {"pwrite64", "write", "ftruncate", "fallocate", "renameat", "rename", "unlink", "unlinkat", "fadvise64", "fsync", "fdatasync", "umask", "symlink", "chmod", "fchmod"},
 
@@ -45,7 +45,7 @@ syscall_groups = {
     "time": {"nanosleep", "clock_gettime", "clock_nanosleep"},
 
     # Timers
-    "timers": {"timerfd_settime"},
+    "timers": {"timerfd_settime", "timerfd_create"},
 
     # Limits Get/Set
     "limits": {"getrlimit", "setrlimit", "prlimit64"},
