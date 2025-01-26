@@ -36,7 +36,12 @@ syscall_groups = {
     "process_s": {"setpgid", "setsid"},
 
     # Sub Process Spawning
-    "spawn": {"clone", "clone3", "set_tid_address", "vfork"},
+    # Every application that I have sandboxed uses execve. While SECCOMP offers granular arguments,
+    # the only option we have for execve is memory address, which is far less stable than syscall names
+    # even if we did support that. The solution is Defense in Depth: AppArmor. bwrap restricts what executables
+    # exist in the sandbox, SECCOMP enforces whether execution can be done, and AppArmor defines what executables
+    # the various processes in the sandbox are allowed to run
+    "spawn": {"clone", "clone3", "set_tid_address", "vfork", "execve", "rseq"},
 
     # INotify
     "inotify": {"inotify_init", "inotify_init1", "inotify_add_watch", "inotify_rm_watch"},
@@ -56,9 +61,16 @@ syscall_groups = {
 
 syscall_apps: {
     "dri": {
+        # File operations
         "files_r", "files_w", "files_c",
+
+        # Memory operations
         "mem_g", "mem_s",
-        "limits", "sig", "info", "sched_g", "dirs_g", "process_g", "time",
-        "ioctl", "eventfd2", "getrandom",
+
+        # Various groups, all getting rather than setting
+        "limits", "sig", "info", "sched_g", "dirs_g", "process_g", "time", "spawn"
+
+        # Device/Event/Random.
+        "ioctl", "eventfd2", "getrandom"
     }
 }
