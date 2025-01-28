@@ -22,7 +22,7 @@ syscall_groups = {
     "fs_s": {"setfsgid", "setfsuid"},
 
     # Signals
-    "sig": {"rt_sigprocmask", "rt_sigreturn", "tgkill", "kill", "rt_sigaction", "sigaltstack", "pidfd_send_signal"},
+    "sig": {"rt_sigprocmask", "rt_sigreturn", "tgkill", "kill", "rt_sigaction", "sigaltstack", "pidfd_send_signal", "restart_syscall"},
 
     # Scheduler Get/Set
     "sched_g": {"sched_yield", "sched_getaffinity", "getpriority", "sched_getparam", "sched_getscheduler"},
