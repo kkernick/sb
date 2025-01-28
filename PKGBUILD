@@ -1,6 +1,6 @@
 pkgname=sb-git
 pkgdesc="Sandbox Applications"
-pkgver=r186.7051afd
+pkgver=r189.801d3e0
 pkgrel=1
 
 source=("git+https://github.com/kkernick/sb.git")

@@ -56,8 +56,8 @@ def parse_ldd(to_load, recursive=True, local=False):
 
             # Some libraries are statically linked via relative paths (IE /usr/bin/../lib)
             # This is dumb, and it breaks our parser, so replace it with the actual path.
-            if lib.startswith("/usr/bin/../lib"):
-                lib = "/usr" + lib[11:]
+            if ".." in lib:
+               lib = str(Path(lib).resolve())
 
         if lib is not None:
             if local and not lib.startswith("/usr"):
@@ -196,6 +196,9 @@ def setup(sof_dir, lib_cache, update_sof):
     # When updating, we need to overwrite the lib_cache.
     with lib_cache.open("w") as cache:
         for lib in current:
+            if any(lib.startswith(dir) for dir in directories):
+                continue
+
             cache.write(lib)
             cache.write(" ")
 
