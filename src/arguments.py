@@ -79,6 +79,9 @@ def parse():
     # Simplify groups.
     parser.add_argument("--seccomp-group", action="store_true", default=False, help="Simplify SECCOMP policy using group definitions.")
 
+    parser.add_argument("--command", action="store", default=None, help="The command to run the application. Defaults to the application itself.")
+    parser.add_argument("--args", action="extend", nargs="*", default=[], help="Additional args that should be passed to the program.")
+
     # Specify what binaries should be permitted.
     # --bin will merely mount /bin.
     # --binaries will use `which` to locate the binary, and will perform library dependency lookups.

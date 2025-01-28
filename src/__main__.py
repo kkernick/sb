@@ -224,13 +224,16 @@ def run_application(application, application_path, application_folder, info_name
         if args["debug_shell"]:
             command.append("sh")
         else:
-            command.append(application_path)
+            if args["command"]:
+                command.append(args["command"])
+            else:
+                command.append(application_path)
+            command.extend(args["args"])
             command.extend(post)
 
 
     # So long as we aren't dry-running, run the program.
     if not args["dry"]:
-
         # If the user is either logging, has syscalls defined, or has a file, create a SECCOMP Filter.
         syscall_file = Path(data, "sb", application, "syscalls.txt")
         if args["syscalls"] or syscall_file.is_file() or args["seccomp_log"]:
@@ -305,11 +308,20 @@ def run_application(application, application_path, application_folder, info_name
             log("Command:", " ".join(command))
 
             # Yup, this is the only way I found that actually got this to work.
-            run(f"cat {filter_bpf.name} | {" ".join(command)}", shell=True)
+            result = run(f"cat {filter_bpf.name} | {" ".join(command)}", shell=True, capture_output=not args["debug_shell"], text=not args["debug_shell"])
         else:
             suffix_args()
             log("Command:", " ".join(command))
-            run(command)
+            result = run(command, capture_output=not args["debug_shell"], text=not args["debug_shell"])
+
+        if args["verbose"]:
+            print("Return:", result.returncode)
+            if result.stderr:
+                print("Errors:")
+                print(result.stderr)
+            if result.stdout:
+                print("Output:")
+                print(result.stdout)
 
     # If we have RW access, and there's things in the enclave, update the source.
     for enclave_file, real_file in writeback.items():
