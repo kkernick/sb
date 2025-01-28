@@ -47,7 +47,7 @@ syscall_groups = {
     "inotify": {"inotify_init", "inotify_init1", "inotify_add_watch", "inotify_rm_watch"},
 
     # Sleeping
-    "time": {"nanosleep", "clock_gettime", "clock_nanosleep"},
+    "time": {"nanosleep", "clock_gettime", "clock_nanosleep", "gettimeofday"},
 
     # Timers
     "timers": {"timerfd_settime", "timerfd_create"},
