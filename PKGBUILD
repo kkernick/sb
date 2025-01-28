@@ -6,7 +6,7 @@ pkgrel=1
 source=("git+https://github.com/kkernick/sb.git")
 sha256sums=("SKIP")
 depends=(python findutils glibc which bubblewrap)
-makedepends=(zip)
+makedepends=(zip git)
 optdepends=(
   'strace: for --strace, useful for debugging'
   'hardened_malloc: for --hardened-malloc'
