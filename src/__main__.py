@@ -317,8 +317,8 @@ def run_application(application, application_path, application_folder, info_name
         if args["verbose"]:
             print("Return:", result.returncode)
             if result.stderr:
-                print("Errors:")
-                print(result.stderr)
+                eprint("Errors:")
+                eprint(result.stderr)
             if result.stdout:
                 print("Output:")
                 print(result.stdout)
