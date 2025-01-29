@@ -16,7 +16,7 @@ def generate(profile):
 
     while True:
         print("Close the app (If it launches) once you are ready")
-        result = run([profile, "--verbose", "--strace"], capture_output=True)
+        result = run([profile, "--verbose", "--strace", "--seccomp-log"], capture_output=True)
 
         busses = set()
         paths = set()
@@ -55,6 +55,16 @@ def generate(profile):
                     print(path)
         else:
             print("No new file accesses since last run!")
+
+        print("Checking audit log for seccomp syscalls (You may need to enter a sudo prompt!)")
+        syscalls = run(["sudo cat /var/log/audit/audit.log | grep SECCOMP | awk '{print $20}' | sort -u | cut -d '=' -f 2"], capture_output=True, shell=True).stdout.decode().split("\n")
+        for false in ["ptrace", "process_vm_readv", ""]:
+            if false in syscalls:
+                syscalls.remove(false)
+        if syscalls:
+            print("Syscalls not whitelisted:")
+            for syscall in syscalls:
+                print(syscall)
 
         if input("Make your changes to the profile, and press enter to run again. Enter anything else to quit\n"):
 
