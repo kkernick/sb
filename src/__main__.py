@@ -28,7 +28,7 @@ def main():
     else:
         program = path
 
-    Path(str(sof) + "/" + program).mkdir()
+    Path(str(sof) + "/" + program).mkdir(exist_ok=True)
     work_dir=TemporaryDirectory(prefix="", dir=str(sof) + "/" + program)
 
     if not args["portals"] and not args["see"] and not args["talk"] and not args["own"]:
