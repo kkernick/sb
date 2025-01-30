@@ -34,6 +34,7 @@ def main():
     if not args["portals"] and not args["see"] and not args["talk"] and not args["own"]:
         log("No portals requiried, disabling dbus-proxy")
         application_folder = None
+        work_dir = None
     else:
         log("Creating dbus proxy...")
 
