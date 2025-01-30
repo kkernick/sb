@@ -320,6 +320,7 @@ def gen_command(application, application_path, application_folder):
     log("SOF:", str(sof_dir))
 
     local_dir = Path(data, "sb", application)
+    lib_dir = local_dir / "usr" / "lib"
     lib_cache = Path(local_dir, "lib.cache")
     cmd_cache = Path(local_dir, "cmd.cache")
 
@@ -337,7 +338,7 @@ def gen_command(application, application_path, application_folder):
     # and the hash matches the command hash, just return the cached copy of both.
     update_sof = args["update_libraries"]
     if update_sof is False:
-        if not sof_dir.is_dir():
+        if not lib_dir.is_dir():
             if lib_cache.is_file():
                 log("Using cached library definitions")
                 libraries.current = set([library for library in lib_cache.open("r").read().split(" ")])
@@ -354,14 +355,14 @@ def gen_command(application, application_path, application_folder):
         with cmd_cache.open("r") as file:
             info = file.read().split("\n")
             cached = info[0]
-            if hash == cached and sof_dir.is_dir() and not args["update_libraries"]:
+            if hash == cached and lib_dir.is_dir() and not args["update_libraries"]:
                 log("Using cached command")
                 return info[1].split(" ")
             else:
                 update_sof = True
                 if hash != cached:
                     log("Outdated command cache. Updating...")
-                elif not sof_dir.is_dir():
+                elif not lib_dir.is_dir():
                     log("Updating command cache with library cache...")
                 else:
                     log("Regenerating command cache")
@@ -694,14 +695,11 @@ def gen_command(application, application_path, application_folder):
 
     # If we're updating the SOF, generate all the libraries needed based on those that were explicitly provided.
     if not args["lib"]:
-        path = Path(f"{str(sof_dir)}/usr/lib/")
-        path.mkdir(parents=True, exist_ok=True)
-
         # We technically need /usr/lib to be mutable to create directories, but
         # rather than letting the program actually write to libraries in the temp
         # folder, which taint other instances of the program, we just use a
         # temporary overlay that discards those changes.
-        command.extend(["--overlay-src", str(path), "--tmp-overlay", "/usr/lib"])
+        command.extend(["--overlay-src", str(lib_dir), "--tmp-overlay", "/usr/lib"])
 
         # Using OverlayFS, we can keep both the main /usr/lib "RO", and the
         # subsequent sub-folders. To do this, we need two sources for the --ro-overlay
@@ -715,7 +713,7 @@ def gen_command(application, application_path, application_folder):
                 valid.append(dir)
         share(command, valid, "ro-bind")
         if update_sof:
-            libraries.setup(sof_dir, lib_cache, update_sof)
+            libraries.setup(lib_dir, lib_cache, update_sof)
 
     # Setup application directories.
     if "config" in args["app_dirs"]:
