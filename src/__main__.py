@@ -7,7 +7,7 @@ from pathlib import Path
 from tempfile import TemporaryDirectory, NamedTemporaryFile
 from hashlib import new
 
-from shared import args, output, log, share, cache, config, data, home, runtime, session, nobody, real, env
+from shared import args, output, log, share, cache, config, data, home, runtime, session, nobody, real, env, resolve
 from util import desktop_entry
 from syscalls import syscall_groups
 
@@ -754,13 +754,15 @@ def gen_command(application, application_path, application_folder):
     # in the static SB in $XDG_DATA_HOME
     # Folder, however, we can overlay, which makes things a lot better.
     for path in args["rw"]:
-        p = Path(path)
+        src, dest = resolve(path)
+        p = Path(src)
         if p.is_file() or p.is_dir():
             share(command, [path], "bind-try")
         else:
             log("Warning: path:", path, "Does not exist!")
     for path in args["ro"]:
-        p = Path(path)
+        src, dest = resolve(path)
+        p = Path(src)
         if p.is_file() or p.is_dir():
             share(command, [path], "ro-bind-try")
         else:

@@ -32,17 +32,19 @@ def log(*messages):
         print(*messages)
 
 
+def resolve(path):
+    if ":" in path:
+        s = path.split(":")
+        return s[0], s[1]
+    else:
+        return path, path
+
+
 # Share a list of files under a specified mode.
 def share(command: list, paths: list, mode = "ro-bind-try"):
     for path in paths:
 
-        if ":" in path:
-            s = path.split(":")
-            path = s[0]
-            dest = s[1]
-        else:
-            dest = path
-
+        path, dest = resolve(path)
         if dest.startswith("/home/"):
             split = dest.split("/")
             dest = f"/{split[1]}/sb/{"/".join(split[3:])}"
