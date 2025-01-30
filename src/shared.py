@@ -24,6 +24,7 @@ elif args["sof"] == "zram":
     sof = Path("/run", "sb")
 else:
     sof = Path("/tmp", "sb")
+sof.mkdir(parents=True, exist_ok=True)
 
 # Run a command, put the results in a list.
 def output(command):
