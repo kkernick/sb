@@ -18,6 +18,13 @@ home = environ["HOME"]
 
 session = environ["DBUS_SESSION_BUS_ADDRESS"]
 
+if args["sof"] == "data":
+    sof = Path(data, "sb")
+elif args["sof"] == "zram":
+    sof = Path("/run", "sb")
+else:
+    sof = Path("/tmp", "sb")
+
 # Run a command, put the results in a list.
 def output(command):
     process = run(command, stdout=PIPE, stderr=PIPE)

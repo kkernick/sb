@@ -4,18 +4,15 @@ from os import environ
 from subprocess import Popen, run
 from time import sleep
 from pathlib import Path
-from tempfile import TemporaryDirectory, NamedTemporaryFile
+from tempfile import TemporaryDirectory
 from hashlib import new
 
-from shared import args, log, share, cache, config, data, home, runtime, session, nobody, real, env, resolve
+from shared import args, log, share, cache, config, data, home, runtime, session, nobody, real, env, resolve, sof
 from util import desktop_entry
 from syscalls import syscall_groups
 
 import binaries
 import libraries
-
-temp_dir = "/run/sb/temp" if args["sof"] == "zram" else "/tmp"
-Path(temp_dir).mkdir(exist_ok=True, parents=True)
 
 def main():
     # If we are making a desktop entry, or on startup and it's not a startup app, do the action and return.
@@ -31,10 +28,11 @@ def main():
     else:
         program = path
 
+    work_dir=TemporaryDirectory(prefix="", dir=str(sof) + "/" + program)
+
     if not args["portals"] and not args["see"] and not args["talk"] and not args["own"]:
         log("No portals requiried, disabling dbus-proxy")
         application_folder = None
-        work_dir = None
     else:
         log("Creating dbus proxy...")
 
@@ -45,14 +43,12 @@ def main():
         application_folder=Path(runtime, "app", application_name)
         application_folder.mkdir(parents=True, exist_ok=True)
 
-        work_dir=TemporaryDirectory(prefix="program" + "-", suffix="-work", dir=temp_dir)
-
         # Write the .flatpak-info file so the application thinks its running in flatpak and thus portals work.
         with open(work_dir.name + "/.flatpak-info", "w") as file:
             file.write("[Application]\n")
             file.write(f"name={application_name}\n")
             file.write("[Instance]\n")
-            file.write("app-path={path}\n")
+            file.write(f"app-path={path}\n")
 
         # Setup the DBux Proxy. This is needed to mediate Dbus calls, and enable Portals.
         log("Launching D-Bus Proxy")
@@ -151,11 +147,10 @@ def run_application(application, application_path, application_folder, work_dir)
         # Some applications source /etc/passwd for shell information. Because we abstract the real
         # user to an SB with the same UID (Unless no Portals), we want to create a fake passwd
         # that includes the information it wants.
-        passwd = NamedTemporaryFile(prefix=application + "-", suffix="-passwd", dir=temp_dir)
-        passwd.write(b"[Application]\n")
-        passwd.write(f"sb:x:{real}:{real}:SB:/home/sb:/usr/bin/sh\n".encode())
-        passwd.flush()
-        command.extend(["--ro-bind", passwd.name, "/etc/passwd"])
+        with open(work_dir.name + "/passwd", "w") as file:
+            file.write("[Application]\n")
+            file.write(f"sb:x:{real}:{real}:SB:/home/sb:/usr/bin/sh\n")
+        command.extend(["--ro-bind", work_dir.name + "/passwd", "/etc/passwd"])
 
     if args["kde"]:
         command.extend(env("KDE_FULL_SESSION") + env("KDE_SESSION_VERSION"))
@@ -170,10 +165,81 @@ def run_application(application, application_path, application_folder, work_dir)
     command.extend(gen_command(application, application_path, application_folder))
 
     if args["hardened_malloc"]:
-        preload = NamedTemporaryFile(prefix=application + "-", suffix="-ld.so.preload", dir=temp_dir)
-        preload.write(b"/usr/lib/libhardened_malloc.so\n")
-        preload.flush()
-        command.extend(["--ro-bind", preload.name, "/etc/ld.so.preload"])
+        with open(work_dir.name + "/ld.so.preload", "w") as file:
+            file.write("/usr/lib/libhardened_malloc.so\n")
+        command.extend(["--ro-bind", work_dir.name + "/ld.so.preload", "/etc/ld.so.preload"])
+
+    # If the user is either logging, has syscalls defined, or has a file, create a SECCOMP Filter.
+    syscall_file = Path(data, "sb", application, "syscalls.txt")
+    if args["syscalls"] or syscall_file.is_file() or args["seccomp_log"]:
+        # Combine our sources into a single list.
+        syscalls = set(args["syscalls"])
+        if syscall_file.is_file():
+            for line in syscall_file.open("r").readlines():
+                for split in line.split(" "):
+                    stripped = split.strip("\n \t")
+                    if stripped:
+                        syscalls.add(stripped)
+
+        log("Permitted Syscalls:", len(syscalls), f"({"LOG" if args["seccomp_log"] else "ENFORCED"})")
+
+        # Create our output and filter.
+        from seccomp import SyscallFilter, Attr, ALLOW, LOG, ERRNO
+        from errno import EPERM
+
+        filter_bpf = open(work_dir.name + "/filter.bpf", "w")
+        filter = SyscallFilter(defaction=LOG if args["seccomp_log"] else ERRNO(EPERM))
+
+        # Enforce that children have a subset of parent permissions.
+        filter.set_attr(Attr.CTL_NNP, True)
+        if args["verbose"]:
+            filter.set_attr(Attr.CTL_LOG, True)
+
+        # Add syscalls
+        included = set()
+        def add_rule(syscall):
+            if syscall in included:
+                return
+            included.add(syscall)
+            try:
+                try:
+                    filter.add_rule(ALLOW, int(syscall))
+                except Exception:
+                    filter.add_rule(ALLOW, syscall)
+            except Exception as e:
+                print("INVALID syscall:", syscall, ":", e)
+                exit(1)
+
+        # Add each syscall, attempting to convert them into integers as both formats are supported.
+        for syscall in syscalls:
+            if syscall in syscall_groups:
+                for s in syscall_groups[syscall]:
+                    add_rule(s)
+            else:
+                add_rule(syscall)
+
+        if args["seccomp_group"]:
+            groups = set()
+            for syscall in included:
+                added = False
+                for key, value in syscall_groups.items():
+                    if syscall in value:
+                        groups.add(key)
+                        added = True
+                        break
+                if not added:
+                    groups.add(syscall)
+            with syscall_file.open("w") as file:
+                for group in groups:
+                    file.write(group + " ")
+                file.close()
+
+        # Export, add it as stdin.
+        filter.export_bpf(filter_bpf)
+        filter_bpf.flush()
+        command.extend(["--seccomp", "0"])
+    else:
+        filter_bpf = None
 
     # Now we iterate through unrecognized files and explicit files, adding them to the post command (After
     # the application such they are used as arguments). If we're using writeback, we keep a list of files
@@ -181,8 +247,10 @@ def run_application(application, application_path, application_folder, work_dir)
     post = []
     writeback = {}
     if args["file_passthrough"] != "off":
-        enclave = TemporaryDirectory(prefix=application + "-", suffix="-enclave", dir=temp_dir)
-        command.extend(["--bind", enclave.name, "/enclave"])
+        if args["file_passthrough"] == "writeback":
+            enclave = Path(work_dir.name, "enclave")
+            enclave.mkdir()
+            command.extend(["--bind", str(enclave), "/enclave"])
 
         mode = "--ro-bind-try" if args["file_passthrough"] == "ro" else "--bind-try"
 
@@ -210,104 +278,25 @@ def run_application(application, application_path, application_folder, work_dir)
                 elif write:
                     post.append(argument)
 
-    # Either launch the debug shell, run under strace, or run the command accordingly.
-    def suffix_args():
-        if args["strace"]:
-            command.extend(["strace", "-ff", "-v", "-s", "100"])
-
-        if args["debug_shell"]:
-            command.append("sh")
+    if args["strace"]:
+        command.extend(["strace", "-ff", "-v", "-s", "100"])
+    elif args["debug_shell"]:
+        command.append("sh")
+    else:
+        if args["command"]:
+            command.append(args["command"])
         else:
-            if args["command"]:
-                command.append(args["command"])
-            else:
-                command.append(application_path)
-            command.extend(args["args"])
-            command.extend(post)
-
+            command.append(application_path)
+        command.extend(args["args"])
+        command.extend(post)
 
     # So long as we aren't dry-running, run the program.
     if not args["dry"]:
-        # If the user is either logging, has syscalls defined, or has a file, create a SECCOMP Filter.
-        syscall_file = Path(data, "sb", application, "syscalls.txt")
-        if args["syscalls"] or syscall_file.is_file() or args["seccomp_log"]:
-
-            # Combine our sources into a single list.
-            syscalls = set(args["syscalls"])
-            if syscall_file.is_file():
-                for line in syscall_file.open("r").readlines():
-                    for split in line.split(" "):
-                        stripped = split.strip("\n \t")
-                        if stripped:
-                            syscalls.add(stripped)
-
-            log("Permitted Syscalls:", len(syscalls), f"({"LOG" if args["seccomp_log"] else "ENFORCED"})")
-
-            # Create our output and filter.
-            from seccomp import SyscallFilter, Attr, ALLOW, LOG, ERRNO
-            from errno import EPERM
-            filter_bpf = NamedTemporaryFile(prefix=application + "-", suffix="-seccomp.bpf", dir=temp_dir)
-            filter = SyscallFilter(defaction=LOG if args["seccomp_log"] else ERRNO(EPERM))
-
-            # Enforce that children have a subset of parent permissions.
-            filter.set_attr(Attr.CTL_NNP, True)
-            if args["verbose"]:
-                filter.set_attr(Attr.CTL_LOG, True)
-
-            # Add syscalls
-            included = set()
-            def add_rule(syscall):
-                if syscall in included:
-                    return
-                included.add(syscall)
-                try:
-                    try:
-                        filter.add_rule(ALLOW, int(syscall))
-                    except Exception:
-                        filter.add_rule(ALLOW, syscall)
-                except Exception as e:
-                    print("INVALID syscall:", syscall, ":", e)
-                    exit(1)
-
-            # Add each syscall, attempting to convert them into integers as both formats are supported.
-            for syscall in syscalls:
-                if syscall in syscall_groups:
-                    for s in syscall_groups[syscall]:
-                        add_rule(s)
-                else:
-                    add_rule(syscall)
-
-            if args["seccomp_group"]:
-                groups = set()
-                for syscall in included:
-                    added = False
-                    for key, value in syscall_groups.items():
-                        if syscall in value:
-                            groups.add(key)
-                            added = True
-                            break
-                    if not added:
-                        groups.add(syscall)
-                with syscall_file.open("w") as file:
-                    for group in groups:
-                        file.write(group + " ")
-                    file.close()
-
-
-            # Export, add it as stdin.
-            filter.export_bpf(filter_bpf)
-            filter_bpf.flush()
-            command.extend(["--seccomp", "0"])
-            suffix_args()
-            log("Command:", " ".join(command))
-
-            # Yup, this is the only way I found that actually got this to work.
+        log("Command:", " ".join(command))
+        if filter_bpf:
             run(f"cat {filter_bpf.name} | {" ".join(command)}", shell=True)
         else:
-            suffix_args()
-            log("Command:", " ".join(command))
             run(command)
-
 
     # If we have RW access, and there's things in the enclave, update the source.
     for enclave_file, real_file in writeback.items():
@@ -322,12 +311,10 @@ def run_application(application, application_path, application_folder, work_dir)
 def gen_command(application, application_path, application_folder):
 
     # Get all our locations.
+    sof_dir = sof / application
+
     if args["sof"] == "data":
-        sof_dir = Path(data, "sb", application, "sof")
-    elif args["sof"] == "zram" and Path("/run", "sb").is_dir():
-        sof_dir = Path("/run", "sb", application)
-    else:
-        sof_dir = Path("/tmp", "sb", application)
+        sof_dir /= "sof"
 
     log("SOF:", str(sof_dir))
 

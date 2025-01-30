@@ -21,7 +21,7 @@ will delete both caches.
 from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
-from shared import args, output, log, data
+from shared import args, output, log, data, sof
 
 
 # The set of libraries the application currently needs.
@@ -208,12 +208,7 @@ def setup(sof_dir, lib_cache, update_sof):
     log("Creating /lib...")
 
     # Create the shared runtime.
-    if args["sof"] == "data":
-        runtime_lib = Path(data, "sb", "shared")
-    elif args["sof"] == "zram":
-        runtime_lib = Path("/run", "sb", "shared")
-    else:
-        runtime_lib = Path("/tmp", "sb", "shared")
+    runtime_lib = sof / "shared"
     runtime_lib.mkdir(parents=True, exist_ok=True)
 
     # Create the application-specific folder.
