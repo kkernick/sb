@@ -308,21 +308,12 @@ def run_application(application, application_path, application_folder, info_name
             log("Command:", " ".join(command))
 
             # Yup, this is the only way I found that actually got this to work.
-            result = run(f"cat {filter_bpf.name} | {" ".join(command)}", shell=True, capture_output=not args["debug_shell"], text=not args["debug_shell"])
+            run(f"cat {filter_bpf.name} | {" ".join(command)}", shell=True)
         else:
             suffix_args()
             log("Command:", " ".join(command))
-            result = run(command, capture_output=not args["debug_shell"], text=not args["debug_shell"])
+            run(command)
 
-        if args["verbose"]:
-            print("Return:", result.returncode)
-            if result.stderr:
-                from sys import stderr
-                stderr.write("Errors:")
-                stderr.write(result.stderr)
-            if result.stdout:
-                print("Output:")
-                print(result.stdout)
 
     # If we have RW access, and there's things in the enclave, update the source.
     for enclave_file, real_file in writeback.items():
