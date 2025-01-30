@@ -7,7 +7,7 @@ from pathlib import Path
 from tempfile import TemporaryDirectory, NamedTemporaryFile
 from hashlib import new
 
-from shared import args, output, log, share, cache, config, data, home, runtime, session, nobody, real, env, resolve
+from shared import args, log, share, cache, config, data, home, runtime, session, nobody, real, env, resolve
 from util import desktop_entry
 from syscalls import syscall_groups
 
@@ -16,7 +16,6 @@ import libraries
 
 temp_dir = "/run/sb/temp" if args["sof"] == "zram" else "/tmp"
 Path(temp_dir).mkdir(exist_ok=True, parents=True)
-
 
 def main():
     # If we are making a desktop entry, or on startup and it's not a startup app, do the action and return.
@@ -35,7 +34,6 @@ def main():
     if not args["portals"] and not args["see"] and not args["talk"] and not args["own"]:
         log("No portals requiried, disabling dbus-proxy")
         application_folder = None
-        info = Path()
     else:
         log("Creating dbus proxy...")
 
@@ -46,33 +44,29 @@ def main():
         application_folder=Path(runtime, "app", application_name)
         application_folder.mkdir(parents=True, exist_ok=True)
 
-        # The .flatpak-info is just a temporary file, but the application's temporary directory is a separate TMPFS,
-        # separate from the global /tmp.
-        info = NamedTemporaryFile(prefix=program + "-", suffix="-flatpak-info", dir=temp_dir)
-
-        log(f"Running {application_name}")
+        work_dir=TemporaryDirectory(prefix="program" + "-", suffix="-work", dir=temp_dir)
 
         # Write the .flatpak-info file so the application thinks its running in flatpak and thus portals work.
-        info.write(b"[Application]\n")
-        info.write(f"name={application_name}\n".encode())
-        info.write(b"[Instance]\n")
-        info.write(f"app-path={path}\n".encode())
-        info.flush()
+        with open(work_dir.name + "/.flatpak-info", "w") as file:
+            file.write("[Application]\n")
+            file.write(f"name={application_name}\n")
+            file.write("[Instance]\n")
+            file.write("app-path={path}\n")
 
         # Setup the DBux Proxy. This is needed to mediate Dbus calls, and enable Portals.
         log("Launching D-Bus Proxy")
-        dbus_proxy(args["portals"], application_folder, info.name)
+        dbus_proxy(args["portals"], application_folder, work_dir)
 
         # We need to wait a slight amount of time for the Proxy to get up and running.
         sleep(0.01)
 
     # Then, run the program.
     log("Launching ", program, "at", path)
-    run_application(program, path, application_folder, info.name)
+    run_application(program, path, application_folder, work_dir)
 
 
 # Run the DBUS Proxy.
-def dbus_proxy(portals, application_folder, info_name):
+def dbus_proxy(portals, application_folder, work_dir):
     command = ["bwrap"]
     if args["hardened_malloc"]:
         command.extend(["--setenv", "LD_PRELOAD", "/usr/lib/libhardened_malloc.so"])
@@ -88,7 +82,7 @@ def dbus_proxy(portals, application_folder, info_name):
         "--unshare-all",
         "--unshare-user",
         "--bind", runtime, runtime,
-        "--ro-bind", info_name, "/.flatpak-info",
+        "--ro-bind", work_dir.name + "/.flatpak-info", "/.flatpak-info",
         "--die-with-parent",
         "--",
         "xdg-dbus-proxy",
@@ -112,7 +106,7 @@ def dbus_proxy(portals, application_folder, info_name):
 
 
 # Run the application.
-def run_application(application, application_path, application_folder, info_name):
+def run_application(application, application_path, application_folder, work_dir):
     command = ["bwrap", "--new-session", "--die-with-parent"]
     local_dir = Path(data, "sb", application)
     if not local_dir.is_dir():
@@ -120,22 +114,21 @@ def run_application(application, application_path, application_folder, info_name
 
     # Add the flatpak-info.
     if application_folder:
-        command.extend(["--ro-bind-try", info_name, f"/run/{real}/flatpak-info"])
-        command.extend(["--ro-bind-try", info_name, "/.flatpak-info"])
+        command.extend(["--ro-bind-try", work_dir.name + "/.flatpak-info", f"/run/{real}/flatpak-info"])
+        command.extend(["--ro-bind-try", work_dir.name + "/.flatpak-info", "/.flatpak-info"])
 
     # If we have a home directory, add it.
-    if args["home"]:
-        home_dir = Path(local_dir, "home")
-        home_dir.mkdir(parents=True, exist_ok=True)
+    if args["fs"] != "none":
+        fs = Path(local_dir, "fs")
+        fs.mkdir(parents=True, exist_ok=True)
 
-        # If it's cached, make a copy on a TMPFS.
-        if args["cached_home"]:
+        if args["fs"] == "cache":
             command.extend([
-                "--overlay-src", str(home_dir),
-                "--tmp-overlay", "/home",
+                "--overlay-src", str(fs),
+                "--tmp-overlay", "/",
             ])
         else:
-            command.extend(["--bind", str(home_dir), "/home"])
+            command.extend(["--overlay", str(fs), work_dir.name, "/"])
 
     # Add the tmpfs.
     command.extend(["--tmpfs", "/home/sb/.cache"])

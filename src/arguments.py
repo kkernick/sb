@@ -164,13 +164,7 @@ def parse():
     # Include headers for C/C++
     parser.add_argument("--include", action="store_true", default=False, help="Give the application include headers, for clangd and other development tools")
 
-    # Home related settings.
-    # --home will create a home directory for the application. This lets configuration persist, but keeps it separate from your
-    # actual home directory.
-    # --cached-home will take this home directory and make a copy of it in RAM for each instance of the application. This is useful
-    # if you have a good configuration, and don't want new changes to persist.
-    parser.add_argument("--home", action="store_true", default=False, help="Create a permanent home directory for the application at $XDG_DATA_HOME/sb/application")
-    parser.add_argument("--cached-home", action="store_true", default=False, help="Copy the SOF home into the application's temporary RAM folder. Modifications to the home will not persist, but will be isolated from instances and faster. Applications that use profile locks, like Chrome, can run multiple instances at once.")
+    parser.add_argument("--fs", action="store", choices=["none", "persist", "cache"], default="none", help="Mount the overlay fs at $XDG_DATA_HOME/sb/application/fs.")
 
     parser.add_argument("--file-passthrough", action="store", default="ro", choices=["off", "ro", "rw", "writeback"], help="How file arguments should be parsed.")
     parser.add_argument("--files", action="extend", nargs="*", default=[], help="A list of files/directories to be provided via file-passthrough, but that aren't command line arguments to the program")
