@@ -320,7 +320,7 @@ def gen_command(application, application_path, application_folder):
     log("SOF:", str(sof_dir))
 
     local_dir = Path(data, "sb", application)
-    lib_dir = local_dir / "usr" / "lib"
+    lib_dir = sof_dir / "usr" / "lib"
     lib_cache = Path(local_dir, "lib.cache")
     cmd_cache = Path(local_dir, "cmd.cache")
 
@@ -713,7 +713,7 @@ def gen_command(application, application_path, application_folder):
                 valid.append(dir)
         share(command, valid, "ro-bind")
         if update_sof:
-            libraries.setup(lib_dir, lib_cache, update_sof)
+            libraries.setup(sof_dir, lib_cache, update_sof)
 
     # Setup application directories.
     if "config" in args["app_dirs"]:
