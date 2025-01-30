@@ -36,7 +36,12 @@ def log(*messages):
 def share(command: list, paths: list, mode = "ro-bind-try"):
     for path in paths:
 
-        dest = path
+        if ":" in path:
+            s = path.split(":")
+            path = s[0]
+            dest = s[1]
+        else:
+            dest = path
 
         if dest.startswith("/home/"):
             split = dest.split("/")
