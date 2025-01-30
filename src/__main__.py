@@ -126,7 +126,10 @@ def run_application(application, application_path, application_folder, work_dir)
                 "--tmp-overlay", "/",
             ])
         else:
-            command.extend(["--overlay", str(fs), work_dir.name, "/"])
+            command.extend([
+                "--overlay-src", str(fs),
+                "--overlay", str(fs), work_dir.name, "/"
+            ])
 
     # Add the tmpfs.
     command.extend(["--tmpfs", "/home/sb/.cache"])
