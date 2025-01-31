@@ -2,15 +2,14 @@
 
 ```
 usage: sb [-h] [--portals [PORTALS ...]] [--see [SEE ...]] [--talk [TALK ...]] [--own [OWN ...]]
-[--share [{user,ipc,pid,net,uts,cgroup,all,none} ...]] [--sockets [{wayland,pipewire,xorg} ...]] [--syscalls [SYSCALLS ...]]
-[--seccomp-log] [--bin] [--binaries [BINARIES ...]] [--lib] [--libraries [LIBRARIES ...]] [--local [LOCAL ...]]
-[--sof {tmpfs,data,zram}] [--ignore [IGNORE ...]] [--update-libraries] [--update-cache] [--env [ENV ...]] [--rw [RW ...]]
-[--ro [RO ...]] [--app-dirs [{config,cache,etc,share,data,lib} ...]] [--dev] [--devices [DEVICES ...]] [--proc] [--etc]
-[--sys] [--usr-share] [--dri] [--qt] [--qt5] [--electron] [--electron-version ELECTRON_VERSION] [--python PYTHON] [--kde]
-[--gtk] [--gst] [--webkit] [--shell] [--include] [--home] [--cached-home] [--file-passthrough {off,ro,rw,writeback}]
-[--files [FILES ...]] [--debug-shell] [--strace] [--xdg-open] [--real-hostname] [--real-user] [--locale] [--hunspell] [--git]
-[--hardened-malloc] [--make-desktop-entry] [--desktop-entry DESKTOP_ENTRY] [--make-script] [--verbose] [--dry] [--startup]
-[--dry-startup]
+[--share [{user,ipc,pid,net,uts,cgroup,all,none} ...]] [--sockets [{wayland,pipewire} ...]] [--syscalls [SYSCALLS ...]]
+[--seccomp-log] [--seccomp-group] [--command COMMAND] [--args [ARGS ...]] [--bin] [--binaries [BINARIES ...]] [--lib]
+[--libraries [LIBRARIES ...]] [--sof {tmpfs,data,zram}] [--update-libraries] [--update-cache] [--env [ENV ...]]
+[--rw [RW ...]] [--ro [RO ...]] [--app-dirs [{config,cache,etc,share,data,lib} ...]] [--dev] [--devices [DEVICES ...]]
+[--proc] [--dri] [--qt] [--qt5] [--electron] [--electron-version ELECTRON_VERSION] [--python PYTHON] [--kde] [--gtk]
+[--shell] [--include] [--fs {none,persist,cache}] [--file-passthrough {off,ro,rw,writeback}] [--files [FILES ...]]
+[--debug-shell] [--strace] [--locale] [--hunspell] [--hardened-malloc] [--make-desktop-entry] [--desktop-entry DESKTOP_ENTRY]
+[--make-script] [--verbose] [--dry] [--startup] [--dry-startup]
 program
 ```
 

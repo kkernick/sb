@@ -36,8 +36,6 @@ These switches pertain to shared library files.
 
 * `--lib` will expose the entire `/usr/lib` folder to the application. *Not recommended*; SOF will be used if this flag is not provided.
 * `--libraries` specifies additional libraries that SOF did not resolve. Supported formats include absolute path (`/usr/lib/mylib.so`), wildcard (`mylib*`), and both files and directories; the latter will be cached.
-* `--local` specifies library files that exist *within* the sandbox, such as the Tor Browser downloading a copy of the browser to the sandbox when run.
-* `--ignore` specifies a list of libraries and binaries that should be ignored for SOF generation.
 
 #### Binaries
 
@@ -53,7 +51,6 @@ These switches pertain to special files and folders.
 * `--sockets` expose important sockets and their configuration:
 	* `wayland` exposes the Wayland socket.
 	* `pipewire` exposes the Pipewire socket.
-	* `xorg` exposes the Xorg socket; *Not recommended*.
 
 > [!warning]
 > Exposing the Xorg socket is dangerous, and can allow for sandbox escape. Do not use it unless you must.
@@ -101,12 +98,10 @@ These switches pertain to the sandbox environment, and common use cases.
 > `--shell` requires the use of `--dev`, which provides all devices to the sandbox. This can add considerable attack surface that may be unnecessary unless you need it. Additionally, it creates a fake `/etc/passwd` file to lie about the default shell `/usr/bin/sh`, which can conflict if you manually add the file (Which you shouldn't).
 
 * `--include` provides C/C++ system headers, such as for `clangd`
-* `--xdg-open` provides the `xdg-open` command to open files with the default handler outside the sandbox. *Not recommended*, modern applications should use the `OpenURI` portal instead.
 *  `--locale` provides the system local and localization settings.
 * `--hunspell` provides the hunspell dictionary for spell-checking.
 * `--git` provides Git.
 * `--hardened-malloc` provides and enforces the use of `libhardened-malloc`. *Strongly recommended*.
-* `--real-hostname` exposes the real hostname of the system.
 
 ### Integration and Configuration
 
@@ -118,8 +113,6 @@ These switches pertain to integration in the Desktop Environment, and how the sa
 	* `zram` will store the SOF on a zstd-ramdisk at `/run/sb`. *Strongly recommended*.
 * `--update-libraries` will force a regeneration of the library cache.
 * `--update-cache` will force a regeneration of directory/script caches.
-* `--home` will provides a static home folder for the application, available at `$XDG_DATA_HOME/sb`
-* `--cached-home` will create a copy of the above home for each instance, discarding changes.
 * `--share-cache` will share the system cache with the sandbox.
 * `--file-passthrough {off,ro,rw,writeback}` specifies how file arguments should be handled:
 	* `off` does not expose file arguments. *Not recommended*.
@@ -137,6 +130,18 @@ These switches pertain to integration in the Desktop Environment, and how the sa
 
 * `--desktop-entry` specifies the name of the desktop file, if it does not match the program name.
 * `--make-script` creates a `sb` script in `~/.local/bin` so that the sandboxed application can be run.
+
+### FS
+
+For a persistent state, you can use the `--fs` switch, which creates a per-application filesystem located at `$XDG_DATA_HOME/sb/$APP/fs`. This folder is overlain over the root of the sandbox. When `--fs=persist`, the folder will be created and mounted. Applications will create their configurations, which should involve the creation of `fs/home/sb`. This allows settings to persist over launches.
+
+> [!info]
+> Some applications may assume that the home folder exists, so you may need to create the `fs/home/sb` folder manually.
+
+This scheme allows you to add any files you need to the sandbox, such as creating a `fs/usr/bin` folder to add binaries (Which you could also do via `--binaries`.
+
+> [!warning]
+> `/bin`, `/lib`, `/lib64`, and `/usr/lib64` are symlinked within the sandbox to `/usr/bin` and `/usr/lib` respectively. Attempts to create the above folders within the `fs` folder will yield to errors preventing `sb` from running the application. If you need to add a binary, use `--binaries`. If you need a library, use `--libraries`. If you *must* use the `fs` folder, create them in `/usr/bin` or `/usr/lib`.
 
 ### Execution
 
@@ -160,7 +165,7 @@ In a console, you can create the most basic sandbox imaginable:
 
 This will only contain SOF library dependencies, and probably won't work. To make profile creation easier, use `--strace` to see where failures occur, and what files are expected but missing, and `--verbose` to see what `sb` is doing. For simple, command line utilities, this may be enough, consider a functional sandbox for `yarr`:
 
-`sb yarr --share net --home --proc --devices /dev/null`
+`sb yarr --share net --proc --devices /dev/null`
 
 However, for more complicated applications, you should consider:
 * `--share net` If you need internet connectivity.
