@@ -211,3 +211,4 @@ Once a list has been generated, you need not do anything to active the filter, s
 
 > [!note]
 > Audit syscall names may not perfectly align with the real syscall names expected by SECCOMP. Particularly, `pread` and `pwrite` have numerical suffixes corresponding to architecture (IE `pread64`). These will not be reported by this script, and `sb` will error that the syscall is unrecognized. You may need to research the syscalls for your particular system to determine the actual name (Or, use the numerical value of the syscall instead)
+p

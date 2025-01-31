@@ -279,15 +279,16 @@ def run_application(application, application_path, application_folder, work_dir)
                 elif write:
                     post.append(argument)
 
-    if args["strace"]:
-        command.extend(["strace", "-ff", "-v", "-s", "100"])
-    elif args["debug_shell"]:
+    if args["debug_shell"]:
         command.append("sh")
     else:
-        if args["command"]:
+        if args["strace"]:
+            command.extend(["strace", "-ff", "-v", "-s", "100"])
+        elif args["command"]:
             command.append(args["command"])
         else:
             command.append(application_path)
+        
         command.extend(args["args"])
         command.extend(post)
 
