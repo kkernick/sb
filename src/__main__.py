@@ -284,7 +284,8 @@ def run_application(application, application_path, application_folder, work_dir)
     else:
         if args["strace"]:
             command.extend(["strace", "-ff", "-v", "-s", "100"])
-        elif args["command"]:
+            
+        if args["command"]:
             command.append(args["command"])
         else:
             command.append(application_path)
