@@ -172,7 +172,7 @@ def run_application(application, application_path, application_folder, work_dir)
 
     # If the user is either logging, has syscalls defined, or has a file, create a SECCOMP Filter.
     syscall_file = Path(data, "sb", application, "syscalls.txt")
-    if args["syscalls"] or syscall_file.is_file() or args["seccomp_log"]:
+    if not args["debug_shell"] and (args["syscalls"] or syscall_file.is_file() or args["seccomp_log"]):
         # Combine our sources into a single list.
         syscalls = set(args["syscalls"])
         if syscall_file.is_file():
@@ -284,12 +284,12 @@ def run_application(application, application_path, application_folder, work_dir)
     else:
         if args["strace"]:
             command.extend(["strace", "-ff", "-v", "-s", "100"])
-            
+
         if args["command"]:
             command.append(args["command"])
         else:
             command.append(application_path)
-        
+
         command.extend(args["args"])
         command.extend(post)
 
@@ -419,7 +419,7 @@ def gen_command(application, application_path, application_folder):
         command.extend(["--setenv", "LD_PRELOAD", "/usr/lib/libhardened_malloc.so"])
         libraries.wildcards.add("libhardened_malloc*")
 
-    if args["shell"]:
+    if args["shell"] or args["debug_shell"]:
         share(command, [
             "/etc/shells",
             "/etc/profile", "/usr/share/terminfo", "/var/run/utmp",
@@ -429,7 +429,8 @@ def gen_command(application, application_path, application_folder):
         args["dev"] = True
         args["proc"] = True
         args["binaries"].extend(["sh"])
-        log("WARNING: --shell requires global /dev and /proc access. This means full access to system devices!")
+        if args["shell"]:
+            log("WARNING: --shell requires global /dev and /proc access. This means full access to system devices!")
 
     if args["include"]:
         args["ro"].extend([
@@ -665,10 +666,6 @@ def gen_command(application, application_path, application_folder):
         log("Generating binaries...")
         bins = set(args["binaries"])
         bins.add(application_path)
-
-        # Add the debug shell
-        if args["debug_shell"]:
-            bins.add("sh")
 
         # Add strace
         if args["strace"]:
