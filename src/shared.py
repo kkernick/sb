@@ -49,7 +49,7 @@ def resolve(path):
 
 
 # Share a list of files under a specified mode.
-def share(command: list, paths: list, mode = "ro-bind-try"):
+def share(command: list, paths: list, mode = "ro-bind"):
     for path in paths:
 
         path, dest = resolve(path)

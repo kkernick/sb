@@ -16,7 +16,7 @@ import libraries
 
 def main():
     sleep(args["startup_delay"])
-    
+
     # If we are making a desktop entry, or on startup and it's not a startup app, do the action and return.
     if args["make_desktop_entry"] or args["make_script"]:
         desktop_entry()
@@ -255,7 +255,7 @@ def run_application(application, application_path, application_folder, work_dir)
             enclave.mkdir()
             command.extend(["--bind", str(enclave), "/enclave"])
 
-        mode = "--ro-bind-try" if args["file_passthrough"] == "ro" else "--bind-try"
+        mode = "--ro-bind" if args["file_passthrough"] == "ro" else "--bind"
 
         for source, write in [(args["unknown"], True), (args["files"], False)]:
             for argument in source:
@@ -387,8 +387,8 @@ def gen_command(application, application_path, application_folder):
         command.extend([
             "--dir", local_runtime,
             "--chmod", "0700", local_runtime,
-            "--ro-bind-try", f"{application_folder}/bus", f"{local_runtime}/bus",
-            "--bind-try", f"{runtime}/doc", f"{local_runtime}/doc",
+            "--ro-bind", f"{application_folder}/bus", f"{local_runtime}/bus",
+            "--bind", f"{runtime}/doc", f"{local_runtime}/doc",
         ])
         share(command, ["/run/dbus"])
     else:
@@ -548,7 +548,7 @@ def gen_command(application, application_path, application_folder):
         command.extend(["--dev", "/dev"])
     else:
         for device in args["devices"]:
-            share(command, [device], "dev-bind-try")
+            share(command, [device], "dev-bind")
 
     # Mount system directories.
     if args["proc"]:
@@ -587,7 +587,7 @@ def gen_command(application, application_path, application_folder):
 
     # Add the wayland socket and XKB
     if "wayland" in args["sockets"]:
-        command.extend(["--ro-bind-try", f"{runtime}/wayland-0", f"{local_runtime}/wayland-0"])
+        command.extend(["--ro-bind", f"{runtime}/wayland-0", f"{local_runtime}/wayland-0"])
         share(command, [
             "/usr/share/X11/xkb",
             "/etc/xkb"
@@ -597,8 +597,8 @@ def gen_command(application, application_path, application_folder):
 
     # Add the pipewire socket, and its libraries.
     if "pipewire" in args["sockets"]:
-        command.extend(["--ro-bind-try", f"{runtime}/pipewire-0", f"{local_runtime}/pipewire-0"])
-        command.extend(["--ro-bind-try", f"{runtime}/pulse", f"{local_runtime}/pulse"])
+        command.extend(["--ro-bind", f"{runtime}/pipewire-0", f"{local_runtime}/pipewire-0"])
+        command.extend(["--ro-bind", f"{runtime}/pulse", f"{local_runtime}/pulse"])
         share(command, [
             f"{config}/pulse"
             "/etc/pipewire",
@@ -678,7 +678,7 @@ def gen_command(application, application_path, application_folder):
 
             # Get the binary, and its dependencies
             binaries.add(binary)
-        share(command, binaries.current, "ro-bind-try")
+        share(command, binaries.current, "ro-bind")
         if update_sof:
             for bin in binaries.current:
                 libraries.current |= libraries.get(bin)
@@ -718,15 +718,15 @@ def gen_command(application, application_path, application_folder):
 
     # Setup application directories.
     if "config" in args["app_dirs"]:
-        share(command, [f"{config}/{application}"], "bind-try")
+        share(command, [f"{config}/{application}"], "bind")
     if "cache" in args["app_dirs"]:
-        share(command, [f"{cache}/{application}"], "bind-try")
+        share(command, [f"{cache}/{application}"], "bind")
     if "share" in args["app_dirs"]:
-        share(command, [f"/usr/share/{application}"], "bind-try")
+        share(command, [f"/usr/share/{application}"], "bind")
     if "data" in args["app_dirs"]:
-        share(command, [f"{data}/{application}"], "bind-try")
+        share(command, [f"{data}/{application}"], "bind")
     if "etc" in args["app_dirs"]:
-        share(command, [f"/etc/{application}"], "bind-try")
+        share(command, [f"/etc/{application}"], "bind")
     if "lib" in args["app_dirs"]:
         share(command, [f"/usr/lib/{application}"])
 
@@ -738,14 +738,14 @@ def gen_command(application, application_path, application_folder):
         src, dest = resolve(path)
         p = Path(src)
         if p.is_file() or p.is_dir():
-            share(command, [path], "bind-try")
+            share(command, [path], "bind")
         else:
             log("Warning: path:", path, "Does not exist!")
     for path in args["ro"]:
         src, dest = resolve(path)
         p = Path(src)
         if p.is_file() or p.is_dir():
-            share(command, [path], "ro-bind-try")
+            share(command, [path], "ro-bind")
         else:
             log("Warning: path:", path, "Does not exist!")
 
