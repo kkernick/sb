@@ -30,8 +30,11 @@ def main():
     else:
         program = path
 
-    Path(str(sof) + "/" + program).mkdir(exist_ok=True)
-    work_dir=TemporaryDirectory(prefix="", dir=str(sof) + "/" + program)
+    app_sof = Path(str(sof), program)
+    app_sof.mkdir(exist_ok=True)
+
+
+    work_dir=TemporaryDirectory(prefix="", dir=str(app_sof))
 
     if not args["portals"] and not args["see"] and not args["talk"] and not args["own"]:
         log("No portals requiried, disabling dbus-proxy")
@@ -165,7 +168,15 @@ def run_application(application, application_path, application_folder, work_dir)
         command.extend(env("LANG") + env("LANGUAGE"))
 
     # Get the cached portion of the command.
+    lock_file = Path(str(sof), application, "sb.lock")
+
+    # Wait for the lock to be released.
+    while lock_file.is_file():
+        sleep(0.001)
+    lock = lock_file.open("x")
     command.extend(gen_command(application, application_path, application_folder))
+    lock.close()
+    lock_file.unlink()
 
     if args["hardened_malloc"]:
         with open(work_dir.name + "/ld.so.preload", "w") as file:
