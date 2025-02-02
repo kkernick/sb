@@ -400,9 +400,6 @@ def gen_command(application, application_path, application_folder):
     else:
         command.extend(["--dir", "/usr/lib"])
 
-    # Symlink lib (In the sandbox, not to the host)
-    share(command, ["/etc/ld.so.preload", "/etc/ld.so.cache"])
-
     command.extend([
         "--symlink", "/usr/lib", "/lib",
         "--symlink", "/usr/lib", "/lib64",
@@ -422,7 +419,7 @@ def gen_command(application, application_path, application_folder):
         libraries.wildcards.add("libhardened_malloc*")
 
     if args["shell"] or args["debug_shell"]:
-        share(command, [
+        share(command, mode="ro-bind-try", paths=[
             "/etc/shells",
             "/etc/profile", "/usr/share/terminfo", "/var/run/utmp",
             "/etc/group", f"{config}/environment.d",
@@ -476,7 +473,7 @@ def gen_command(application, application_path, application_folder):
     # Add KDE
     if args["kde"]:
         log("Adding KDE...")
-        share(command, [
+        share(command, mode="ro-bind-try", paths=[
             f"{config}/kdedefaults",
             f"{config}/breezerc",
             f"{config}/kcminputrc",
@@ -513,7 +510,7 @@ def gen_command(application, application_path, application_folder):
     # Add GTK
     if args["gtk"]:
         log("Adding GTK...")
-        share(command, [
+        share(command, mode="ro-bind-try", paths=[
             f"{home}/.gtkrc-2.0", f"{config}/gtkrc", f"{config}/gtkrc-2.0",
             f"{config}/gtk-2.0", f"{config}/gtk-3.0", f"{config}/gtk-4.0",
             "/usr/share/gtk-2.0",
@@ -558,7 +555,7 @@ def gen_command(application, application_path, application_folder):
     if args["dri"]:
         log("Adding DRI...")
         share(command, ["/dev/dri", "/dev/dri", "/dev/udmabuf"], "dev-bind-try")
-        share(command, [
+        share(command, mode="ro-bind-try", paths=[
             "/sys/devices",
             "/etc/vulkan",
             "/usr/share/glvnd",
@@ -568,7 +565,7 @@ def gen_command(application, application_path, application_folder):
             "/usr/share/libdrm/amdgpu.ids",
             "/sys/dev",
         ])
-        share(command, [
+        share(command, mode="ro-bind-try", paths=[
                 "/usr/share/fontconfig", "/usr/share/fonts", "/etc/fonts",
                 f"{home}/.fonts",
                 f"{config}/fontconfig", f"{data}/fontconfig", f"{cache}/fontconfig",
@@ -610,7 +607,7 @@ def gen_command(application, application_path, application_folder):
 
     # Add locale information
     if args["locale"]:
-        share(command, [
+        share(command, mode="ro-bind-try", paths=[
             "/etc/locale.conf",
             "/etc/localtime",
             "/usr/share/zoneinfo",
@@ -638,7 +635,7 @@ def gen_command(application, application_path, application_folder):
     if "net" in args["share"]:
         if "--unshare-all" in command:
             command.append("--share-net")
-        share(command, [
+        share(command, mode="ro-bind-try", paths=[
             "/etc/gai.conf", "/etc/hosts.conf", "/etc/hosts", "/etc/host.conf", "/etc/nsswitch.conf", "/etc/resolv.conf", "/etc/gnutls/config",
             "/etc/ca-certificates", "/usr/share/ca-certificates/",
             "/etc/pki", "/usr/share/pki",
