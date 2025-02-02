@@ -205,7 +205,7 @@ def parse():
     parser.add_argument("--startup", action="store_true", default=False, help="DO NOT USE.")
     parser.add_argument("--dry-startup", action="store_true", default=False, help="Tell the systemd startup script that this program should be run on start.")
     parser.add_argument("--startup-delay", action="store", default=0.0, type=float, help="A startup delay, such as for autostart applications to allow home to settle, in seconds.")
-
+    parser.add_argument("--no-dry-startup", action="store_true", default=False, help="Explicitly mark as no startup; useful for blacklisting in combination with sb.conf.")
 
     arguments, unknown = parser.parse_known_args()
     arguments.unknown = unknown
