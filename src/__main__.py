@@ -114,8 +114,8 @@ def run_application(application, application_path, application_folder, work_dir)
 
     # Add the flatpak-info.
     if application_folder:
-        command.extend(["--ro-bind-try", work_dir.name + "/.flatpak-info", f"/run/{real}/flatpak-info"])
-        command.extend(["--ro-bind-try", work_dir.name + "/.flatpak-info", "/.flatpak-info"])
+        command.extend(["--ro-bind", work_dir.name + "/.flatpak-info", f"/run/{real}/flatpak-info"])
+        command.extend(["--ro-bind", work_dir.name + "/.flatpak-info", "/.flatpak-info"])
 
     # If we have a home directory, add it.
     if args["fs"] != "none":
@@ -419,7 +419,7 @@ def gen_command(application, application_path, application_folder):
         libraries.wildcards.add("libhardened_malloc*")
 
     if args["shell"] or args["debug_shell"]:
-        share(command, mode="ro-bind-try", paths=[
+        share(command, [
             "/etc/shells",
             "/etc/profile", "/usr/share/terminfo", "/var/run/utmp",
             "/etc/group", f"{config}/environment.d",
@@ -473,7 +473,7 @@ def gen_command(application, application_path, application_folder):
     # Add KDE
     if args["kde"]:
         log("Adding KDE...")
-        share(command, mode="ro-bind-try", paths=[
+        share(command, [
             f"{config}/kdedefaults",
             f"{config}/breezerc",
             f"{config}/kcminputrc",
@@ -510,7 +510,7 @@ def gen_command(application, application_path, application_folder):
     # Add GTK
     if args["gtk"]:
         log("Adding GTK...")
-        share(command, mode="ro-bind-try", paths=[
+        share(command, [
             f"{home}/.gtkrc-2.0", f"{config}/gtkrc", f"{config}/gtkrc-2.0",
             f"{config}/gtk-2.0", f"{config}/gtk-3.0", f"{config}/gtk-4.0",
             "/usr/share/gtk-2.0",
@@ -554,8 +554,8 @@ def gen_command(application, application_path, application_folder):
     # Add DRI stuff.
     if args["dri"]:
         log("Adding DRI...")
-        share(command, ["/dev/dri", "/dev/dri", "/dev/udmabuf"], "dev-bind-try")
-        share(command, mode="ro-bind-try", paths=[
+        share(command, ["/dev/dri", "/dev/dri", "/dev/udmabuf"], "dev-bind")
+        share(command, [
             "/sys/devices",
             "/etc/vulkan",
             "/usr/share/glvnd",
@@ -565,7 +565,7 @@ def gen_command(application, application_path, application_folder):
             "/usr/share/libdrm/amdgpu.ids",
             "/sys/dev",
         ])
-        share(command, mode="ro-bind-try", paths=[
+        share(command, [
                 "/usr/share/fontconfig", "/usr/share/fonts", "/etc/fonts",
                 f"{home}/.fonts",
                 f"{config}/fontconfig", f"{data}/fontconfig", f"{cache}/fontconfig",
@@ -585,10 +585,7 @@ def gen_command(application, application_path, application_folder):
     # Add the wayland socket and XKB
     if "wayland" in args["sockets"]:
         command.extend(["--ro-bind", f"{runtime}/wayland-0", f"{local_runtime}/wayland-0"])
-        share(command, mode="ro-bind-try", paths=[
-            "/usr/share/X11/xkb",
-            "/etc/xkb"
-        ])
+        share(command, ["/usr/share/X11/xkb", "/etc/xkb"])
         command.extend(["--setenv", "XDG_SESSION_TYPE", "wayland"])
 
 
@@ -596,18 +593,14 @@ def gen_command(application, application_path, application_folder):
     if "pipewire" in args["sockets"]:
         command.extend(["--ro-bind", f"{runtime}/pipewire-0", f"{local_runtime}/pipewire-0"])
         command.extend(["--ro-bind", f"{runtime}/pulse", f"{local_runtime}/pulse"])
-        share(command, mode="--ro-bind-try", paths=[
-            f"{config}/pulse",
-            "/etc/pipewire",
-            "/usr/share/pipewire",
-        ])
+        share(command, [f"{config}/pulse", "/etc/pipewire", "/usr/share/pipewire"])
         if update_sof:
             libraries.wildcards.add("libpipewire*")
             libraries.directories |= {"/usr/lib/pipewire-0.3/", "/usr/lib/spa-0.2/", "/usr/lib/pulseaudio/"}
 
     # Add locale information
     if args["locale"]:
-        share(command, mode="ro-bind-try", paths=[
+        share(command, [
             "/etc/locale.conf",
             "/etc/localtime",
             "/usr/share/zoneinfo",
@@ -635,7 +628,7 @@ def gen_command(application, application_path, application_folder):
     if "net" in args["share"]:
         if "--unshare-all" in command:
             command.append("--share-net")
-        share(command, mode="ro-bind-try", paths=[
+        share(command, [
             "/etc/gai.conf", "/etc/hosts.conf", "/etc/hosts", "/etc/host.conf", "/etc/nsswitch.conf", "/etc/resolv.conf", "/etc/gnutls/config",
             "/etc/ca-certificates", "/usr/share/ca-certificates/",
             "/etc/pki", "/usr/share/pki",
@@ -660,7 +653,7 @@ def gen_command(application, application_path, application_folder):
     # Add binaries.
     if args["bin"]:
         log("Adding binaries...")
-        share(command, ["/usr/bin"], "ro-bind")
+        share(command, ["/usr/bin"])
     else:
         log("Generating binaries...")
         bins = set(args["binaries"])
@@ -675,7 +668,7 @@ def gen_command(application, application_path, application_folder):
 
             # Get the binary, and its dependencies
             binaries.add(binary)
-        share(command, binaries.current, "ro-bind")
+        share(command, binaries.current)
         if update_sof:
             for bin in binaries.current:
                 libraries.current |= libraries.get(bin)
@@ -709,7 +702,7 @@ def gen_command(application, application_path, application_folder):
                 if update_sof:
                     libraries.current |= libraries.get(dir)
                 valid.append(dir)
-        share(command, valid, "ro-bind")
+        share(command, valid)
         if update_sof:
             libraries.setup(sof_dir, lib_cache, update_sof)
 
@@ -742,7 +735,7 @@ def gen_command(application, application_path, application_folder):
         src, dest = resolve(path)
         p = Path(src)
         if p.is_file() or p.is_dir():
-            share(command, [path], "ro-bind")
+            share(command, [path])
         else:
             log("Warning: path:", path, "Does not exist!")
 

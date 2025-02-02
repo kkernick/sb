@@ -63,8 +63,10 @@ def share(command: list, paths: list, mode = "ro-bind"):
             if not true.startswith("/"):
                 true = f"{p.parent}/{true}"
             command.extend([f"--{mode}", true, dest])
-        else:
+        elif p.is_file() or p.is_dir():
             command.extend([f"--{mode}", path, dest])
+        else:
+            log("Warning: path does not exist: ", path)
 
 
 def env(variable):
