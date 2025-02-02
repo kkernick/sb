@@ -596,8 +596,8 @@ def gen_command(application, application_path, application_folder):
     if "pipewire" in args["sockets"]:
         command.extend(["--ro-bind", f"{runtime}/pipewire-0", f"{local_runtime}/pipewire-0"])
         command.extend(["--ro-bind", f"{runtime}/pulse", f"{local_runtime}/pulse"])
-        share(command, [
-            f"{config}/pulse"
+        share(command, mode="--ro-bind-try", paths=[
+            f"{config}/pulse",
             "/etc/pipewire",
             "/usr/share/pipewire",
         ])
