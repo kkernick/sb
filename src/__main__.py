@@ -585,7 +585,7 @@ def gen_command(application, application_path, application_folder):
     # Add the wayland socket and XKB
     if "wayland" in args["sockets"]:
         command.extend(["--ro-bind", f"{runtime}/wayland-0", f"{local_runtime}/wayland-0"])
-        share(command, [
+        share(command, mode="ro-bind-try", paths=[
             "/usr/share/X11/xkb",
             "/etc/xkb"
         ])
