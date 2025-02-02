@@ -174,10 +174,16 @@ def run_application(application, application_path, application_folder, work_dir)
     while lock_file.is_file():
         sleep(0.001)
     lock = lock_file.open("x")
-    command.extend(gen_command(application, application_path, application_folder))
+    try:
+        command.extend(gen_command(application, application_path, application_folder))
+    except Exception as e:
+        print("Failed to generate bubblewrap command:", e)
+        lock.close()
+        lock_file.unlink()
+        exit(1)
+
     lock.close()
     lock_file.unlink()
-
     if args["hardened_malloc"]:
         with open(work_dir.name + "/ld.so.preload", "w") as file:
             file.write("/usr/lib/libhardened_malloc.so\n")
