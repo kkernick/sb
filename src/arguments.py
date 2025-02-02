@@ -204,6 +204,8 @@ def parse():
     parser.add_argument("--dry", action="store_true", default=False, help="Dry run a program, establishing the SOF folder, but don't run it.")
     parser.add_argument("--startup", action="store_true", default=False, help="DO NOT USE.")
     parser.add_argument("--dry-startup", action="store_true", default=False, help="Tell the systemd startup script that this program should be run on start.")
+    parser.add_argument("--startup-delay", action="store", default=0.0, type=float, help="A startup delay, such as for autostart applications to allow home to settle, in seconds.")
+
 
     arguments, unknown = parser.parse_known_args()
     arguments.unknown = unknown
