@@ -212,3 +212,9 @@ Once a list has been generated, you need not do anything to active the filter, s
 > [!note]
 > Audit syscall names may not perfectly align with the real syscall names expected by SECCOMP. Particularly, `pread` and `pwrite` have numerical suffixes corresponding to architecture (IE `pread64`). These will not be reported by this script, and `sb` will error that the syscall is unrecognized. You may need to research the syscalls for your particular system to determine the actual name (Or, use the numerical value of the syscall instead)
 p
+
+## Lock File
+
+Do prevent race conditions on multiple app launches, particularly app launches where the SOF is created, or the cmd/lib caches are updated, SB employs a lock file that exist in at `$SOF/$APP/sb.lock`, that exists for the brief time that the `bwrap` command needs to be generated or read from the cache. This file is then deleted upon the generation, allowing the next instance of the application to continue.
+
+If, in the unlikely situation that a `sb` application is terminated/killed while it is in this generation, it may leave a lock in the SOF that will deadlock subsequent app launches. If applications fail to load, you may want to check if such a lock has persisted from a termination; if you use `zram` or `tmp` as the backing medium for the SOF this issue will be remedied through a reboot.

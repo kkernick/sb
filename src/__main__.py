@@ -15,12 +15,10 @@ import binaries
 import libraries
 
 def main():
-    sleep(args["startup_delay"])
-
     # If we are making a desktop entry, or on startup and it's not a startup app, do the action and return.
     if args["make_desktop_entry"] or args["make_script"]:
         desktop_entry()
-    if args["startup"] and (not args["dry_startup"] or args["no_dry_startup"]):
+    if args["startup"] and not args["dry_startup"]:
         return
 
     # Get the basename of the program.
