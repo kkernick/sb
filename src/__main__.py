@@ -277,7 +277,7 @@ def run_application(application, application_path, application_folder, work_dir)
                 path = Path(argument)
 
                 if path.is_dir() or path.is_file():
-                    dest = "/enclave" + argument
+                    dest = "/enclave/" + argument
                     if path.is_dir():
                         command.extend([mode, str(path), dest])
 
