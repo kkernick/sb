@@ -317,14 +317,14 @@ def run_application(application, application_path, application_folder, work_dir)
             sandbox = Popen(f"cat {filter_bpf.name} | {" ".join(command)}", shell=True)
         else:
             sandbox = Popen(command)
-
-    if args["post_command"]:
-        post = [args["post_command"]] + args["post_args"]
-        log("Post:", " ".join(post))
-        run(post)
-        sandbox.terminate()
-    else:
-        sandbox.wait()
+    
+        if args["post_command"]:
+            post = [args["post_command"]] + args["post_args"]
+            log("Post:", " ".join(post))
+            run(post)
+            sandbox.terminate()
+        else:
+            sandbox.wait()
 
 
     # If we have RW access, and there's things in the enclave, update the source.
