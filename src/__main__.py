@@ -313,11 +313,8 @@ def run_application(application, application_path, application_folder, work_dir)
     # So long as we aren't dry-running, run the program.
     if not args["dry"]:
         log("Command:", " ".join(command))
-        if filter_bpf:
-            sandbox = Popen(f"cat {filter_bpf.name} | {" ".join(command)}", shell=True)
-        else:
-            sandbox = Popen(command)
-    
+
+        sandbox = Popen(f"cat {filter_bpf.name} | {" ".join(command)}", shell=True) if filter_bpf else Popen(command)
         if args["post_command"]:
             post = [args["post_command"]] + args["post_args"]
             log("Post:", " ".join(post))
