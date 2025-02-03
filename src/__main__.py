@@ -314,9 +314,18 @@ def run_application(application, application_path, application_folder, work_dir)
     if not args["dry"]:
         log("Command:", " ".join(command))
         if filter_bpf:
-            run(f"cat {filter_bpf.name} | {" ".join(command)}", shell=True)
+            sandbox = Popen(f"cat {filter_bpf.name} | {" ".join(command)}", shell=True)
         else:
-            run(command)
+            sandbox = Popen(command)
+
+    if args["post_command"]:
+        post = [args["post_command"]] + args["post_args"]
+        log("Post:", " ".join(post))
+        run(post)
+        sandbox.terminate()
+    else:
+        sandbox.wait()
+
 
     # If we have RW access, and there's things in the enclave, update the source.
     for enclave_file, real_file in writeback.items():
