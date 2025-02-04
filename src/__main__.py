@@ -263,13 +263,7 @@ def run_application(application, application_path, application_folder, work_dir)
     # the application such they are used as arguments). If we're using writeback, we keep a list of files
     # that need to be updated after the program closes.
     post = []
-    writeback = {}
     if args["file_passthrough"] != "off":
-        if args["file_passthrough"] == "writeback":
-            enclave = Path(work_dir.name, "enclave")
-            enclave.mkdir()
-            command.extend(["--bind", str(enclave), "/enclave"])
-
         mode = "--ro-bind" if args["file_passthrough"] == "ro" else "--bind"
 
         for source, write in [(args["unknown"], True), (args["files"], False)]:
@@ -283,14 +277,7 @@ def run_application(application, application_path, application_folder, work_dir)
 
                     # If a file, we may do an enclave depending on the user.
                     elif path.is_file():
-                        if args["file_passthrough"] == "writeback":
-                            enclave_file = Path(str(enclave.name) + argument)
-                            enclave_file.parent.mkdir(parents=True, exist_ok=True)
-                            enclave_file.open("wb").write(path.open("rb").read())
-                            run(["chmod", "666", enclave_file.resolve()])
-                            writeback[enclave_file] = path
-                        else:
-                            command.extend([mode, str(path), dest])
+                        command.extend([mode, str(path), dest])
                     if write:
                         post.append(dest)
                 elif write:
@@ -322,11 +309,6 @@ def run_application(application, application_path, application_folder, work_dir)
             sandbox.terminate()
         else:
             sandbox.wait()
-
-
-    # If we have RW access, and there's things in the enclave, update the source.
-    for enclave_file, real_file in writeback.items():
-        real_file.open("wb").write(enclave_file.open("rb").read())
 
     # Cleanup residual files from bind mounting
     run(["find", str(local_dir), "-size", "0", "-delete"])

@@ -168,7 +168,7 @@ def parse():
 
     parser.add_argument("--fs", action="store", choices=["none", "persist", "cache"], default="none", help="Mount the overlay fs at $XDG_DATA_HOME/sb/application/fs.")
 
-    parser.add_argument("--file-passthrough", action="store", default="ro", choices=["off", "ro", "rw", "writeback"], help="How file arguments should be parsed.")
+    parser.add_argument("--file-passthrough", action="store", default="ro", choices=["off", "ro", "rw"], help="How file arguments should be parsed.")
     parser.add_argument("--files", action="extend", nargs="*", default=[], help="A list of files/directories to be provided via file-passthrough, but that aren't command line arguments to the program")
 
     # Open a debug shell into the sandbox, rather than running the program. You may need to run --update-libraries to ensure
