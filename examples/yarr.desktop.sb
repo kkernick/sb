@@ -1,2 +1,2 @@
 #!/bin/sh
-sb yarr "$@" --share net --home --proc --devices /dev/null
+/usr/bin/sb yarr "$@" --share net --proc --devices /dev/null --fs persist --post-command ~/.local/bin/chromium.desktop.sb --post-args "http://localhost:7070"

@@ -123,6 +123,9 @@ def run_application(application, application_path, application_folder, work_dir)
         fs = Path(local_dir, "fs")
         fs.mkdir(parents=True, exist_ok=True)
 
+        home = fs / "home" / "sb"
+        home.mkdir(parents=True, exist_ok=True)
+
         if args["fs"] == "cache":
             command.extend([
                 "--overlay-src", str(fs),

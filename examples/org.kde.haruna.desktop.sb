@@ -1,0 +1,2 @@
+#!/bin/sh
+/usr/bin/sb haruna "$@" --portals Desktop FileChooser --sockets wayland pipewire --kde --fs=cache --own org.mpris.MediaPlayer2.haruna --talk org.freedesktop.ScreenSaver --libraries "libMpvQt*" "libSDL3*"

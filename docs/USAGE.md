@@ -114,15 +114,10 @@ These switches pertain to integration in the Desktop Environment, and how the sa
 * `--update-libraries` will force a regeneration of the library cache.
 * `--update-cache` will force a regeneration of directory/script caches.
 * `--share-cache` will share the system cache with the sandbox.
-* `--file-passthrough {off,ro,rw,writeback}` specifies how file arguments should be handled:
+* `--file-passthrough {off,ro,rw}` specifies how file arguments should be handled:
 	* `off` does not expose file arguments. *Not recommended*.
 	* `ro` exposes files read-only.
 	* `rw` exposes files read-write.
-	* `writeback` will expose a copy of the file, that will be updated to the source on program close.
-
-> [!warning]
-> `--file-passthrough=writeback` can lead to data loss if the application is killed, or the device shuts down before the files can be updated.
-
 * `--make-desktop-entry` creates a copy of the applications desktop file, shadowing it so that when launched from the Desktop Environment, it runs sandboxed; a script is also created in `~/.local/bin`
 
 > [!info]

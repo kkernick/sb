@@ -2,13 +2,16 @@
 
 ```
 usage: sb [-h] [--portals [PORTALS ...]] [--see [SEE ...]] [--talk [TALK ...]] [--own [OWN ...]]
-[--share [{user,ipc,pid,net,uts,cgroup,all,none} ...]] [--sockets [{wayland,pipewire} ...]] [--syscalls [SYSCALLS ...]]
-[--seccomp-log] [--seccomp-group] [--command COMMAND] [--args [ARGS ...]] [--bin] [--binaries [BINARIES ...]] [--lib]
-[--libraries [LIBRARIES ...]] [--sof {tmpfs,data,zram}] [--update-libraries] [--update-cache] [--env [ENV ...]]
-[--rw [RW ...]] [--ro [RO ...]] [--app-dirs [{config,cache,etc,share,data,lib} ...]] [--dev] [--devices [DEVICES ...]]
-[--proc] [--dri] [--qt] [--qt5] [--electron] [--electron-version ELECTRON_VERSION] [--python PYTHON] [--kde] [--gtk]
-[--shell] [--include] [--fs {none,persist,cache}] [--file-passthrough {off,ro,rw,writeback}] [--files [FILES ...]]
-[--debug-shell] [--strace] [--locale] [--hunspell] [--hardened-malloc] [--make-desktop-entry] [--desktop-entry DESKTOP_ENTRY]
+[--share [{user,ipc,pid,net,uts,cgroup,all,none} ...]] [--sockets [{wayland,pipewire} ...]]
+[--syscalls [SYSCALLS ...]] [--seccomp-log] [--seccomp-group] [--command COMMAND]
+[--args [ARGS ...]] [--post-command POST_COMMAND] [--post-args [POST_ARGS ...]] [--bin]
+[--binaries [BINARIES ...]] [--lib] [--libraries [LIBRARIES ...]] [--sof {tmpfs,data,zram}]
+[--update-libraries] [--update-cache] [--env [ENV ...]] [--rw [RW ...]] [--ro [RO ...]]
+[--app-dirs [{config,cache,etc,share,data,lib} ...]] [--dev] [--devices [DEVICES ...]]
+[--proc] [--dri] [--qt] [--qt5] [--electron] [--electron-version ELECTRON_VERSION]
+[--python PYTHON] [--kde] [--gtk] [--shell] [--include] [--fs {none,persist,cache}]
+[--file-passthrough {off,ro,rw}] [--files [FILES ...]] [--debug-shell] [--strace] [--locale]
+[--hunspell] [--hardened-malloc] [--make-desktop-entry] [--desktop-entry DESKTOP_ENTRY]
 [--make-script] [--verbose] [--dry] [--startup] [--dry-startup]
 program
 ```

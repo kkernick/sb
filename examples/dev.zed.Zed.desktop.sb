@@ -1,2 +1,0 @@
-#!/bin/sh
-sb /usr/lib/zed/zed-editor "$@" --portals Documents Desktop FileChooser OpenURI --dri --home --sockets wayland --file-passthrough=rw --devices /dev/null --binaries typos typos-lsp env clangd ruff ruff-lsp markdown-oxide --dev --dry-startup --zsh --include --cached-home --libraries /usr/lib/zed/
