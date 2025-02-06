@@ -113,11 +113,6 @@ def run_application(application, application_path, application_folder, work_dir)
     if not local_dir.is_dir():
         local_dir.mkdir(parents=True)
 
-    # Add the flatpak-info.
-    if application_folder:
-        command.extend(["--ro-bind", work_dir.name + "/.flatpak-info", f"/run/{real}/flatpak-info"])
-        command.extend(["--ro-bind", work_dir.name + "/.flatpak-info", "/.flatpak-info"])
-
     # If we have a home directory, add it.
     if args["fs"] != "none":
         fs = Path(local_dir, "fs")
@@ -133,6 +128,11 @@ def run_application(application, application_path, application_folder, work_dir)
             ])
         else:
             command.extend(["--bind", str(fs), "/"])
+    
+    # Add the flatpak-info.
+    if application_folder:
+        command.extend(["--ro-bind", work_dir.name + "/.flatpak-info", f"/run/{real}/flatpak-info"])
+        command.extend(["--ro-bind", work_dir.name + "/.flatpak-info", "/.flatpak-info"])
 
     # Add the tmpfs.
     command.extend(["--tmpfs", "/home/sb/.cache"])
