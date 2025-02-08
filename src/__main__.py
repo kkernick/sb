@@ -136,8 +136,9 @@ def run_application(application, application_path, application_folder, work_dir)
         command.extend(["--ro-bind", work_dir.name + "/.flatpak-info", "/.flatpak-info"])
 
     # Add the tmpfs.
-    command.extend(["--tmpfs", "/home/sb/.cache"])
-    command.extend(["--tmpfs", "/tmp"])
+    if not args["no_tmpfs"]:
+        command.extend(["--tmpfs", "/home/sb/.cache"])
+        command.extend(["--tmpfs", "/tmp"])
 
     # Environment variables should not be cached, since they can change at any time.
     # Therefore, we generate the environment variables for each launch.
