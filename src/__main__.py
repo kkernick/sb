@@ -48,6 +48,7 @@ def main():
         application_folder.mkdir(parents=True, exist_ok=True)
 
         # Write the .flatpak-info file so the application thinks its running in flatpak and thus portals work.
+        # https://docs.flatpak.org/en/latest/flatpak-command-reference.html#flatpak-metadata
         with open(work_dir.name + "/.flatpak-info", "w") as file:
             file.write("[Application]\n")
             file.write(f"name={application_name}\n")
@@ -115,7 +116,7 @@ def run_application(application, application_path, application_folder, work_dir)
 
     # If we have a home directory, add it.
     if args["fs"] != "none":
-        fs = Path(local_dir, "fs")
+        fs = Path(local_dir, args["fs_location"])
         fs.mkdir(parents=True, exist_ok=True)
 
         home = fs / "home" / "sb"
@@ -128,7 +129,7 @@ def run_application(application, application_path, application_folder, work_dir)
             ])
         else:
             command.extend(["--bind", str(fs), "/"])
-    
+
     # Add the flatpak-info.
     if application_folder:
         command.extend(["--ro-bind", work_dir.name + "/.flatpak-info", f"/run/{real}/flatpak-info"])
