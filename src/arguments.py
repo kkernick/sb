@@ -89,6 +89,7 @@ def parse():
     # --binaries will use `which` to locate the binary, and will perform library dependency lookups.
     parser.add_argument("--bin", action="store_true", default=False, help="Mount /bin")
     parser.add_argument("--binaries", action="extend", nargs="*", default=[], help="A list of binaries to include in the sandbox. Does nothing if --bin")
+    parser.add_argument("--xdg-open", action="store_true", default=False, help="Provide a custom xdg-open to open files with the default handler.")
 
     # Specify libraries.
     # By default, SB will dynamically determine libraries.

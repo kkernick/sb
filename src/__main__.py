@@ -95,6 +95,10 @@ def dbus_proxy(portals, application_folder, work_dir):
         '--broadcast=org.freedesktop.portal.Desktop=org.freedesktop.portal.Settings.SettingChanged@/org/freedesktop/portal/desktop',
     ])
 
+
+    if args["xdg_open"]:
+        portals.append("OpenURI")
+
     # Add all the portals and busses the program needs.
     command.extend([f'--talk=org.freedesktop.portal.{portal}' for portal in portals])
     command.extend([f'--see={portal}' for portal in args["see"]])
@@ -420,6 +424,12 @@ def gen_command(application, application_path, application_folder):
         "--symlink", "/usr/lib", "/lib64",
         "--symlink", "/usr/lib", "/usr/lib64",
     ])
+
+
+    if args["xdg_open"]:
+        args["binaries"].append("sb-open")
+        command.extend(["--symlink", "/usr/bin/sb-open", "/usr/bin/xdg-open"])
+
 
     # Add python, if needed.
     if args["python"]:
