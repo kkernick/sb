@@ -260,7 +260,10 @@ def run_application(application, application_path, application_folder, work_dir)
         # Export, add it as stdin.
         filter.export_bpf(filter_bpf)
         filter_bpf.flush()
-        command.extend(["--seccomp", "0"])
+        filter_bpf.close()
+
+        filter_bpf = open(work_dir.name + "/filter.bpf", "rb")
+        command.extend(["--seccomp", str(filter_bpf.fileno())])
     else:
         filter_bpf = None
 
@@ -306,7 +309,10 @@ def run_application(application, application_path, application_folder, work_dir)
     if not args["dry"]:
         log("Command:", " ".join(command))
 
-        sandbox = Popen(f"cat {filter_bpf.name} | {" ".join(command)}", shell=True) if filter_bpf else Popen(command)
+        if filter_bpf:
+            sandbox = Popen(command, pass_fds=[filter_bpf.fileno()])
+        else:
+            Popen(command)
         if args["post_command"]:
             post = [args["post_command"]] + args["post_args"]
             log("Post:", " ".join(post))
