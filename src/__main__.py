@@ -312,7 +312,8 @@ def run_application(application, application_path, application_folder, work_dir)
         if filter_bpf:
             sandbox = Popen(command, pass_fds=[filter_bpf.fileno()])
         else:
-            Popen(command)
+            sandbox = Popen(command)
+
         if args["post_command"]:
             post = [args["post_command"]] + args["post_args"]
             log("Post:", " ".join(post))
