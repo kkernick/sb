@@ -15,6 +15,15 @@ These switches pertain to the Flatpak Emulation with `xdg-dbus-proxy`. The usage
 * `--talk` specifies busses that the application can communicate over.
 * `--own` specifies busses the application owns.
 
+#### `xdg-open`
+
+To open files and URI's with the default file handler (outside of the sandbox), you can use the `--xdg-open` switch.This will pass the file to the host, which will then prompt which application to open the file in. Importantly, the application does not need to be in the caller's sandbox.
+
+**Do not explicitly pass `xdg-open` via `--binaries`**. The program is a massive, monolithic shell script which `sb` cannot parse properly. Instead, the `--xdg-open` switch provides the `sb-open` binary, symlinked to the `xdg-open` open, which contains only the relevant functionality. This  reduces the attack surface by importing the functionality, and allows the required functionality to work within `sb`.
+
+> [!note]
+> The `--xdg-open` switch will also allow the application to communicate over the `OpenURI` portal, which is required to use this functionality.
+
 ### Files
 
 These switches pertain to files and folders that should be exposed within the sandbox.
