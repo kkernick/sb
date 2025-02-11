@@ -1,6 +1,7 @@
 from subprocess import run, PIPE
 from os import environ
 from pathlib import Path
+from time import time
 
 import arguments
 
@@ -26,6 +27,9 @@ else:
     sof = Path("/tmp", "sb")
 sof.mkdir(parents=True, exist_ok=True)
 
+# A starting time for profiling information
+start = None
+
 # Run a command, put the results in a list.
 def output(command):
     process = run(command, stdout=PIPE, stderr=PIPE)
@@ -38,6 +42,17 @@ def log(*messages):
     """
     if args["verbose"]:
         print(*messages)
+
+
+def profile_start():
+    global start
+    if args["verbose"]:
+        start = time()
+
+
+def profile(context):
+    if args["verbose"]:
+        print(f"{context}: {round((time() - start) * 1000, 2)} msec")
 
 
 def resolve(path):

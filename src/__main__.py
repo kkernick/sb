@@ -7,12 +7,13 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 from hashlib import new
 
-from shared import args, log, share, cache, config, data, home, runtime, session, nobody, real, env, resolve, sof
+from shared import args, log, share, cache, config, data, home, runtime, session, nobody, real, env, resolve, sof, profile, profile_start
 from util import desktop_entry
 from syscalls import syscall_groups
 
 import binaries
 import libraries
+
 
 def main():
     # If we are making a desktop entry, or on startup and it's not a startup app, do the action and return.
@@ -31,47 +32,41 @@ def main():
     app_sof = Path(str(sof), program)
     app_sof.mkdir(exist_ok=True)
 
-
     work_dir=TemporaryDirectory(prefix="", dir=str(app_sof))
 
     if not args["portals"] and not args["see"] and not args["talk"] and not args["own"]:
-        log("No portals requiried, disabling dbus-proxy")
-        application_folder = None
+        log("No portals requiried.")
+        portals = False
     else:
+        profile_start()
         log("Creating dbus proxy...")
-
-        # Setup the .flatpak info values.
-        application_name=f"app.application.{program}"
-
-        # Create the application's runtime folder
-        application_folder=Path(runtime, "app", application_name)
-        application_folder.mkdir(parents=True, exist_ok=True)
 
         # Write the .flatpak-info file so the application thinks its running in flatpak and thus portals work.
         # https://docs.flatpak.org/en/latest/flatpak-command-reference.html#flatpak-metadata
         with open(work_dir.name + "/.flatpak-info", "w") as file:
             file.write("[Application]\n")
-            file.write(f"name={application_name}\n")
-            file.write("[Instance]\n")
-            file.write(f"app-path={path}\n")
+            file.write(f"name=app.appliction{program}\n")
 
         # Setup the DBux Proxy. This is needed to mediate Dbus calls, and enable Portals.
         log("Launching D-Bus Proxy")
-        dbus_proxy(args["portals"], application_folder, work_dir)
-
-        # We need to wait a slight amount of time for the Proxy to get up and running.
-        sleep(0.01)
+        dbus_proxy(args["portals"], program, work_dir)
+        profile("Launch D-Bus Proxy")
+        portals = True
 
     # Then, run the program.
     log("Launching ", program, "at", path)
-    run_application(program, path, application_folder, work_dir)
+    run_application(program, path, work_dir, portals)
 
 
 # Run the DBUS Proxy.
-def dbus_proxy(portals, application_folder, work_dir):
+def dbus_proxy(portals, program, work_dir):
     command = ["bwrap"]
     if args["hardened_malloc"]:
         command.extend(["--setenv", "LD_PRELOAD", "/usr/lib/libhardened_malloc.so"])
+
+    proxy = Path(work_dir.name + "/proxy")
+    proxy.mkdir()
+
     command.extend([
         "--new-session",
         "--symlink", "/usr/lib64", "/lib64",
@@ -85,11 +80,12 @@ def dbus_proxy(portals, application_folder, work_dir):
         "--unshare-user",
         "--bind", runtime, runtime,
         "--ro-bind", work_dir.name + "/.flatpak-info", "/.flatpak-info",
+        "--bind", work_dir.name + "/proxy", f"{runtime}/app/app.application.{program}",
         "--die-with-parent",
         "--",
         "xdg-dbus-proxy",
         environ["DBUS_SESSION_BUS_ADDRESS"],
-        f"{application_folder}/bus",
+        f"{runtime}/app/app.application.{program}/bus",
         "--filter",
         '--call=org.freedesktop.portal.Desktop=org.freedesktop.portal.Settings.Read@/org/freedesktop/portal/desktop',
         '--broadcast=org.freedesktop.portal.Desktop=org.freedesktop.portal.Settings.SettingChanged@/org/freedesktop/portal/desktop',
@@ -110,9 +106,13 @@ def dbus_proxy(portals, application_folder, work_dir):
     log(" ".join(command))
     Popen(command)
 
+    bus = Path(work_dir.name + "/proxy/bus")
+    while not bus.exists():
+        sleep(0.0001)
+
 
 # Run the application.
-def run_application(application, application_path, application_folder, work_dir):
+def run_application(application, application_path, work_dir, portals):
     command = ["bwrap", "--new-session", "--die-with-parent"]
     local_dir = Path(data, "sb", application)
     if not local_dir.is_dir():
@@ -135,7 +135,7 @@ def run_application(application, application_path, application_folder, work_dir)
             command.extend(["--bind", str(fs), "/"])
 
     # Add the flatpak-info.
-    if application_folder:
+    if portals:
         command.extend(["--ro-bind", work_dir.name + "/.flatpak-info", f"/run/{real}/flatpak-info"])
         command.extend(["--ro-bind", work_dir.name + "/.flatpak-info", "/.flatpak-info"])
 
@@ -148,7 +148,7 @@ def run_application(application, application_path, application_folder, work_dir)
     # Therefore, we generate the environment variables for each launch.
     command.append("--clearenv")
     command.extend(env("XDG_RUNTIME_DIR") + env("XDG_CURRENT_DESKTOP") + env("DESKTOP_SESSION"))
-    if application_folder:
+    if portals:
         command.extend(["--setenv", "DBUS_SESSION_BUS_ADDRESS", session])
 
     if args["shell"]:
@@ -174,6 +174,19 @@ def run_application(application, application_path, application_folder, work_dir)
     if args["locale"]:
         command.extend(env("LANG") + env("LANGUAGE"))
 
+
+    # Only necessary if we need portals
+    if portals:
+        command.extend([
+            "--dir", runtime,
+            "--chmod", "0700", runtime,
+            "--ro-bind", f"{work_dir.name}/proxy/bus", f"{runtime}/bus",
+            "--bind", f"{runtime}/doc", f"{runtime}/doc",
+        ])
+        share(command, ["/run/dbus"])
+    else:
+        command.extend(["--uid", nobody, "--gid", nobody,])
+
     # Get the cached portion of the command.
     lock_file = Path(str(sof), application, "sb.lock")
 
@@ -182,7 +195,9 @@ def run_application(application, application_path, application_folder, work_dir)
         sleep(0.001)
     lock = lock_file.open("x")
     try:
-        command.extend(gen_command(application, application_path, application_folder))
+        profile_start()
+        command.extend(gen_command(application, application_path))
+        profile("Command Generation")
     except Exception as e:
         print("Failed to generate bubblewrap command:", e)
         lock.close()
@@ -198,7 +213,10 @@ def run_application(application, application_path, application_folder, work_dir)
 
     # If the user is either logging, has syscalls defined, or has a file, create a SECCOMP Filter.
     syscall_file = Path(data, "sb", application, "syscalls.txt")
+    total = 0
     if not args["debug_shell"] and (args["syscalls"] or syscall_file.is_file() or args["seccomp_log"]):
+        profile_start()
+
         # Combine our sources into a single list.
         syscalls = set(args["syscalls"])
         if syscall_file.is_file():
@@ -207,8 +225,11 @@ def run_application(application, application_path, application_folder, work_dir)
                     stripped = split.strip("\n \t")
                     if stripped:
                         syscalls.add(stripped)
+                        total += len(stripped)
+        else:
+            total += 1
 
-        log("Permitted Syscalls:", len(syscalls), f"({"LOG" if args["seccomp_log"] else "ENFORCED"})")
+        log("Permitted Syscalls:", total, f"({"LOG" if args["seccomp_log"] else "ENFORCED"})")
 
         # Create our output and filter.
         from seccomp import SyscallFilter, Attr, ALLOW, LOG, ERRNO
@@ -219,6 +240,14 @@ def run_application(application, application_path, application_folder, work_dir)
 
         # Enforce that children have a subset of parent permissions.
         filter.set_attr(Attr.CTL_NNP, True)
+
+        # Synchronize threads to the seccomp-filter.
+        filter.set_attr(Attr.CTL_TSYNC, True)
+
+        # Our filters aren't particularly complicated, so using priority and complexity isn't
+        # the best method for compiling the filter. Instead, a binary tree will do much better
+        filter.set_attr(Attr.CTL_OPTIMIZE, 2)
+
         if args["verbose"]:
             filter.set_attr(Attr.CTL_LOG, True)
 
@@ -268,6 +297,7 @@ def run_application(application, application_path, application_folder, work_dir)
 
         filter_bpf = open(work_dir.name + "/filter.bpf", "rb")
         command.extend(["--seccomp", str(filter_bpf.fileno())])
+        profile("SECCOMP Filter Generation")
     else:
         filter_bpf = None
 
@@ -332,7 +362,7 @@ def run_application(application, application_path, application_folder, work_dir)
 
 
 # Generate the cacheable part of the command.
-def gen_command(application, application_path, application_folder):
+def gen_command(application, application_path):
 
     # Get all our locations.
     sof_dir = sof / application
@@ -395,24 +425,10 @@ def gen_command(application, application_path, application_folder):
     log("Setting up...")
     command = []
 
-    local_runtime = runtime
     command.extend([
         "--setenv", "HOME", "/home/sb",
         "--setenv", "PATH", "/usr/bin",
     ])
-
-    # Only necessary if we need portals
-    if application_folder:
-        command.extend([
-            "--dir", local_runtime,
-            "--chmod", "0700", local_runtime,
-            "--ro-bind", f"{application_folder}/bus", f"{local_runtime}/bus",
-            "--bind", f"{runtime}/doc", f"{local_runtime}/doc",
-        ])
-        share(command, ["/run/dbus"])
-    else:
-        command.extend(["--uid", nobody, "--gid", nobody,])
-
 
     if args["lib"]:
         share(command, ["/usr/lib"])
@@ -609,15 +625,15 @@ def gen_command(application, application_path, application_folder):
 
     # Add the wayland socket and XKB
     if "wayland" in args["sockets"]:
-        command.extend(["--ro-bind", f"{runtime}/wayland-0", f"{local_runtime}/wayland-0"])
+        command.extend(["--ro-bind", f"{runtime}/wayland-0", f"{runtime}/wayland-0"])
         share(command, ["/usr/share/X11/xkb", "/etc/xkb"])
         command.extend(["--setenv", "XDG_SESSION_TYPE", "wayland"])
 
 
     # Add the pipewire socket, and its libraries.
     if "pipewire" in args["sockets"]:
-        command.extend(["--ro-bind", f"{runtime}/pipewire-0", f"{local_runtime}/pipewire-0"])
-        command.extend(["--ro-bind", f"{runtime}/pulse", f"{local_runtime}/pulse"])
+        command.extend(["--ro-bind", f"{runtime}/pipewire-0", f"{runtime}/pipewire-0"])
+        command.extend(["--ro-bind", f"{runtime}/pulse", f"{runtime}/pulse"])
         share(command, [f"{config}/pulse", "/etc/pipewire", "/usr/share/pipewire"])
         if update_sof:
             libraries.wildcards.add("libpipewire*")
