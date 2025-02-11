@@ -1,11 +1,11 @@
 pkgname=sb-git
 pkgdesc="Sandbox Applications"
-pkgver=r235.7d85a27
+pkgver=r236.78adc32
 pkgrel=1
 
 source=("git+https://github.com/kkernick/sb.git")
 sha256sums=("SKIP")
-depends=(python findutils glibc which bubblewrap)
+depends=(python findutils glibc which bubblewrap python-inotify-simple)
 makedepends=(zip git)
 optdepends=(
   'strace: for --strace, useful for debugging'

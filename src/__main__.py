@@ -2,7 +2,6 @@
 
 from os import environ
 from subprocess import Popen, run
-from time import sleep
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from hashlib import new
@@ -13,6 +12,9 @@ from syscalls import syscall_groups
 
 import binaries
 import libraries
+
+from inotify_simple import INotify, flags
+inotify = INotify()
 
 
 def main():
@@ -66,6 +68,7 @@ def dbus_proxy(portals, program, work_dir):
 
     proxy = Path(work_dir.name + "/proxy")
     proxy.mkdir()
+    wd = inotify.add_watch(str(proxy), flags.CREATE)
 
     command.extend([
         "--new-session",
@@ -106,9 +109,11 @@ def dbus_proxy(portals, program, work_dir):
     log(" ".join(command))
     Popen(command)
 
-    bus = Path(work_dir.name + "/proxy/bus")
-    while not bus.exists():
-        sleep(0.0001)
+    while True:
+        for src, _, _, event in inotify.read():
+            if src == wd and event == "bus":
+                inotify.rm_watch(wd)
+                return
 
 
 # Run the application.
@@ -134,7 +139,6 @@ def run_application(application, application_path, work_dir, portals):
         else:
             command.extend(["--bind", str(fs), "/"])
 
-    # Add the flatpak-info.
     if portals:
         command.extend(["--ro-bind", work_dir.name + "/.flatpak-info", f"/run/{real}/flatpak-info"])
         command.extend(["--ro-bind", work_dir.name + "/.flatpak-info", "/.flatpak-info"])
@@ -190,10 +194,17 @@ def run_application(application, application_path, work_dir, portals):
     # Get the cached portion of the command.
     lock_file = Path(str(sof), application, "sb.lock")
 
+
     # Wait for the lock to be released.
-    while lock_file.is_file():
-        sleep(0.001)
+    if lock_file.is_file():
+        wd = inotify.add_watch(str(sof) + "/" + application, flags.DELETE)
+        while lock_file.is_file():
+            for src, _, _, event in inotify.read():
+                if src == wd and event == "sb.lock":
+                    inotify.rm_watch(wd)
+                    break
     lock = lock_file.open("x")
+
     try:
         profile_start()
         command.extend(gen_command(application, application_path))

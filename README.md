@@ -43,6 +43,7 @@ Additionally, `sb` has the following runtime dependencies that you will need ins
 3. `glibc`
 4. `which`
 5. `bubblewrap>=0.11`
+6. `python-inotify-simple`
 
 There are also optional dependencies that allow the use of various switches:
 1. `strace`: for `--strace`, useful for debugging
