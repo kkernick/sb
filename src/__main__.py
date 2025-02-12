@@ -39,6 +39,7 @@ def main():
     if not args["portals"] and not args["see"] and not args["talk"] and not args["own"]:
         log("No portals requiried.")
         portals = False
+        proxy_wd = 0
     else:
         profile_start()
         log("Creating dbus proxy...")
@@ -51,13 +52,13 @@ def main():
 
         # Setup the DBux Proxy. This is needed to mediate Dbus calls, and enable Portals.
         log("Launching D-Bus Proxy")
-        dbus_proxy(args["portals"], program, work_dir)
+        proxy_wd = dbus_proxy(args["portals"], program, work_dir)
         profile("Launch D-Bus Proxy")
         portals = True
 
     # Then, run the program.
     log("Launching ", program, "at", path)
-    run_application(program, path, work_dir, portals)
+    run_application(program, path, work_dir, portals, proxy_wd)
 
 
 # Run the DBUS Proxy.
@@ -108,16 +109,11 @@ def dbus_proxy(portals, program, work_dir):
         command.extend(["--log"])
     log(" ".join(command))
     Popen(command)
-
-    while True:
-        for src, _, _, event in inotify.read():
-            if src == wd and event == "bus":
-                inotify.rm_watch(wd)
-                return
+    return wd
 
 
 # Run the application.
-def run_application(application, application_path, work_dir, portals):
+def run_application(application, application_path, work_dir, portals, proxy_wd):
     command = ["bwrap", "--new-session", "--die-with-parent"]
     local_dir = Path(data, "sb", application)
     if not local_dir.is_dir():
@@ -194,7 +190,6 @@ def run_application(application, application_path, work_dir, portals):
     # Get the cached portion of the command.
     lock_file = Path(str(sof), application, "sb.lock")
 
-
     # Wait for the lock to be released.
     if lock_file.is_file():
         wd = inotify.add_watch(str(sof) + "/" + application, flags.DELETE)
@@ -224,89 +219,101 @@ def run_application(application, application_path, work_dir, portals):
 
     # If the user is either logging, has syscalls defined, or has a file, create a SECCOMP Filter.
     syscall_file = Path(data, "sb", application, "syscalls.txt")
-    total = 0
     if not args["debug_shell"] and (args["syscalls"] or syscall_file.is_file() or args["seccomp_log"]):
         profile_start()
 
-        # Combine our sources into a single list.
-        syscalls = set(args["syscalls"])
-        if syscall_file.is_file():
-            for line in syscall_file.open("r").readlines():
-                for split in line.split(" "):
-                    stripped = split.strip("\n \t")
-                    if stripped:
-                        syscalls.add(stripped)
-                        total += len(stripped)
-        else:
-            total += 1
+        lines = syscall_file.open("r").readlines()
+        total = 0
+        h = new("SHA256")
+        h.update(" ".join(lines).encode())
+        hash = h.hexdigest()
 
-        log("Permitted Syscalls:", total, f"({"LOG" if args["seccomp_log"] else "ENFORCED"})")
+        cached = Path(local_dir, "seccomp.cache")
+        filter = Path(local_dir, "filter.bpf")
 
-        # Create our output and filter.
-        from seccomp import SyscallFilter, Attr, ALLOW, LOG, ERRNO
-        from errno import EPERM
+        if not cached.is_file() or not filter.is_file() or cached.open().read() != hash or args["update_cache"]:
+            log("Generating new BPF Filter")
 
-        filter_bpf = open(work_dir.name + "/filter.bpf", "w")
-        filter = SyscallFilter(defaction=LOG if args["seccomp_log"] else ERRNO(EPERM))
-
-        # Enforce that children have a subset of parent permissions.
-        filter.set_attr(Attr.CTL_NNP, True)
-
-        # Synchronize threads to the seccomp-filter.
-        filter.set_attr(Attr.CTL_TSYNC, True)
-
-        # Our filters aren't particularly complicated, so using priority and complexity isn't
-        # the best method for compiling the filter. Instead, a binary tree will do much better
-        filter.set_attr(Attr.CTL_OPTIMIZE, 2)
-
-        if args["verbose"]:
-            filter.set_attr(Attr.CTL_LOG, True)
-
-        # Add syscalls
-        included = set()
-        def add_rule(syscall):
-            if syscall in included:
-                return
-            included.add(syscall)
-            try:
-                try:
-                    filter.add_rule(ALLOW, int(syscall))
-                except Exception:
-                    filter.add_rule(ALLOW, syscall)
-            except Exception as e:
-                print("INVALID syscall:", syscall, ":", e)
-                exit(1)
-
-        # Add each syscall, attempting to convert them into integers as both formats are supported.
-        for syscall in syscalls:
-            if syscall in syscall_groups:
-                for s in syscall_groups[syscall]:
-                    add_rule(s)
+            # Combine our sources into a single list.
+            syscalls = set(args["syscalls"])
+            if syscall_file.is_file():
+                for line in lines:
+                    for split in line.split(" "):
+                        stripped = split.strip("\n \t")
+                        if stripped:
+                            syscalls.add(stripped)
+                            total += len(stripped)
             else:
-                add_rule(syscall)
+                total += 1
 
-        if args["seccomp_group"]:
-            groups = set()
-            for syscall in included:
-                added = False
-                for key, value in syscall_groups.items():
-                    if syscall in value:
-                        groups.add(key)
-                        added = True
-                        break
-                if not added:
-                    groups.add(syscall)
-            with syscall_file.open("w") as file:
-                for group in groups:
-                    file.write(group + " ")
-                file.close()
+            log("Permitted Syscalls:", total, f"({"LOG" if args["seccomp_log"] else "ENFORCED"})")
 
-        # Export, add it as stdin.
-        filter.export_bpf(filter_bpf)
-        filter_bpf.flush()
-        filter_bpf.close()
+            # Create our output and filter.
+            from seccomp import SyscallFilter, Attr, ALLOW, LOG, ERRNO
+            from errno import EPERM
 
-        filter_bpf = open(work_dir.name + "/filter.bpf", "rb")
+            filter_bpf = filter.open("w")
+            new_filter = SyscallFilter(defaction=LOG if args["seccomp_log"] else ERRNO(EPERM))
+
+            # Enforce that children have a subset of parent permissions.
+            new_filter.set_attr(Attr.CTL_NNP, True)
+
+            # Synchronize threads to the seccomp-filter.
+            new_filter.set_attr(Attr.CTL_TSYNC, True)
+
+            # Our filters aren't particularly complicated, so using priority and complexity isn't
+            # the best method for compiling the filter. Instead, a binary tree will do much better
+            new_filter.set_attr(Attr.CTL_OPTIMIZE, 2)
+
+            if args["verbose"]:
+                new_filter.set_attr(Attr.CTL_LOG, True)
+
+            # Add syscalls
+            included = set()
+            def add_rule(syscall):
+                if syscall in included:
+                    return
+                included.add(syscall)
+                try:
+                    try:
+                        new_filter.add_rule(ALLOW, int(syscall))
+                    except Exception:
+                        new_filter.add_rule(ALLOW, syscall)
+                except Exception as e:
+                    print("INVALID syscall:", syscall, ":", e)
+                    exit(1)
+
+            # Add each syscall, attempting to convert them into integers as both formats are supported.
+            for syscall in syscalls:
+                if syscall in syscall_groups:
+                    for s in syscall_groups[syscall]:
+                        add_rule(s)
+                else:
+                    add_rule(syscall)
+
+            if args["seccomp_group"]:
+                groups = set()
+                for syscall in included:
+                    added = False
+                    for key, value in syscall_groups.items():
+                        if syscall in value:
+                            groups.add(key)
+                            added = True
+                            break
+                    if not added:
+                        groups.add(syscall)
+                with syscall_file.open("w") as file:
+                    for group in groups:
+                        file.write(group + " ")
+                    file.close()
+
+            # Export, add it as stdin.
+            new_filter.export_bpf(filter_bpf)
+            filter_bpf.flush()
+            filter_bpf.close()
+            cached.open("w").write(hash)
+
+        filter_bpf = filter.open("rb")
         command.extend(["--seccomp", str(filter_bpf.fileno())])
         profile("SECCOMP Filter Generation")
     else:
@@ -353,6 +360,17 @@ def run_application(application, application_path, work_dir, portals):
     # So long as we aren't dry-running, run the program.
     if not args["dry"]:
         log("Command:", " ".join(command))
+
+        if portals:
+            profile_start()
+            ready = False
+            while not ready:
+                for src, _, _, event in inotify.read():
+                    if src == proxy_wd and event == "bus":
+                        inotify.rm_watch(proxy_wd)
+                        ready = True
+                        break
+            profile("Waiting for D-Bus Proxy")
 
         if filter_bpf:
             sandbox = Popen(command, pass_fds=[filter_bpf.fileno()])
