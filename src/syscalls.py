@@ -58,19 +58,3 @@ syscall_groups = {
     # Pkey
     "pkey": {"pkey_alloc", "pkey_mprotect"},
 }
-
-syscall_apps: {
-    "dri": {
-        # File operations
-        "files_r", "files_w", "files_c",
-
-        # Memory operations
-        "mem_g", "mem_s",
-
-        # Various groups, all getting rather than setting
-        "limits", "sig", "info", "sched_g", "dirs_g", "process_g", "time", "spawn"
-
-        # Device/Event/Random.
-        "ioctl", "eventfd2", "getrandom"
-    }
-}

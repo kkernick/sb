@@ -84,6 +84,7 @@ def dbus_proxy(portals, program, work_dir):
         "--unshare-user",
         "--bind", runtime, runtime,
         "--ro-bind", work_dir.name + "/.flatpak-info", "/.flatpak-info",
+        "--symlink", "/.flatpak-info", f"/run/user/{real}/flatpak-info",
         "--bind", work_dir.name + "/proxy", f"{runtime}/app/app.application.{program}",
         "--die-with-parent",
         "--",
@@ -136,8 +137,10 @@ def run_application(application, application_path, work_dir, portals, proxy_wd):
             command.extend(["--bind", str(fs), "/"])
 
     if portals:
-        command.extend(["--ro-bind", work_dir.name + "/.flatpak-info", f"/run/{real}/flatpak-info"])
         command.extend(["--ro-bind", work_dir.name + "/.flatpak-info", "/.flatpak-info"])
+        command.extend(["--symlink", "/.flatpak-info", f"/run/user/{real}/flatpak-info"])
+    else:
+        log("Application not using portals")
 
     # Add the tmpfs.
     if not args["no_tmpfs"]:
