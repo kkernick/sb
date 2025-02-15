@@ -225,6 +225,9 @@ def run_application(application, application_path, work_dir, portals, proxy_wd):
     if not args["debug_shell"] and (args["syscalls"] or syscall_file.is_file() or args["seccomp_log"]):
         profile_start()
 
+        if not syscall_file.is_file():
+            syscall_file.open("x")
+            syscall_file.close()
         lines = syscall_file.open("r").readlines()
         total = 0
         h = new("SHA256")
