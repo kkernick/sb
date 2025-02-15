@@ -236,7 +236,7 @@ def run_application(application, application_path, work_dir, portals, proxy_wd):
         cached = Path(local_dir, "seccomp.cache")
         filter = Path(local_dir, "filter.bpf")
 
-        if not cached.is_file() or not filter.is_file() or cached.open().read() != hash or args["update_cache"]:
+        if not cached.is_file() or not filter.is_file() or cached.open().read() != hash or args["update_cache"] or args["seccomp_group"]:
             log("Generating new BPF Filter")
 
             # Combine our sources into a single list.
