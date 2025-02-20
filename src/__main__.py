@@ -596,6 +596,7 @@ def gen_command(application, application_path):
         share(command, [
             f"{home}/.gtkrc-2.0", f"{config}/gtkrc", f"{config}/gtkrc-2.0",
             f"{config}/gtk-2.0", f"{config}/gtk-3.0", f"{config}/gtk-4.0",
+            f"{config}/dconf",
             "/usr/share/gtk-2.0",
             "/usr/share/gtk-3.0",
             "/usr/share/gtk-4.0",
