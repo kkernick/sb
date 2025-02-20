@@ -615,6 +615,11 @@ def gen_command(application, application_path):
             }
         args["dri"] = True
 
+    if args["gst"]:
+        libraries.wildcards |= {"libgst*"}
+        libraries.directories |= {"/usr/lib/girepository-1.0/", "/usr/lib/gstreamer-1.0/"}
+        share(command, ["/usr/share/gir-1.0/", "/usr/share/gstreamer-1.0/"])
+
     # Mount devices, or the dev
     if args["dev"]:
         command.extend(["--dev", "/dev"])

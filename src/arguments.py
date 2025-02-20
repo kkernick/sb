@@ -160,6 +160,8 @@ def parse():
 
     # Bring in GTK files and configuration. This isn't well tested besides in use of Electron.
     parser.add_argument("--gtk", action="store_true", default=False, help="Give the application access to GTK3/4 configuration (Implies --dri)")
+    parser.add_argument("--gst", action="store_true", default=False, help="Give the application access to GStreamer")
+
 
     # Shell
     parser.add_argument("--shell", action="store_true", default=False, help="Give the application the user shell.")
