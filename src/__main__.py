@@ -622,19 +622,17 @@ def gen_command(application, application_path):
                 "/usr/lib/gio",
                 "/usr/lib/gvfs",
                 "/usr/lib/gconv",
+                "/usr/lib/girepository-1.0",
             }
         args["dri"] = True
 
     if args["gst"]:
         libraries.wildcards |= {"libgst*"}
-        libraries.directories |= {"/usr/lib/girepository-1.0/", "/usr/lib/gstreamer-1.0/"}
+        libraries.directories |= {"/usr/lib/gstreamer-1.0/"}
         share(command, ["/usr/share/gstreamer-1.0/"])
 
     if args["webkit"]:
-        libraries.directories |= {
-            "/usr/lib/girepository-1.0",
-            "/usr/lib/webkitgtk-6.0",
-        }
+        libraries.directories |= {"/usr/lib/webkitgtk-6.0"}
         libraries.wildcards |= {
             "libjavascriptcore*",
             "libwebkit*",
