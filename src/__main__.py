@@ -50,6 +50,13 @@ def main():
             file.write("[Application]\n")
             file.write(f"name=app.appliction{program}\n")
 
+            file.write("[Context]\n")
+            file.write("sockets=session-bus;system-bus;")
+            if "wayland" in args["sockets"]:
+                file.write("wayland;")
+            if "pipewire" in args["sockets"]:
+                file.write("pulseaudio;")
+
         # Setup the DBux Proxy. This is needed to mediate Dbus calls, and enable Portals.
         log("Launching D-Bus Proxy")
         proxy_wd = dbus_proxy(args["portals"], program, work_dir)
@@ -136,7 +143,7 @@ def run_application(application, application_path, work_dir, portals, proxy_wd):
         else:
             command.extend(["--bind", str(fs), "/"])
 
-    if portals:
+    if portals and not args["no_flatpak"]:
         command.extend(["--ro-bind", work_dir.name + "/.flatpak-info", "/.flatpak-info"])
         command.extend(["--symlink", "/.flatpak-info", f"/run/user/{real}/flatpak-info"])
     else:
@@ -455,6 +462,7 @@ def gen_command(application, application_path):
                     log("Regenerating command cache")
 
 
+
     # Get the basic stuff.
     log("Setting up...")
     command = []
@@ -594,8 +602,9 @@ def gen_command(application, application_path):
             "/usr/share/gtk",
             "/usr/share/glib-2.0",
             "/etc/xdg/gtk-3.0/",
+            "/usr/share/gir-1.0/",
         ])
-        command.extend(["--setenv", "GTK_USE_PORTAL", "1"])
+        command.extend(["--setenv", "GTK_USE_PORTAL", "1", "--setenv", "GTK_A11Y", "none"])
         if update_sof:
             libraries.wildcards |= {
                 "libgvfs*",
@@ -611,14 +620,43 @@ def gen_command(application, application_path):
                 "/usr/lib/gtk-4.0",
                 "/usr/lib/gio",
                 "/usr/lib/gvfs",
-                "/usr/lib/gconv"
+                "/usr/lib/gconv",
             }
         args["dri"] = True
 
     if args["gst"]:
         libraries.wildcards |= {"libgst*"}
         libraries.directories |= {"/usr/lib/girepository-1.0/", "/usr/lib/gstreamer-1.0/"}
-        share(command, ["/usr/share/gir-1.0/", "/usr/share/gstreamer-1.0/"])
+        share(command, ["/usr/share/gstreamer-1.0/"])
+
+    if args["webkit"]:
+        libraries.directories |= {
+            "/usr/lib/girepository-1.0",
+            "/usr/lib/webkitgtk-6.0",
+        }
+        libraries.wildcards |= {
+            "libjavascriptcore*",
+            "libwebkit*",
+        }
+        share(command, ["/sys/block", "/sys/dev"])
+        share(command, ["/dev/null", "/dev/urandom", "/dev/shm"], "dev-bind")
+        if not args["proc"]:
+            log("/proc is needed for Webkit applications. Enabling...")
+            args["proc"] = True
+        if not args["bwrap"]:
+            log("bwrap is needed for Webkit")
+            args["bwrap"] = True
+        if not args["no_flatpak"]:
+            print("ERROR: WebKit requires --no-flatpak. This cannot be applied retroactively")
+            exit(1)
+
+    if args["bwrap"]:
+        args["binaries"] += ["bwrap", "xdg-dbus-proxy"]
+        args["devices"] += ["/dev/snd", "/dev/zero", "/dev/full", "/dev/random", "/dev/tty"]
+        share(command, ["/sys/bus", "/sys/class"])
+        if "user" not in args["share"]:
+            args["share"].append("user")
+
 
     # Mount devices, or the dev
     if args["dev"]:
@@ -657,7 +695,7 @@ def gen_command(application, application_path):
         if update_sof:
             for lib in [
                 "libvulkan*", "libglapi*", "*mesa*", "*Mesa*", "libdrm", "libGL*", "libEGL*",
-                "libVkLayer*", "libgbm*", "libva*", "*egl*", "*EGL*"
+                "libVkLayer*", "libgbm*", "libva*", "*egl*", "*EGL*",
                 ]:
                     libraries.wildcards.add(lib)
             libraries.directories |= {"/usr/lib/dri", "/usr/lib/gbm"}
@@ -709,13 +747,16 @@ def gen_command(application, application_path):
         if "--unshare-all" in command:
             command.append("--share-net")
         share(command, [
-            "/etc/gai.conf", "/etc/hosts.conf", "/etc/hosts", "/etc/host.conf", "/etc/nsswitch.conf", "/etc/resolv.conf", "/etc/gnutls/config",
+            "/etc/gai.conf", "/etc/hosts.conf", "/etc/hosts", "/etc/host.conf", "/etc/nsswitch.conf", "/etc/resolv.conf",
+            "/etc/gnutls",
             "/etc/ca-certificates", "/usr/share/ca-certificates/",
             "/etc/pki", "/usr/share/pki",
             "/etc/ssl", "/usr/share/ssl",
+            "/usr/share/p11-kit",
         ])
         if update_sof:
-            libraries.wildcards.add("libnss*")
+            libraries.wildcards |= {"libnss*", "libgnutls*"}
+            libraries.directories |= {"/usr/lib/pkcs11"}
     if "user" not in args["share"]:
         command.extend(["--disable-userns", "--assert-userns-disabled"])
 

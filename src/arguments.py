@@ -41,6 +41,9 @@ def parse():
     parser.add_argument("--talk", action="extend", nargs="*", default=[], help="A list of additional buses that the application should be able to talk over")
     parser.add_argument("--own", action="extend", nargs="*", default=[], help="A list of additional buses that the application should be able to own")
 
+    parser.add_argument("--no-flatpak", action="store_true", default=False, help="Don't pretend to be flatpak")
+
+
     # Share namespaces. All and None are unique, defaulting to the latter. I've never needed to
     # enable namespaces for any application.
     parser.add_argument(
@@ -90,6 +93,8 @@ def parse():
     parser.add_argument("--bin", action="store_true", default=False, help="Mount /bin")
     parser.add_argument("--binaries", action="extend", nargs="*", default=[], help="A list of binaries to include in the sandbox. Does nothing if --bin")
     parser.add_argument("--xdg-open", action="store_true", default=False, help="Provide a custom xdg-open to open files with the default handler.")
+    parser.add_argument("--bwrap", action="store_true", default=False, help="Enable applications to create nested sandboxes using bwrap inside the sandbox.")
+
 
     # Specify libraries.
     # By default, SB will dynamically determine libraries.
@@ -161,7 +166,7 @@ def parse():
     # Bring in GTK files and configuration. This isn't well tested besides in use of Electron.
     parser.add_argument("--gtk", action="store_true", default=False, help="Give the application access to GTK3/4 configuration (Implies --dri)")
     parser.add_argument("--gst", action="store_true", default=False, help="Give the application access to GStreamer")
-
+    parser.add_argument("--webkit", action="store_true", default=False, help="Give the application access to Webkit")
 
     # Shell
     parser.add_argument("--shell", action="store_true", default=False, help="Give the application the user shell.")
