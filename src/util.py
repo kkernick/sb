@@ -62,6 +62,8 @@ def desktop_entry():
                 buffer += (f"Exec={binary} {" ".join(line.split()[1:])}\n")
             elif line.startswith("TryExec="):
                 buffer += (f"TryExec={binary}\n")
+            elif line.startswith("DBusActivatable="):
+                buffer += "DBusActivatable=false\n"
             else:
                 buffer += line
 
