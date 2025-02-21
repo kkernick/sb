@@ -729,9 +729,11 @@ def gen_command(application, application_path):
             libraries.directories |= {"/usr/lib/locale/"}
         args["binaries"].append("locale")
 
-    # Hunspell
-    if args["hunspell"]:
-        share(command, ["/usr/share/hunspell", "/usr/share/myspell"])
+    # Hunspell/Enchant
+    if args["spelling"]:
+        share(command, ["/usr/share/hunspell", "/usr/share/myspell", "/usr/share/enchant-2"])
+        libraries.directories |= {"/usr/lib/enchant-2"}
+        libraries.wildcards |= {"libhunspell*", "libenchant*"}
 
     # Handle sharing namespaces.
     if args["share"] == "none":

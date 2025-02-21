@@ -111,20 +111,10 @@ def get(to_load, local=False):
 
             internal = set()
             for lib in running:
-                if local:
-                    parent = str(Path(lib).parent)
-                    if to_load.endswith("/") and not parent.endswith("/"):
-                        parent += "/"
-                    elif parent.endswith("/") and not to_load.endswith("/"):
-                        parent = parent[:-1]
+                if not Path(lib).is_relative_to(Path(to_load)):
+                    internal.add(lib)
 
-                    if parent.startswith(to_load):
-                        continue
-                elif not lib.startswith(str(to_load) + "/"):
-                    continue
-                internal.add(lib)
-
-            running = list(internal if local else running - internal)
+            running = list(internal)
             if not running:
                 return ret
             with dir_cache.open("w") as file:

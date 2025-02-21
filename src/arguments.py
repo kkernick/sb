@@ -193,7 +193,7 @@ def parse():
     parser.add_argument("--locale", action="store_true", default=False, help="Give the application locale information")
 
     # Passthrough spellchecking via hunspell.
-    parser.add_argument("--hunspell", action="store_true", default=False, help="Give the application dictionaries")
+    parser.add_argument("--spelling", action="store_true", default=False, help="Give the application hunspell/enchant dictionaries")
 
     # Use hardened malloc
     parser.add_argument("--hardened-malloc", action="store_true", default=False, help="Use hardened_malloc within the sandbox")
