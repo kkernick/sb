@@ -56,8 +56,7 @@ def main():
                 file.write("wayland;")
             if "pipewire" in args["sockets"]:
                 file.write("pulseaudio;")
-
-            file.write("[Instance]\n")
+            file.write("\n[Instance]\n")
             file.write(f"instance-id={program}\n")
             file.write("session-bus-proxy=True\n")
             file.write("system-bus-proxy=True\n")
