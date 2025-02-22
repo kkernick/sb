@@ -131,6 +131,7 @@ def dbus_proxy(portals, program, work_dir):
 # Run the application.
 def run_application(application, application_path, work_dir, portals, proxy_wd):
     command = ["bwrap", "--new-session", "--die-with-parent"]
+    fds = []
     local_dir = Path(data, "sb", application)
     if not local_dir.is_dir():
         local_dir.mkdir(parents=True)
@@ -154,8 +155,16 @@ def run_application(application, application_path, work_dir, portals, proxy_wd):
     if portals and not args["no_flatpak"]:
         command.extend(["--ro-bind", work_dir.name + "/.flatpak-info", "/.flatpak-info"])
         command.extend(["--symlink", "/.flatpak-info", f"/run/user/{real}/flatpak-info"])
+
+        bwrap_info = open(work_dir.name + "/bwrapinfo.json", "w")
+        command.extend([
+            "--ro-bind", work_dir.name + "/bwrapinfo.json", f"{runtime}/.flatpak/{application}/bwrapinfo.json",
+            "--json-status-fd", str(bwrap_info.fileno())
+        ])
+        fds.append(bwrap_info.fileno())
     else:
         log("Application not using portals")
+        bwrap_info = None
 
     # Add the tmpfs.
     if not args["no_tmpfs"]:
@@ -335,6 +344,7 @@ def run_application(application, application_path, work_dir, portals, proxy_wd):
 
         filter_bpf = filter.open("rb")
         command.extend(["--seccomp", str(filter_bpf.fileno())])
+        fds.append(filter_bpf.fileno())
         profile("SECCOMP Filter Generation")
     else:
         filter_bpf = None
@@ -392,11 +402,7 @@ def run_application(application, application_path, work_dir, portals, proxy_wd):
                         break
             profile("Waiting for D-Bus Proxy")
 
-        if filter_bpf:
-            sandbox = Popen(command, pass_fds=[filter_bpf.fileno()])
-        else:
-            sandbox = Popen(command)
-
+        sandbox = Popen(command, pass_fds=fds)
         if args["post_command"]:
             post = [args["post_command"]] + args["post_args"]
             log("Post:", " ".join(post))
