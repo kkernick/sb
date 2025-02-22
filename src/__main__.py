@@ -34,7 +34,10 @@ def main():
     app_sof = Path(str(sof), program)
     app_sof.mkdir(exist_ok=True)
 
-    work_dir=TemporaryDirectory(prefix="", dir=str(app_sof))
+    work_dir = TemporaryDirectory(prefix="", dir=str(app_sof))
+    Path(runtime, ".flatpak").mkdir(parents=True, exist_ok=True)
+    instance_dir = TemporaryDirectory(prefix=f"{program}-", dir=f"{runtime}/.flatpak")
+    instance = instance_dir.name.split("/")[-1]
 
     if not args["portals"] and not args["see"] and not args["talk"] and not args["own"]:
         log("No portals requiried.")
@@ -57,7 +60,7 @@ def main():
             if "pipewire" in args["sockets"]:
                 file.write("pulseaudio;")
             file.write("\n[Instance]\n")
-            file.write(f"instance-id={program}\n")
+            file.write(f"instance-id={instance}\n")
             file.write("session-bus-proxy=True\n")
             file.write("system-bus-proxy=True\n")
 
@@ -73,7 +76,8 @@ def main():
 
     # Then, run the program.
     log("Launching ", program, "at", path)
-    run_application(program, path, work_dir, portals, proxy_wd)
+    run_application(program, path, work_dir, portals, proxy_wd, instance_dir)
+
 
 
 # Run the DBUS Proxy.
@@ -129,7 +133,7 @@ def dbus_proxy(portals, program, work_dir):
 
 
 # Run the application.
-def run_application(application, application_path, work_dir, portals, proxy_wd):
+def run_application(application, application_path, work_dir, portals, proxy_wd, instance_dir):
     command = ["bwrap", "--new-session", "--die-with-parent"]
     fds = []
     local_dir = Path(data, "sb", application)
@@ -196,14 +200,12 @@ def run_application(application, application_path, work_dir, portals, proxy_wd):
 
     # Only necessary if we need portals
     if portals:
-        bwrap_info = open(work_dir.name + "/bwrapinfo.json", "w")
+        bwrap_info = open(f"{instance_dir.name}/bwrapinfo.json", "w")
         command.extend([
             "--dir", runtime,
-            "--dir", f"{runtime}/.flatpak/{application}",
             "--chmod", "0700", runtime,
             "--ro-bind", f"{work_dir.name}/proxy/bus", f"{runtime}/bus",
             "--bind", f"{runtime}/doc", f"{runtime}/doc",
-            "--ro-bind-fd", str(bwrap_info.fileno()), f"{runtime}/.flatpak/{application}/bwrapinfo.json",
             "--json-status-fd", str(bwrap_info.fileno()),
         ])
         share(command, ["/run/dbus"])
