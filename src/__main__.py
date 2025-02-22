@@ -155,16 +155,8 @@ def run_application(application, application_path, work_dir, portals, proxy_wd):
     if portals and not args["no_flatpak"]:
         command.extend(["--ro-bind", work_dir.name + "/.flatpak-info", "/.flatpak-info"])
         command.extend(["--symlink", "/.flatpak-info", f"/run/user/{real}/flatpak-info"])
-
-        bwrap_info = open(work_dir.name + "/bwrapinfo.json", "w")
-        command.extend([
-            "--ro-bind", work_dir.name + "/bwrapinfo.json", f"{runtime}/.flatpak/{application}/bwrapinfo.json",
-            "--json-status-fd", str(bwrap_info.fileno())
-        ])
-        fds.append(bwrap_info.fileno())
     else:
         log("Application not using portals")
-        bwrap_info = None
 
     # Add the tmpfs.
     if not args["no_tmpfs"]:
@@ -204,13 +196,17 @@ def run_application(application, application_path, work_dir, portals, proxy_wd):
 
     # Only necessary if we need portals
     if portals:
+        bwrap_info = open(work_dir.name + "/bwrapinfo.json", "w")
         command.extend([
             "--dir", runtime,
             "--chmod", "0700", runtime,
             "--ro-bind", f"{work_dir.name}/proxy/bus", f"{runtime}/bus",
             "--bind", f"{runtime}/doc", f"{runtime}/doc",
+            "--ro-bind", work_dir.name + "/bwrapinfo.json", f"{runtime}/.flatpak/{application}/bwrapinfo.json",
+            "--json-status-fd", str(bwrap_info.fileno()),
         ])
         share(command, ["/run/dbus"])
+        fds.append(bwrap_info.fileno())
     else:
         command.extend(["--uid", nobody, "--gid", nobody,])
 
