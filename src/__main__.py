@@ -199,10 +199,11 @@ def run_application(application, application_path, work_dir, portals, proxy_wd):
         bwrap_info = open(work_dir.name + "/bwrapinfo.json", "w")
         command.extend([
             "--dir", runtime,
+            "--dir", f"{runtime}/.flatpak/{application}",
             "--chmod", "0700", runtime,
             "--ro-bind", f"{work_dir.name}/proxy/bus", f"{runtime}/bus",
             "--bind", f"{runtime}/doc", f"{runtime}/doc",
-            "--ro-bind", work_dir.name + "/bwrapinfo.json", f"{runtime}/.flatpak/{application}/bwrapinfo.json",
+            "--ro-bind-fd", str(bwrap_info.fileno()), f"{runtime}/.flatpak/{application}/bwrapinfo.json",
             "--json-status-fd", str(bwrap_info.fileno()),
         ])
         share(command, ["/run/dbus"])
