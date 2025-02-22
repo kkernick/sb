@@ -57,6 +57,15 @@ def main():
             if "pipewire" in args["sockets"]:
                 file.write("pulseaudio;")
 
+            file.write("[Instance]\n")
+            file.write(f"instance-id={program}\n")
+            file.write("session-bus-proxy=True\n")
+            file.write("system-bus-proxy=True\n")
+
+            file.write("[Environment]\n")
+            for env in args["env"]:
+                file.write(f"{env}\n")
+
         # Setup the DBux Proxy. This is needed to mediate Dbus calls, and enable Portals.
         log("Launching D-Bus Proxy")
         proxy_wd = dbus_proxy(args["portals"], program, work_dir)
