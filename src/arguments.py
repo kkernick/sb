@@ -146,6 +146,10 @@ def parse():
 
     # Share files needed for GPU acceleration.
     parser.add_argument("--dri", action="store_true", default=False, help="Give the application access to DRI/GPU, Vulkan, Devices, and graphical things")
+    
+    # Fonts
+    parser.add_argument("--fonts", action="extend", nargs="*", default=[], help="Give the application only the specified subfolders of the fonts in /usr/share/fonts")
+
 
     # Share QT libraries and configurations.
     parser.add_argument("--qt", action="store_true", default=False, help="Give the application access to QT libraries (Implies --dri)")

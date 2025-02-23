@@ -696,14 +696,25 @@ def gen_command(application, application_path):
             "/sys/dev",
         ])
         share(command, [
-                "/usr/share/fontconfig", "/usr/share/fonts", "/etc/fonts",
-                f"{home}/.fonts",
+                "/usr/share/fontconfig", "/etc/fonts",
                 f"{config}/fontconfig", f"{data}/fontconfig", f"{cache}/fontconfig",
                 "/usr/share/themes", "/usr/share/color-schemes", "/usr/share/icons", "/usr/share/cursors", "/usr/share/pixmaps",
                 "/usr/share/mime",
                 f"{data}/mime",
                 f"{data}/pixmaps",
             ])
+        if not args["fonts"]:
+            log("Adding all system fonts")
+            share(command, ["/usr/share/fonts", f"{home}/.fonts"])
+        else:
+            for font in args["fonts"]:
+                if Path(f"/usr/share/fonts/{font}").exists():
+                    share(command, [f"/usr/share/fonts/{font}"])
+                elif Path(f"{home}/.fonts/{font}").exists():
+                    share(command, [f"/{home}/.fonts/{font}"])
+                else:
+                    log("Unrecognized font:", font)
+
         if update_sof:
             for lib in [
                 "libvulkan*", "libglapi*", "*mesa*", "*Mesa*", "libdrm", "libGL*", "libEGL*",
