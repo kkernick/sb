@@ -210,6 +210,7 @@ def setup(sof_dir, lib_cache, update_sof, application_path):
             continue
 
         if library == application_path:
+            log("Excluding application.")
             continue
 
         if any(library.startswith(dir) for dir in directories):
