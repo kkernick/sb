@@ -885,6 +885,10 @@ def gen_command(application, application_path):
         else:
             log("Warning: path:", path, "Does not exist!")
 
+    # Finally, share the application
+    share(command, [application_path])
+
+
     # Write the command cache.
     with cmd_cache.open("w") as file:
         log("Writing command cache")
