@@ -222,3 +222,7 @@ p
 Do prevent race conditions on multiple app launches, particularly app launches where the SOF is created, or the cmd/lib caches are updated, SB employs a lock file that exist in at `$SOF/$APP/sb.lock`, that exists for the brief time that the `bwrap` command needs to be generated or read from the cache. This file is then deleted upon the generation, allowing the next instance of the application to continue.
 
 If, in the unlikely situation that a `sb` application is terminated/killed while it is in this generation, it may leave a lock in the SOF that will deadlock subsequent app launches. If applications fail to load, you may want to check if such a lock has persisted from a termination; if you use `zram` or `tmp` as the backing medium for the SOF this issue will be remedied through a reboot.
+
+## Flags
+
+Unknown arguments are passed to the application within the sandbox under the assumption that they are arguments for it; if an application is being run from the command line, these can be provided to either the `sb` call, or passed as arguments to an `.sb` file. In the latter case, these arguments and also be placed into the file itself. However, if you have many arguments, and don't want to include them into the `.sb` or command line, you can also create a `flags.conf` file in `$XDG_DATA_HOME/sb/$APP` folder, which will be sourced on execution. Formatting is arguments split by spaces or new lines.
