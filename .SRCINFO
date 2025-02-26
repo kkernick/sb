@@ -1,18 +1,21 @@
 pkgbase = sb-git
 	pkgdesc = Sandbox Applications
-	pkgver = r164.6c51d9f
+	pkgver = r255.d2df474
 	pkgrel = 1
 	arch = any
 	makedepends = zip
+	makedepends = git
 	depends = python
 	depends = findutils
 	depends = glibc
 	depends = which
 	depends = bubblewrap
+	depends = python-inotify-simple
 	optdepends = strace: for --strace, useful for debugging
 	optdepends = hardened_malloc: for --hardened-malloc
 	optdepends = zram-generator: for --sof=zram
 	optdepends = xdg-dbus-proxy: for --portals, --see, --talk, --own for Flatpak Emulation
+	optdepends = python-libseccomp: for --syscalls
 	provides = sb
 	source = git+https://github.com/kkernick/sb.git
 	sha256sums = SKIP

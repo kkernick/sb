@@ -850,7 +850,7 @@ def gen_command(application, application_path):
                 valid.append(dir)
         share(command, valid)
         if update_sof:
-            libraries.setup(sof_dir, lib_cache, update_sof)
+            libraries.setup(sof_dir, lib_cache, update_sof, application_path)
 
     # Setup application directories.
     if "config" in args["app_dirs"]:

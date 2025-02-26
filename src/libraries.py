@@ -39,8 +39,8 @@ wildcards = set()
 # A list of subdirectories to be overlain
 directories = set()
 
-def parse_ldd(to_load, recursive=True, local=False):
-    ret = set() if local else {to_load}
+def parse_ldd(to_load, recursive=True):
+    ret = {to_load}
     for library in output(["ldd", to_load]):
         split = library.split()
 
@@ -60,13 +60,11 @@ def parse_ldd(to_load, recursive=True, local=False):
                lib = str(Path(lib).resolve())
 
         if lib is not None:
-            if local and not lib.startswith("/usr"):
-                continue
-            ret |= get(lib, local) if recursive else {lib}
+            ret |= get(lib) if recursive else {lib}
     return ret
 
 
-def get(to_load, local=False):
+def get(to_load):
     """
     @brief Get the current libraries for a binary.
     @param to_load: The binary or library
@@ -83,8 +81,7 @@ def get(to_load, local=False):
     # If the binary/library has already been searched, just return, otherwise add it.
     if to_load in searched or to_load == "":
         return ret
-    if not local:
-        searched.add(to_load)
+    searched.add(to_load)
 
     # If its a directory, then use the directory cache.
     if Path(to_load).is_dir():
@@ -104,7 +101,7 @@ def get(to_load, local=False):
             running = set()
 
             with ThreadPoolExecutor() as executor:
-                futures = {executor.submit(parse_ldd, lib, False, local): lib for lib in libs}
+                futures = {executor.submit(parse_ldd, lib, False): lib for lib in libs}
                 for future in as_completed(futures):
                     result = future.result()
                     running |= result
@@ -127,8 +124,7 @@ def get(to_load, local=False):
         if dir_cache.is_file():
             libs = set(dir_cache.open("r").readline().strip().split(" "))
             ret |= libs
-            if not local:
-                ret.add(to_load)
+            ret.add(to_load)
         return ret
 
     # If there's a wildcard, expand it.
@@ -137,11 +133,11 @@ def get(to_load, local=False):
         return ret
 
     # Otherwise, add the library/binary to libraries, and then add all libraries needed via ldd.
-    ret |= parse_ldd(to_load, local)
+    ret |= parse_ldd(to_load)
     return ret
 
 
-def setup(sof_dir, lib_cache, update_sof):
+def setup(sof_dir, lib_cache, update_sof, application_path):
     """
     @brief Setup the library folder.
     @param sof_dir: Where the SOF dir is located.
@@ -211,6 +207,9 @@ def setup(sof_dir, lib_cache, update_sof):
         # Fix some issues that sometimes happen with find.
         if not library.startswith("/usr/lib") and not library.startswith("/usr/bin"):
             log(f"Ignoring invalid library: {library}")
+            continue
+
+        if library == application_path:
             continue
 
         if any(library.startswith(dir) for dir in directories):
