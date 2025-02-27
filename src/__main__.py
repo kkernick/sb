@@ -386,9 +386,9 @@ def run_application(application, application_path, work_dir, portals, proxy_wd, 
         command.extend(args["args"])
         command.extend(post)
 
-        flags = Path(local_dir, "flags.conf")
-        if flags.is_file():
-            command.extend([flag.strip("\n") for flag in flags.open("r").readlines()])
+        l_flags = Path(local_dir, "flags.conf")
+        if l_flags.is_file():
+            command.extend([flag.strip("\n") for flag in l_flags.open("r").readlines()])
 
     # So long as we aren't dry-running, run the program.
     if not args["dry"]:
