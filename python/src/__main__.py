@@ -51,7 +51,7 @@ def main():
         # https://docs.flatpak.org/en/latest/flatpak-command-reference.html#flatpak-metadata
         with open(work_dir.name + "/.flatpak-info", "w") as file:
             file.write("[Application]\n")
-            file.write(f"name=app.appliction{program}\n")
+            file.write(f"name=app.application.{program}\n")
 
             file.write("[Context]\n")
             file.write("sockets=session-bus;system-bus;")
@@ -114,7 +114,6 @@ def dbus_proxy(portals, program, work_dir):
         '--call=org.freedesktop.portal.Desktop=org.freedesktop.portal.Settings.Read@/org/freedesktop/portal/desktop',
         '--broadcast=org.freedesktop.portal.Desktop=org.freedesktop.portal.Settings.SettingChanged@/org/freedesktop/portal/desktop',
     ])
-
 
     if args["xdg_open"]:
         portals.append("OpenURI")

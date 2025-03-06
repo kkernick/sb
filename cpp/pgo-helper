@@ -1,0 +1,4 @@
+#!/bin/sh
+
+export PATH="$(pwd):$PATH"
+./sb-refresh
