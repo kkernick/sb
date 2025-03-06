@@ -1,6 +1,6 @@
 pkgname=sb++-git
 pkgdesc="Sandbox Applications"
-pkgver=r264.b627edf
+pkgver=r265.7d925a2
 pkgrel=1
 
 source=("git+https://github.com/kkernick/sb.git")
@@ -30,7 +30,7 @@ build() {
 
 package() {
   cd $srcdir/sb/cpp
-  for binary in sb sb-startup sb-refresh; do
+  for binary in sb sb-startup sb-refresh sb-seccomp; do
     install -Dm755 "$binary" "$pkgdir/usr/bin/$binary"
   done
 

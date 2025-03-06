@@ -1,0 +1,22 @@
+#!/bin/bash
+
+PROFILE="$1"
+PROGRAM="$2"
+echo "WARNING: This script overwrites /var/log/auditd/audit.log!"
+
+sudo truncate -s 0 /var/log/audit/audit.log
+echo "Running application..."
+$PROFILE --seccomp=permissive
+
+RESULTS=$(sudo cat /var/log/audit/audit.log | grep SECCOMP | awk '{print $20}' | sort -u | cut -d "=" -f 2 | tr "\n" " ")
+FILE="$XDG_DATA_HOME/sb/$PROGRAM/syscalls.txt"
+if [ ! -f $FILE ]; then
+  echo "Your application doesn't have a syscalls file! Consider creating one at: $FILE"
+  echo $RESULTS
+else
+  echo "New Syscalls: $RESULTS"
+  SYSCALLS="$(sed '2q;d' $FILE) $RESULTS"
+  sed -i "2c $(echo $SYSCALLS | tr " " "\n" | sort -u | tr "\n" " ")" $FILE
+fi
+
+echo "You may need to run this multiple times to exhaustively find all used syscalls!"
