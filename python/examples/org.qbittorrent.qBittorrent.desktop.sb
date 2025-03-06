@@ -1,2 +1,0 @@
-#!/bin/sh
-/usr/bin/sb qbittorrent "$@" --portals Documents Desktop FileChooser --sockets wayland --kde --fs persist --share net

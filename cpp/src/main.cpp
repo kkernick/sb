@@ -13,7 +13,25 @@
 
 using namespace shared;
 
+
+void cleanup(int signo) {
+  // For for children to die.
+  for (const auto& pid : children) {
+    log({"Terminating " + std::to_string(pid)}, "debug");
+    if (kill(pid, SIGTERM) == -1 && errno != ESRCH) exit(EXIT_FAILURE);
+  }
+  while(wait(NULL) != -1 || errno == EINTR);
+}
+
+
 int main(int argc, char* argv[]) {
+  signal(SIGCHLD,SIG_IGN);
+  signal(SIGABRT,cleanup);
+  signal(SIGINT,cleanup);
+  signal(SIGSEGV,cleanup);
+  signal(SIGTERM,cleanup);
+
+
 
   // Parse those args.
   arg::args = std::vector<std::string>(argv + 1, argv + argc);
@@ -298,11 +316,6 @@ int main(int argc, char* argv[]) {
     exec({"find", arg::mod("fs"), "-type", "l", "-delete"});
   }
 
-  // For for children to die.
-  for (const auto& pid : children) {
-    log({"Terminating " + std::to_string(pid)}, "debug");
-    if (kill(pid, SIGTERM) == -1 && errno != ESRCH) exit(EXIT_FAILURE);
-  }
-  while(wait(NULL) != -1 || errno == EINTR);
-
+  cleanup(0);
+  exit(0);
 }

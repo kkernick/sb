@@ -1,0 +1,2 @@
+#!/bin/sh
+sb /usr/lib/zed/zed-editor "$@" --portals Documents Desktop FileChooser OpenURI --dri --sockets wayland --file-passthrough=rw --devices /dev/null --binaries env clangd --include --libraries /usr/lib/zed/ "libpthread*" "libdl*" --shell --fs=cache

@@ -1,2 +1,2 @@
 #!/bin/sh
-/usr/bin/sb syncthing "$@" --file-passthrough=rw --files ~/Sync --proc --devices /dev/null --share net --fs persist --post-command ~/.local/bin/chromium.desktop.sb --post-args "http://localhost:8384"
+sb syncthing "$@" --file-passthrough=rw --files ~/Sync --proc --devices /dev/null --share net --fs persist

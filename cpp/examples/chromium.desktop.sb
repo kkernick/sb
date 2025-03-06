@@ -1,0 +1,2 @@
+#!/bin/sh
+sb chromium --portals Documents Desktop Notifications FileChooser Camera --pipewire --electron --app-dirs lib --own org.mpris.MediaPlayer2.chromium.instance2 --fs=cache --share net --file-passthrough=rw --xdg-open --libraries "libQt6*:x" "$@"

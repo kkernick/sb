@@ -1,0 +1,2 @@
+#!/bin/sh
+sb okular "$@" --portals Desktop FileChooser --sockets wayland --kde --app-dirs share --libraries "libOkular6Core*" "libpoppler-qt*" --own org.kde.okular-2 --fs=persist

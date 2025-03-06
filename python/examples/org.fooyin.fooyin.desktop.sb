@@ -1,2 +1,2 @@
 #!/bin/sh
-/usr/bin/sb fooyin "$@" --portals Documents Desktop Notifications FileChooser --sockets wayland pipewire --kde --fs=cache --proc --own org.mpris.MediaPlayer2.fooyin --app-dirs lib --libraries "libSDL*"
+sb fooyin "$@" --portals Documents Desktop Notifications FileChooser --sockets wayland pipewire --kde --fs=cache --proc --own org.mpris.MediaPlayer2.fooyin --app-dirs lib --libraries "libSDL*" "libebur128*" "libvgm-player*"

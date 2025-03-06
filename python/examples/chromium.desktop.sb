@@ -1,2 +1,2 @@
 #!/bin/sh
-/usr/bin/sb chromium "$@" --portals Documents Desktop Notifications FileChooser Camera OpenURI --sockets wayland pipewire --electron --app-dirs etc share lib --own org.mpris.MediaPlayer2.chromium.instance2 --libraries /usr/lib/chromium/chromium --fs=cache --share net --file-passthrough=rw
+sb chromium "$@" --portals Documents Desktop Notifications FileChooser Camera --sockets wayland pipewire --electron --app-dirs lib --own org.mpris.MediaPlayer2.chromium.instance2 --fs=cache --share net --file-passthrough=rw --xdg-open

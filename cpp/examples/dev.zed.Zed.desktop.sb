@@ -1,0 +1,2 @@
+#!/bin/sh
+sb /usr/lib/zed/zed-editor --portals Documents Desktop FileChooser OpenURI --gui --file-passthrough=rw --devices /dev/null --binaries env clangd --libraries /usr/lib/zed/ --fs=cache --shell --include "$@"

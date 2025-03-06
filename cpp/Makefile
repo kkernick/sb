@@ -12,6 +12,7 @@ debug: $(SOURCES)
 
 profile: $(SOURCES)
 	g++ -march=x86-64 -pg $(REQUIRED) $^ -o sb
+
 pgo: $(SOURCES)
 	clang++ -fprofile-instr-generate $(REQUIRED) -march=native -O3 -ffast-math -flto	$^ -o sb
 

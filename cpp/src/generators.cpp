@@ -108,7 +108,7 @@ namespace generate {
 
     std::set<std::string> libraries = {};
 
-    if (exists("/usr/lib/libhardened_malloc.so")) {
+    if (arg::at("hardened_malloc")) {
       extend(command, {"--ro-bind", work_dir.sub("ld.so.preload"), "/etc/ld.so.preload"});
       libraries.merge(libraries::get("/usr/lib/libhardened_malloc.so"));
     }

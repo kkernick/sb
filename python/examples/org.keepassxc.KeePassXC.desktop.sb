@@ -1,2 +1,2 @@
 #!/bin/sh
-/usr/bin/sb keepassxc "$@" --portals Desktop FileChooser Documents --sockets wayland --kde
+sb keepassxc "$@" --portals Desktop FileChooser Documents --sockets wayland --kde

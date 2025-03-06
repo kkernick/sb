@@ -1,0 +1,2 @@
+#!/bin/sh
+sb yarr --share net --sys-dirs proc --devices /dev/null --fs persist --post ~/.local/bin/chromium.desktop.sb:"http://localhost:7070" "$@"

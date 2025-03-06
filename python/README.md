@@ -1,4 +1,8 @@
-# SB
+# SB-Python
+
+> [!warning]
+> The Python Implementation of SB has been effectively deprecated in favor of SB++. Python-SB is a stable
+> target, and is fully functional, but no longer receives updates.
 
 ```
 usage: sb [-h] [--portals [PORTALS ...]] [--see [SEE ...]] [--talk [TALK ...]] [--own [OWN ...]] [--no-flatpak]

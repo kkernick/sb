@@ -1,0 +1,2 @@
+#!/bin/sh
+sb syncthing --file-passthrough=rw --files ~/Sync --sys-dirs proc --devices /dev/null --share net --fs persist "$@"
