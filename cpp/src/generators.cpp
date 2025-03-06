@@ -228,7 +228,7 @@ namespace generate {
 
     // XDG Open
     if (arg::at("xdg_open")) {
-      if (bin) binaries.merge(binaries::parse("sb-open", libraries));
+      if (bin) binaries.merge(binaries::parse("/usr/bin/sb-open", libraries));
       extend(command, {"--symlink", "/usr/bin/sb-open", "/usr/bin/xdg-open"});
     }
 
