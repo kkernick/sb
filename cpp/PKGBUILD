@@ -1,6 +1,6 @@
 pkgname=sb++-git
 pkgdesc="Sandbox Applications"
-pkgver=r261.b4eaac9
+pkgver=r262.4e5dec2
 pkgrel=1
 
 source=("git+https://github.com/kkernick/sb.git")
@@ -16,6 +16,7 @@ optdepends=(
 )
 arch=("any")
 provides=("sb")
+conflicts=("sb" "sb-git")
 
 pkgver() {
   cd $srcdir/sb
@@ -28,13 +29,16 @@ build() {
 }
 
 package() {
-  cd $srcdir/sb
-  for binary in cpp/sb cpp/sb-startup cpp/sb-refresh sb-open; do
+  cd $srcdir/sb/cpp
+  for binary in sb sb-startup sb-refresh; do
     install -Dm755 "$binary" "$pkgdir/usr/bin/$binary"
   done
+
+  cd $srcdir/sb
   for service in sb.service; do
     install -Dm644 "$service" "$pkgdir/usr/lib/systemd/user/$service"
   done
 
   install -Dm 644 sb.conf "$pkgdir/usr/lib/systemd/zram-generator.conf.d/sb.conf"
+  install -Dm755 "$srcdir/sb/sb-open" "$pkgdir/usr/bin/sb-open"
 }

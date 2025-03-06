@@ -23,18 +23,22 @@ pkgver() {
 }
 
 build() {
-  cd $srcdir/sb
+  cd $srcdir/sb/python
   make
 }
 
 package() {
-  cd $srcdir/sb
-  for binary in sb sb-startup sb-refresh sb-gen sb-seccomp sb-open; do
+  cd $srcdir/sb/python
+  for binary in sb sb-startup sb-refresh sb-gen sb-seccomp; do
     install -Dm755 "$binary" "$pkgdir/usr/bin/$binary"
   done
+  
+  cd $srcdir/sb
   for service in sb.service; do
     install -Dm644 "$service" "$pkgdir/usr/lib/systemd/user/$service"
   done
 
   install -Dm 644 sb.conf "$pkgdir/usr/lib/systemd/zram-generator.conf.d/sb.conf"
+  install -Dm755 "$srcdir/sb/sb-open" "$pkgdir/usr/bin/sb-open"
+
 }
