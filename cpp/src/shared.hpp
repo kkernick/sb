@@ -22,6 +22,8 @@ namespace shared {
   extern const std::string runtime, config, cache, data, home, session, nobody, real;
   extern int inotify;
 
+  extern std::set<int> children;
+
   typedef enum {NONE, STDOUT, STDERR, ONLY_STDOUT, ONLY_STDERR, ALL} exec_return;
 
   /**
@@ -141,7 +143,7 @@ namespace shared {
    * @param cmd: The command.
    * @returns: The output
    */
-  std::string exec(const std::vector<std::string>& cmd, const exec_return& = ONLY_STDOUT);
+  std::string exec(const std::vector<std::string>& cmd, exec_return = ONLY_STDOUT);
 
   /**
    * @brief Split a string on a set of delimiters.

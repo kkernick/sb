@@ -23,6 +23,8 @@ namespace shared {
   std::mt19937 TemporaryDirectory::prng(TemporaryDirectory::dev());
   std::uniform_int_distribution<uint64_t> TemporaryDirectory::rand(0);
 
+  std::set<int> children = {};
+
   // Environment variables.
   const std::string
     runtime = std::getenv("XDG_RUNTIME_DIR"),
@@ -108,7 +110,7 @@ namespace shared {
   }
 
   // Execute a command.
-  std::string exec(const std::vector<std::string>& cmd, const exec_return& policy) {
+  std::string exec(const std::vector<std::string>& cmd, exec_return policy) {
       log({"EXEC:", join(cmd, ' ')}, "debug");
 
       // Create our pipe to talk over
@@ -139,7 +141,6 @@ namespace shared {
         if (policy == ONLY_STDOUT)  dup2(null_fd, STDERR_FILENO);
         else if (policy == ONLY_STDERR)  dup2(null_fd, STDOUT_FILENO);
 
-
         close(pipefd[1]);
 
         // Exit and quit
@@ -166,7 +167,10 @@ namespace shared {
         waitpid(pid, nullptr, 0);
 
       }
-      else close(pipefd[1]);
+      else {
+        children.emplace(pid);
+        close(pipefd[1]);
+      }
 
       close(pipefd[0]);
       return trim(result, "\0");

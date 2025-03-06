@@ -3,11 +3,13 @@
 #include "shared.hpp"
 #include "syscalls.hpp"
 
+#include <csignal>
 #include <cstring>
 #include <filesystem>
 #include <fstream>
 #include <fcntl.h>
 #include <sys/inotify.h>
+#include <sys/wait.h>
 
 using namespace shared;
 
@@ -295,5 +297,12 @@ int main(int argc, char* argv[]) {
     exec({"find", arg::mod("fs"), "-empty", "-delete"});
     exec({"find", arg::mod("fs"), "-type", "l", "-delete"});
   }
+
+  // For for children to die.
+  for (const auto& pid : children) {
+    log({"Terminating " + std::to_string(pid)}, "debug");
+    if (kill(pid, SIGTERM) == -1 && errno != ESRCH) exit(EXIT_FAILURE);
+  }
+  while(wait(NULL) != -1 || errno == EINTR);
 
 }
