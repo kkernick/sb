@@ -161,13 +161,14 @@ namespace generate {
     bool lib = !sys_dirs.contains("lib"), bin = !sys_dirs.contains("bin");
 
     std::string arguments;
-    const std::set<std::string> omitted = {"startup", "dry", "update", "dry_startup"};
+    const std::set<std::string> omitted = {"startup", "dry", "update", "dry_startup", "verbose"};
     for (auto& [key, value] : arg::switches) {
       if (!omitted.contains(key)) {
         if (value.is_list()) arguments += join(value.get_list(), ' ');
         else arguments += value.get();
       }
     }
+    arguments += arg::at("verbose").under("error");
     auto hash = std::to_string(std::hash<std::string>{}(arguments));
 
     bool update_sof = arg::at("update");
@@ -408,7 +409,7 @@ namespace generate {
       }
     }
 
-    if (lib && update_sof) {
+    if ((lib && update_sof) || !is_dir(sof_dir + "/lib")) {
 
       // Generate the list of invalid entries. Because
       // we only read to the set, there is no risk in sharing it between
@@ -433,6 +434,9 @@ namespace generate {
       lib_out.close();
 
     }
+    // The SOF already exists, so just attach the symlinks.
+    else libraries::setup({}, program, command);
+
     share(command, libraries::directories);
 
 
