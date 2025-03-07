@@ -408,13 +408,12 @@ namespace generate {
       }
     }
 
-    if (lib) {
+    if (lib && update_sof) {
 
       // Generate the list of invalid entries. Because
       // we only read to the set, there is no risk in sharing it between
       // the threads, so no mutex required.
       std::set<std::string> exclusions = {};
-      std::set<std::string> dirs = {};
       for (const auto& [lib, mod] : arg::modlist("libraries")) {
         if (mod == "x") {
           if (lib.contains("*")) exclusions.merge(shared::wildcard(lib, "/usr/lib", {"-maxdepth", "1", "-mindepth", "1", "-type", "f,l", "-executable"}));
@@ -429,12 +428,13 @@ namespace generate {
       }
 
       libraries::setup(trimmed, program, command);
-      share(command, trimmed);
       auto lib_out = std::ofstream(lib_cache);
       lib_out << hash << '\n' << join(trimmed, ' ');
       lib_out.close();
 
     }
+    share(command, libraries::directories);
+
 
     auto out = std::ofstream(cmd_cache);
     out << hash << '\n' << join(command, ' ');
