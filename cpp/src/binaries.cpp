@@ -145,8 +145,9 @@ namespace binaries {
           //
           if (binary.contains("/bin/")) {
             if (binary.starts_with("/bin/")) binary = binary.insert(0, "/usr");
-            if (discovered.contains(binary)) return;
-            discovered.emplace(binary);
+            auto base = basename(binary);
+            if (discovered.contains(base)) return;
+            discovered.emplace(base);
 
             auto parsed = parse(binary, libraries);
 

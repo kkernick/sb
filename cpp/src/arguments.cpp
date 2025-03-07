@@ -163,7 +163,6 @@ namespace arg {
       .help="Share namespaces.",
     }},
 
-
     // Portals.
     {"portals", arg::config{
       .l_name="--portals", .s_name="",

@@ -206,6 +206,13 @@ namespace arg {
         const auto& key = args[x];
         auto ret = false;
 
+        // If a .sb script ends with a list argument, new args
+        // may be "consumed" by the list. However, we need to append
+        // arguments to the end for proper overriding. Scripts, therefore
+        // use "-- $@" to ensure that new arguments are not attached to a
+        // list
+        if (key == "--") return true;
+
         // If we have an equal, it's `key=value`
         if (key.contains("=")) {
           auto keypair = shared::split(key, "=");

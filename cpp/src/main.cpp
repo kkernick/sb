@@ -237,7 +237,7 @@ int main(int argc, char* argv[]) {
       else throw std::runtime_error("Invalid policy: " + policy);
 
       // Give it within the enclave.
-      extend(command, {path, "/enclave" + path});
+      extend(command, {path, "/enclave/" + path});
     };
   };
 
@@ -255,7 +255,7 @@ int main(int argc, char* argv[]) {
   for (const auto& arg : arg::unknown) {
     if (exists(arg)) {
       passthrough(arg, arg::get("file_passthrough"));
-      post.emplace_back("/enclave" + arg);
+      post.emplace_back("/enclave/" + arg);
     }
     else post.emplace_back(arg);
   }
