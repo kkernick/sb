@@ -117,7 +117,9 @@ namespace shared {
       if (!defer) create();
     }
 
-    ~TemporaryDirectory() {std::filesystem::remove_all(path);}
+    ~TemporaryDirectory() {
+      std::filesystem::remove_all(path);
+    }
 
     const std::string& get_path() const {return path;}
 

@@ -313,5 +313,4 @@ int main(int argc, char* argv[]) {
   }
 
   cleanup(0);
-  exit(0);
 }
