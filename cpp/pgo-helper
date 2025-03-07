@@ -1,4 +1,17 @@
 #!/bin/sh
 
 export PATH="$(pwd):$PATH"
-./sb-refresh
+
+echo "Profiling application using installed SB profiles..."
+for script in $(ls ~/.local/bin/*.sb); do
+  name=$(basename $(sed '2q;d' $script | awk '{print $2}'))
+  if [[ -n $name && -d /run/sb/$name ]]; then
+    rm -r /run/sb/$name
+  fi
+
+  $script --dry
+  $script --dry
+  $script --dry --update libraries
+  $script --dry --update caches
+  $script --dry --update all
+done

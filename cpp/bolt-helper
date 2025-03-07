@@ -1,0 +1,27 @@
+#!/bin/sh
+export PATH="$(pwd):$PATH"
+
+echo "Profiling application for BOLT..."
+for script in $(ls ~/.local/bin/*.sb); do
+
+  command=$(sed '2q;d' $script)
+  name=$(basename $(echo $command | awk '{print $2}'))
+  if [[ -n $name && -d /run/sb/$name ]]; then
+    rm -r /run/sb/$name
+  fi
+
+  perf record -e cycles:u -j any,u -o cold.data -- $command --dry
+  perf2bolt -p cold.data -o cold.fdata sb
+
+  perf record -e cycles:u -j any,u -o hot.data -- $command --dry
+  perf2bolt -p hot.data -o hot.fdata sb
+
+  perf record -e cycles:u -j any,u -o lib.data -- $command --dry --update libraries
+  perf2bolt -p lib.data -o lib.fdata sb
+
+  perf record -e cycles:u -j any,u -o cache.data -- $command --dry --update caches
+  perf2bolt -p cache.data -o cache.fdata sb
+
+  perf record -e cycles:u -j any,u -o all.data -- $command --dry --update all
+  perf2bolt -p all.data -o all.fdata sb
+done
