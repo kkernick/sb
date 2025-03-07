@@ -125,8 +125,7 @@ namespace libraries {
         cache = cache_name(lib);
         if (is_file(cache)) std::filesystem::remove(cache);
       }
-      libraries.merge(parse_ldd(lib, sub_dir));
-      //futures.emplace_back(pool.submit_task([lib, sub_dir]{return parse_ldd(lib, sub_dir);}));
+      futures.emplace_back(pool.submit_task([lib, sub_dir]{return parse_ldd(lib, sub_dir);}));
     }
 
     for (auto& future : futures)
