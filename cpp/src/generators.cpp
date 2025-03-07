@@ -28,7 +28,7 @@ namespace generate {
     // Write out
     auto out = std::ofstream(binary);
     out << "#!/bin/sh\n";
-    out << "sb " << join(arguments, ' ') << "\"$@\"";
+    out << "sb " << join(arguments, ' ') << " -- \"$@\"";
     out.close();
   }
 
