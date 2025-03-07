@@ -107,7 +107,7 @@ int main(int argc, char* argv[]) {
   }
 
   // The main program command.
-  std::vector<std::string> command = {"bwrap", "--new-session", "--die-with-parent", "--clearenv", "--as-pid-1"};
+  std::vector<std::string> command = {"bwrap", "--new-session", "--die-with-parent", "--clearenv", "--as-pid-1", "--hostname", "sandbox"};
 
   // If we are using a local file system, attach it.
   if (arg::at("fs")) {
@@ -268,7 +268,7 @@ int main(int argc, char* argv[]) {
     // --shell=debug --strace will just debug shell; why would you
     // need to strace the debug shell?
     if (arg::at("verbose").meets("error")) {
-      extend(command, {"strace", "-ff"});
+      extend(command, {"strace", "-ffy"});
       if (arg::at("verbose").under("strace")) command.emplace_back("-Z");
 
     }

@@ -158,7 +158,7 @@ namespace arg {
     {"share", arg::config{
       .l_name="--share", .s_name="",
       .def = "none",
-      .valid = {"user", "ipc", "pid", "net", "uts", "cgroup", "none", "all"},
+      .valid = {"user", "ipc", "pid", "net", "cgroup", "none", "all"},
       .list=true,
       .help="Share namespaces.",
     }},

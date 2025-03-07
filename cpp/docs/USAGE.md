@@ -90,7 +90,6 @@ For lists, such as defining libraries:
 	* `ipc` shared the IPC namespace, which allows for consenting programs to communicate between the host/sandbox. It's largely unnecessary.
 	* `pid` shares the PID namespace, such that new PIDs in the sandbox will not conflict with the host. It's largely unnecessary.
 	* `net` shares the network namespace, which is required to connect to the internet and the local network. SB will add other essential networking configurations, such as `/etc/hosts` and SSL/TLS configuration and certificates.
-	* `uts` Sure does something, but I can't tell you what it is, and I bet you can't either. `bwrap` exposes it; we offer it.
 	* `cgroup` shares the cgroup, allowing for regulation of memory and CPU consumption.
 	* `all` shares all namespace. *Don't.*
 * `--shell` provides `/usr/bin/sh` in the sandbox, and tells applications that it's the default shell for the user.

@@ -392,6 +392,7 @@ namespace generate {
     // Parse system directories.
     if (sys_dirs.contains("dev")) extend(command, {"--dev", "/dev"});
     else share(command, arg::list("devices"), "dev-bind");
+    
     if (sys_dirs.contains("proc")) extend(command, {"--proc", "/proc"});
     if (sys_dirs.contains("etc")) extend(command, {"--overlay-src", "/etc", "--tmp-overlay", "/etc"});
     if (sys_dirs.contains("share")) extend(command, {"--overlay-src", "/usr/share", "--tmp-overlay", "/usr/share"});
