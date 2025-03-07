@@ -17,15 +17,17 @@ using namespace shared;
 void cleanup(int signo) {
   // For for children to die.
   for (const auto& pid : children) {
-    log({"Terminating " + std::to_string(pid)}, "debug");
-    if (kill(pid, SIGTERM) == -1 && errno != ESRCH) exit(EXIT_FAILURE);
+    kill(pid, SIGTERM);
   }
-  while(wait(NULL) != -1 || errno == EINTR);
+}
+
+void cleanup_child(int signo) {
+  children.erase(waitpid(-1, NULL, WNOHANG));
 }
 
 
 int main(int argc, char* argv[]) {
-  signal(SIGCHLD,SIG_IGN);
+  signal(SIGCHLD,cleanup_child);
   signal(SIGABRT,cleanup);
   signal(SIGINT,cleanup);
   signal(SIGSEGV,cleanup);

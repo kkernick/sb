@@ -10,16 +10,23 @@ using namespace shared;
 
 namespace libraries {
 
-
-  // Already searched libraries. Reset() to prevent poisoning.
-  std::set<std::string> searched = {};
-  std::mutex searched_mutex;
-
   // Directories, so we can mount them after discovering dependencies.
   std::set<std::string> directories = {};
 
   // Things we don't want to include.
   std::set<std::string> excluded = {};
+
+  inline std::string cache_name(const std::string& library) {
+    std::string name = library;
+    std::replace(name.begin(), name.end(), '/', '.');
+    name = strip(name, "*");
+    std::string cache = mkpath({data, "sb", "cache/"});
+    cache += name;
+    if (!cache.ends_with('.')) cache += '.';
+    cache += "lib.cache";
+    return cache;
+  }
+
 
 // Parse LDD
   std::set<std::string> parse_ldd(const std::string& library, const std::string& directory) {
@@ -27,14 +34,8 @@ namespace libraries {
 
     if (!exists(library)) return libraries;
 
-    // This is threaded, so we mediate the search list with a mutex.
-    searched_mutex.lock();
-    if (searched.contains(library)) {
-      searched_mutex.unlock();
-      return libraries;
-    }
-    searched.emplace(library);
-    searched_mutex.unlock();
+    std::string cache = cache_name(library);
+    if (is_file(cache)) return unique_split(read_file(cache), " ");
 
     // If this is a library, add it.
     if (is_file(library) && library.contains("/lib/") && directory == "") {
@@ -69,6 +70,16 @@ namespace libraries {
         if (exists(shared_lib)) libraries.emplace(shared_lib);
       }
     }
+
+    if (!libraries.empty()) {
+      auto file = std::ofstream(cache);
+      if (file.is_open()) {
+        file << join(libraries, ' ');
+        file.close();
+      }
+      else log({"Failed to write cache file:", cache});
+    }
+
     return libraries;
   }
 
@@ -80,13 +91,7 @@ namespace libraries {
     std::vector<std::future<std::set<std::string>>> futures;
 
     // Our cached definitions
-    std::string name = library;
-    std::replace(name.begin(), name.end(), '/', '.');
-    name = strip(name, "*");
-    std::string cache = mkpath({data, "sb", "cache/"});
-    cache += name;
-    if (!cache.ends_with('.')) cache += '.';
-    cache += "lib.cache";
+    std::string cache = cache_name(library);
 
     // If the cache exists, and we don't need to update, use it.
     if (is_file(cache) && arg::at("update").under("cache"))
@@ -106,9 +111,26 @@ namespace libraries {
     else direct = {library};
 
     futures.reserve(direct.size());
-    for (const auto& lib : direct)
-      futures.emplace_back(pool.submit_task([lib, sub_dir]{return parse_ldd(lib, sub_dir);}));
-    for (auto& future : futures) libraries.merge(future.get());
+    for (const auto& lib : direct) {
+
+      // We use the cache as a means of only computing LDD once.
+      // Therefore, we don't want to just say, "if we're updating
+      // the cache, don't use an existing one," since that will
+      // significantly slow down the processing as each
+      // invocation to parse_ldd will require a full parsing.
+      // Instead, we just delete any existing file, the first
+      // invocation will generate a new file as expected,
+      // and subsequent runs will just use that.
+      if (arg::get("update") == "cache") {
+        cache = cache_name(lib);
+        if (is_file(cache)) std::filesystem::remove(cache);
+      }
+      libraries.merge(parse_ldd(lib, sub_dir));
+      //futures.emplace_back(pool.submit_task([lib, sub_dir]{return parse_ldd(lib, sub_dir);}));
+    }
+
+    for (auto& future : futures)
+      libraries.merge(future.get());
 
 
     if (!libraries.empty()) {
@@ -188,5 +210,5 @@ namespace libraries {
   }
 
   // Reset, so our caches aren't poisoned by the Proxy.
-  void reset() {searched = {}; directories = {};}
+  void reset() {directories = {};}
 }

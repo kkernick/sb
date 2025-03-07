@@ -402,7 +402,11 @@ namespace generate {
     if (app_dirs.contains("share")) share(command, {"/etc" + program});
 
     if (bin) binaries::setup(binaries, command);
-    if (update_sof) for (const auto& dir : libraries::directories) libraries.merge(libraries::get(dir));
+    if (update_sof) {
+      for (const auto& dir : libraries::directories) {
+        libraries.merge(libraries::get(dir));
+      }
+    }
 
     if (lib) {
       libraries::setup(libraries, program, command);

@@ -123,7 +123,9 @@ namespace binaries {
         };
 
         std::vector<std::string> tokens;
-        auto tokenize = [&variables, &resolve_environment, &local, &required, &libraries, &tokens](const size_t& x) {
+        std::set<std::string> discovered;
+
+        auto tokenize = [&variables, &resolve_environment, &local, &required, &libraries, &tokens, &discovered](const size_t& x) {
           auto token = tokens[x];
 
           // If we already know it's garbage, don't bother trying again.
@@ -143,6 +145,9 @@ namespace binaries {
           //
           if (binary.contains("/bin/")) {
             if (binary.starts_with("/bin/")) binary = binary.insert(0, "/usr");
+            if (discovered.contains(binary)) return;
+            discovered.emplace(binary);
+
             auto parsed = parse(binary, libraries);
 
             local.emplace(binary);
