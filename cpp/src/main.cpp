@@ -158,7 +158,7 @@ int main(int argc, char* argv[]) {
   }
 
   // Various environment variables; we don't want to cache these.
-  if (arg::at("kde")) genvs(command, {"KDE_FULL_SESSION", "KDE_SESSION_VERSION"});;
+  if (arg::get("qt") == "kf6") genvs(command, {"KDE_FULL_SESSION", "KDE_SESSION_VERSION"});;
   if (arg::at("gui")) genvs(command, {"XDG_SESSION_DESKTOP", "WAYLAND_DISPLAY"});
   if (arg::at("locale")) genvs(command, {"LANG", "LANGUAGE", "LC_ALL"});
 

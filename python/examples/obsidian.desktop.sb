@@ -1,2 +1,2 @@
 #!/bin/sh
-sb obsidian "$@" --ozone-platform=wayland --portals Documents Desktop FileChooser OpenURI --sockets wayland --electron --electron-version 33 --app-dirs lib --fs=persist --xdg-open
+sb obsidian "$@" --ozone-platform=wayland --portals Documents Desktop FileChooser OpenURI --sockets wayland --electron --electron-version 34 --app-dirs lib --fs=persist --xdg-open
