@@ -215,9 +215,7 @@ int main(int argc, char* argv[]) {
   //Passthrough any and all files.
   std::vector<std::string> post = {};
   auto passthrough = [&command](const std::string& path, const std::string& policy) {
-  if (arg::at("file_passthrough") || !arg::list("files").empty()) {
-
-    // Pass the files according to the provided policy.
+    if (arg::at("file_passthrough") || !arg::list("files").empty()) {
 
       // RO/RW are bound.
       if (policy == "ro") command.emplace_back("--ro-bind");
@@ -238,7 +236,9 @@ int main(int argc, char* argv[]) {
 
       // Give it within the enclave.
       extend(command, {path, "/enclave/" + path});
-    };
+    }
+    else throw std::runtime_error("Please provide a passthrough mode!");
+
   };
 
   // The files argument supports modifiers for fine-grained policy.
