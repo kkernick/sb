@@ -23,6 +23,16 @@ pgo: $(SOURCES)
 	rm *.profraw *.profdata
 
 bolt: $(SOURCES)
+	clang++ $(REQUIRED) $(FAST) -Wl,--emit-relocs $^ -o sb
+	-./bolt-helper
+
+	merge-fdata *.fdata > combined.fdata
+	llvm-bolt sb -o sb.bolt -data=combined.fdata -reorder-blocks=ext-tsp -reorder-functions=hfsort -split-functions -split-all-cold -split-eh -dyno-stats
+	mv sb.bolt sb
+
+	rm *.fdata *.data *.data.old
+
+bolt-pgo: $(SOURCES)
 	clang++ -fprofile-instr-generate $(REQUIRED) $(FAST) $^ -o sb
 	-./pgo-helper
 	llvm-profdata merge *.profraw -output=sb.profdata

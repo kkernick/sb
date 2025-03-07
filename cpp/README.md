@@ -6,8 +6,21 @@
 
 Run `make` in this directory (`cpp`) to build a native-optimized binary of SB, created at `sb`. You can also choose between more or less optimized recipes, including:
 
-1. `generic`: A generic, x86 binary that can run on all machines.
-2. `profile`: A PGO optimized binary that runs all installed profiles in `~/.local/bin` to optimize the binary specifically for profiles in use.
+1. `generic`: A generic, x86 binary that can run on all machines. Compiles quickly.
+2. `cpp`: A ThinLTO, Native optimized binary.  Compiles moderately fast.
+3. `pgo`: A ThinLTO+PGO optimized binary that runs all installed profiles in `~/.local/bin` to optimize the binary specifically for profiles in use. Compiles slowly; has to compile a intermediary profile for profiling.
+4. `bolt` A ThinLTO+Optimized+BOLT optimized binary. Very slow
+5. `bolt-pgo` A ThinLTO+PGO+BOLT optimized binary. Exceptionally slow, and often times *slower* then regular BOLT.
+
+For reference, here is a example in performance between all four binaries (From `benchmark.sh`, in milliseconds):
+
+| Profile         | Generic | Optimized | PGO   | PGO+BOLT | Optimized+BOLT |
+| --------------- | ------- | --------- | ----- | -------- | -------------- |
+| Chromium Cold   | 319.5   | 313.3     | 311.4 | 311.6    | 310.8          |
+| Chromium Hot    | 37.2    | 35.1      | 35.4  | 35.2     | 35.3           |
+| Chromium Update | 233.9   | 225.1     | 225.6 | 225.7    | 224.1          |
+Everything after a Generic binary fell within the standard error of each profile, which means that the differences can largely be chalked up to chance. While you probably won't gain *too* much off of just using an optimized, `-03 -march=native` binary in the `cpp` recipe, the `PKGBUILD` defaults to `Optimized+BOLT`. PGO may be faster if you have a more specialized profiling suite.
+
 
 The following dependencies are needed:
 
@@ -42,30 +55,34 @@ The following files are specific to SB++
 ## Licenses and Third-Party Libraries
 
 * SB++ uses the [BS::ThreadPool](https://github.com/bshoshany/thread-pool) library, which is licensed under the MIT. Without a native thread pool library to compete against Python, SB++ would not be competitive in speed, and such this project would not exist without this library.
-
 ## Why?
 
 ### Speed
 
 Speed was the principal reason for implementing SB in C++, and the results are to be expected from moving from Python to C++ (via `benchmark.sh`):
 
-| Profile (C++/Python)                                                 | Cold Launch (ms) | Hot Launch (ms) | Update Libraries (ms) | Update Caches (ms) |
-| -------------------------------------------------------------------- | ---------------- | --------------- | --------------------- | ------------------ |
-| [Chromium](https://github.com/ungoogled-software/ungoogled-chromium) | 361.5/1534.0     | 15.0/67.3       | 33.0/296.4            | 592.8/506.9        |
-| [Zed](https://github.com/zed-industries/zed)                         | 417.5/1251.5     | 9.4/68.2        | 27.5/266.7            | 201.1/311.6        |
-| [Obsidian](https://obsidian.md/)                                     | 323.1/1478.2     | 9.7/66.5        | 23.8/282.9            | 635.4/475.3        |
-| [Fooyin](https://github.com/fooyin/fooyin)                           | 561.3/4924.8     | 10.5/65.1       | 17.6/1609.9           | 1321.3/2682.4      |
-| [Okular](https://invent.kde.org/graphics/okular)                     | 672.0/4376.6     | 10.3/65.3       | 21.6/1374.5           | 1262.2/2352.9      |
-| [KeePassXC](https://github.com/keepassxreboot/keepassxc)             | 641.1/4316.4     | 6.1/66.2        | 20.4/1182.4           | 1292.1/2236.4      |
-| [Syncthing](https://github.com/syncthing/syncthing)                  | 79.9/172.3       | 8.3/64.1        | 22.7/106.5            | 56.1/111.6         |
-| [Yarr](https://github.com/nkanaev/yarr)                              | 46.5/178.8       | 8.4/64.4        | 15.3/115.8            | 48.8/119.1         |
-| Average Speedup                                                      | **588% Faster**  | **678% Faster** | **2862% Faster**      | **162% Faster**    |
+| Profile (C/P)                                                        | Cold Launch     | Hot Launch      | Update Libraries | Update Caches   |
+| -------------------------------------------------------------------- | --------------- | --------------- | ---------------- | --------------- |
+| [Chromium](https://github.com/ungoogled-software/ungoogled-chromium) | 274.2/1173.8    | 10.4/66.9       | 23.0/247.3       | 195.0/414.3     |
+| [Zed](https://github.com/zed-industries/zed)                         | 347.8/892.3     | 6.6/64.2        | 16.1/194.3       | 58.9/230.5      |
+| [Obsidian](https://obsidian.md/)                                     | 255.6/1090.5    | 6.4/62.7        | 16.4/234.4       | 239.1/372.7     |
+| [Fooyin](https://github.com/fooyin/fooyin)                           | 374.6/3456.0    | 7.3/63.4        | 12.0/1098.1      | 89.0/1874.0     |
+| [Okular](https://invent.kde.org/graphics/okular)                     | 379.5/3125.3    | 7.3/63.7        | 15.1/923.1       | 86.7/1719.4     |
+| [KeePassXC](https://github.com/keepassxreboot/keepassxc)             | 424.3/3081.2    | 4.6/62.8        | 13.7/828.4       | 85.8/1625.3     |
+| [Syncthing](https://github.com/syncthing/syncthing)                  | 53.4/133.2      | 5.6/60.8        | 14.8/93.1        | 21.7/97.3       |
+| [Yarr](https://github.com/nkanaev/yarr)                              | 29.8/135.0      | 5.3/61.0        | 10.2/98.1        | 17.4/101.6      |
+| Average Speedup                                                      | **612% Faster** | **945% Faster** | **3061% Faster** | **811% Faster** |
+* Cold Launch is an important metric if the startup service isn't be used, as it determines how long a program will take to launch for the first time after booting.  Applications can benefit from the loading of other applications (One Qt application will populate the shared SOF for other Qt applications, letting it launch "warm").
+* Hot Launch is the most important metric for SB. It defines how fast the program can launch with a warm SOF and both a `lib.cache` and `cmd.cache`. It effectively measures how quickly SB can read the `cmd.cache` and launch `bwrap`. The ideal is for this value to be zero, which would be equivalent to launching the application directly.
+* Update Libraries/Caches are important metrics for when the caches needs to be updated, particularly after an update. 
+
 Besides the improvements inherent in the change of language, SB++ implements many improvements to the underlying algorithms, yielding further performance gains:
 * Cold Launch has been massively improved through two key improvements:
 	1. Rather than reading files as binary and writing them to the SOF, SB++ uses `std::filesystem::copy_file` to use internal copying mechanisms that are far faster.
 	2. Copying to the SOF is threaded; rather than copying files sequentially they are processed by a pool.
 * Hot Launch has been improved by using `fork/dup2/exec` directly, foregoing the need to launch a shell. 
-* Cache/Library Updates fix a bug in the Python implementation, where `ldd` was assumed to not recursively determine dependencies. It does. This speed up allows for a far more reliable parser, mentioned below.
+* Library Updates fix a bug in the Python implementation, where `ldd` was assumed to not recursively determine dependencies. It does. This speed up allows for a far more reliable parser, mentioned below.
+* Cache Updates no longer using a thread-mediated `searched` list, to which mutex access significantly slowed access down. Instead, we just cache `ldd` results, and return the pre-computed results immediately. You may think that returning libraries instead of just an empty list would slow things down, but the performance gain is tremendous, and come with the benefit in that it is more accurate, as the prior implementation had a bug where caches would not be complete if one of their libraries/binaries were already check prior in the sandbox construction.
 
 ### Functionality and Usability
 

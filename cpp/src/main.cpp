@@ -22,7 +22,6 @@ void cleanup(int signo) {
 }
 
 
-
 int main(int argc, char* argv[]) {
   signal(SIGABRT,cleanup);
   signal(SIGINT,cleanup);

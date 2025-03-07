@@ -49,11 +49,6 @@ namespace arg {
       .valid={"false", "true", "debug"},
       .help="Provide /usr/bin/sh, optionally drop into it",
     }},
-    {"kde", arg::config{
-      .l_name="--kde", .s_name="-k",
-      .valid={"false", "true"},
-      .help="KDE/KF6 for QT6 applications.",
-    }},
     {"locale", arg::config{
       .l_name="--locale", .s_name="-l",
       .valid={"false", "true"},
