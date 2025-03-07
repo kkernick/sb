@@ -21,13 +21,10 @@ void cleanup(int signo) {
   }
 }
 
-void cleanup_child(int signo) {
-  children.erase(waitpid(-1, NULL, WNOHANG));
-}
 
 
 int main(int argc, char* argv[]) {
-  signal(SIGCHLD,cleanup_child);
+  signal(SIGCHLD,SIG_IGN);
   signal(SIGABRT,cleanup);
   signal(SIGINT,cleanup);
   signal(SIGSEGV,cleanup);
