@@ -13,9 +13,7 @@ namespace libraries {
   // Directories, so we can mount them after discovering dependencies.
   std::set<std::string> directories = {};
 
-  // Things we don't want to include.
-  std::set<std::string> excluded = {};
-
+  
   inline std::string cache_name(const std::string& library) {
     std::string name = library;
     std::replace(name.begin(), name.end(), '/', '.');
@@ -159,26 +157,13 @@ namespace libraries {
     auto vector = std::vector<std::string>(); vector.reserve(libraries.size());
     vector.insert(vector.begin(), libraries.begin(), libraries.end());
 
-    // Generate the list of invalid entries. Because
-    // we only read to the set, there is no risk in sharing it between
-    // the threads, so no mutex required.
-    std::set<std::string> exclusions = {};
-    for (const auto& [lib, mod] : arg::modlist("libraries")) {
-      if (mod == "x") {
-        if (lib.contains("*")) exclusions.merge(shared::wildcard(lib, "/usr/lib", {"-maxdepth", "1", "-mindepth", "1", "-type", "f,l", "-executable"}));
-        else if (is_dir(lib)) directories.emplace(lib);
-        else exclusions.emplace(lib);
-      }
-    }
-
     // Write Lambda. We batch writes to tremendously speed up initial SOF generation.
-    auto write = [&share_dir, &app_dir, &vector, &exclusions](const size_t& x){
+    auto write = [&share_dir, &app_dir, &vector](const size_t& x){
       const auto& lib = vector[x];
 
       // We only write normalized library files, directories are mounted
       if (!lib.starts_with("/usr/lib")) return;
       for (const auto& dir : directories) if (lib.starts_with(dir)) return;
-      if (exclusions.contains(lib)) return;
 
       const auto base = lib.substr(lib.find("/lib/") + 5);
       const auto dir = dirname(base);

@@ -409,10 +409,29 @@ namespace generate {
     }
 
     if (lib) {
-      libraries::setup(libraries, program, command);
-      share(command, libraries::directories);
+
+      // Generate the list of invalid entries. Because
+      // we only read to the set, there is no risk in sharing it between
+      // the threads, so no mutex required.
+      std::set<std::string> exclusions = {};
+      std::set<std::string> dirs = {};
+      for (const auto& [lib, mod] : arg::modlist("libraries")) {
+        if (mod == "x") {
+          if (lib.contains("*")) exclusions.merge(shared::wildcard(lib, "/usr/lib", {"-maxdepth", "1", "-mindepth", "1", "-type", "f,l", "-executable"}));
+          else if (is_dir(lib) && libraries::directories.contains(lib)) libraries::directories.erase(lib);
+          else exclusions.emplace(lib);
+        }
+      }
+
+      std::set<std::string> trimmed = {};
+      for (const auto& lib : libraries) {
+        if (!exclusions.contains(lib)) trimmed.emplace(lib);
+      }
+
+      libraries::setup(trimmed, program, command);
+      share(command, trimmed);
       auto lib_out = std::ofstream(lib_cache);
-      lib_out << hash << '\n' << join(libraries, ' ');
+      lib_out << hash << '\n' << join(trimmed, ' ');
       lib_out.close();
 
     }

@@ -43,4 +43,6 @@ namespace libraries {
 
    // Reset, to prevent cache poisoning between the Proxy and Program.
    void reset();
+
+   void setup();
 }
