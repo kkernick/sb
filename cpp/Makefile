@@ -15,7 +15,7 @@ debug: $(SOURCES)
 pgo: $(SOURCES)
 	clang++ -fprofile-instr-generate $(REQUIRED) $(FAST) $^ -o sb
 
-	./pgo-helper
+	-./pgo-helper
 
 	llvm-profdata merge *.profraw -output=sb.profdata
 	clang++ -fprofile-instr-use=sb.profdata $(REQUIRED) $(FAST) $^ -o sb
@@ -28,7 +28,7 @@ bolt: $(SOURCES)
 	llvm-profdata merge *.profraw -output=sb.profdata
 	clang++ -fprofile-instr-use=sb.profdata $(REQUIRED) $(FAST) -Wl,--emit-relocs $^ -o sb
 
-	./bolt-helper
+	-./bolt-helper
 
 	merge-fdata *.fdata > combined.fdata
 	llvm-bolt sb -o sb.bolt -data=combined.fdata -reorder-blocks=ext-tsp -reorder-functions=hfsort -split-functions -split-all-cold -split-eh -dyno-stats
