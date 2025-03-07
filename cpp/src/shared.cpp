@@ -165,7 +165,6 @@ namespace shared {
           result.append(buffer.data(), bytes);
         } while (bytes > 0);
         waitpid(pid, nullptr, 0);
-
       }
       else {
         children.emplace(pid);

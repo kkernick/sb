@@ -24,12 +24,10 @@ void cleanup(int signo) {
 
 
 int main(int argc, char* argv[]) {
-  signal(SIGCHLD,SIG_IGN);
   signal(SIGABRT,cleanup);
   signal(SIGINT,cleanup);
   signal(SIGSEGV,cleanup);
   signal(SIGTERM,cleanup);
-
 
 
   // Parse those args.
@@ -110,7 +108,7 @@ int main(int argc, char* argv[]) {
   }
 
   // The main program command.
-  std::vector<std::string> command = {"bwrap", "--new-session", "--die-with-parent", "--clearenv"};
+  std::vector<std::string> command = {"bwrap", "--new-session", "--die-with-parent", "--clearenv", "--as-pid-1"};
 
   // If we are using a local file system, attach it.
   if (arg::at("fs")) {
