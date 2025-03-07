@@ -44,9 +44,9 @@ For lists, such as defining libraries:
 
 * `--fs` provides the sandbox with a persistent root folder at `$XDG_DATA_HOME/sb/app/fs`, which is mounted onto the sandbox root. This allows for the additional of configuration files at `/etc`, binaries in `/usr/bin` (Which are dependency checked), and files in `/home`.  A modifier can be used to change the location of the `fs`, which is useful to have multiple profiles of an application, such as `--fs persist:b` for a `fs` at `$XDG_DATA_HOME/sb/app/b`
 	* `cache` will mount the `fs` as temporary overlay. The sandbox can modify everything within, but changes will not be propagated to the `fs` on the host system.
-	* `persist` will mount the `fs` read-write, allowing changes in the `fs` to persist across sessions. 
-	
-> [!note] 
+	* `persist` will mount the `fs` read-write, allowing changes in the `fs` to persist across sessions.
+
+> [!note]
 > Applications like Chromium using Singletons to ensure only a single instance of the program is running. Using `persist` will mandate this requirement as all instance will share the `fs`, where `cache` will create a "copy" for each.
 
 * `--gtk` provides GTK configurations to the sandbox, and sets `--gui`.
@@ -77,7 +77,7 @@ For lists, such as defining libraries:
 	* `permissive` will create a blank filter if it does not exist at `$XDG_DATA_HOME/sb/app/filter.bpf`, or use the filter in a permissive mode where violations will be logged. You can use `sb-seccomp` to generate a filter in this mode, or just parse `/var/log/audit/audit.log` directly. Place permitted syscalls in the `$XDG_DATA_HOME/sb/app/syscalls.txt` file, but ensure the first line remains unchanged so that the hash can be used to regenerate when needed.
 	* `enforcing` will enforce the BPF Filter, and syscalls not outlined will fail with `EPERM`. Most programs don't know how to handle a failed syscall, and will likely just crash.
 	* `strace` will set `--verbose=strace` and collect the output from `strace` to determine syscalls and update the filter directly. You will likely still need to use `sb-seccomp`, as `strace` is not exhaustive, but this will create a good starting filter.
-	
+
 >[!tip]
 > You will never need to scour logs or manually enter syscalls into `syscalls.txt`. `sb-seccomp` and `--seccomp=strace` are all you need to create a filter for *any* application, which will harden the security of the sandbox. It takes 30 seconds.
 
@@ -87,9 +87,9 @@ For lists, such as defining libraries:
 	* `user` shares the user namespace, which is needed for Electron applications that create their own sub-sandboxes. It does *not* leak your username or home folder. `--electron` already adds this, so you don't need to explicitly specify it.
 	* `ipc` shared the IPC namespace, which allows for consenting programs to communicate between the host/sandbox. It's largely unnecessary.
 	* `pid` shares the PID namespace, such that new PIDs in the sandbox will not conflict with the host. It's largely unnecessary.
-	* `net` shares the network namespace, which is required to connect to the internet and the local network. SB will add other essential networking configurations, such as `/etc/hosts` and SSL/TLS configuration and certificates. 
+	* `net` shares the network namespace, which is required to connect to the internet and the local network. SB will add other essential networking configurations, such as `/etc/hosts` and SSL/TLS configuration and certificates.
 	* `uts` Sure does something, but I can't tell you what it is, and I bet you can't either. `bwrap` exposes it; we offer it.
-	* `cgroup` shares the cgroup, allowing for regulation of memory and CPU consumption. 
+	* `cgroup` shares the cgroup, allowing for regulation of memory and CPU consumption.
 	* `all` shares all namespace. *Don't.*
 * `--shell` provides `/usr/bin/sh` in the sandbox, and tells applications that it's the default shell for the user.
 	* `true` merely provides the shell
@@ -104,6 +104,7 @@ For lists, such as defining libraries:
 | Chromium Cold | 474.8ms    | 61.1ms*     | 494.1ms |
 | Chromium Hot  | 62.3ms     | 67.7ms      | 66.9ms  |
 | Storage Usage | 1.2G (RAM) | 1.2G (Disk) | 533MB   |
+
 > [!note]
 > Because `data` and the host's libraries exist on the same file-system, or at least they typically do, cold boot is as fast as warm boot because all it needs to do is create the hard-links.
 

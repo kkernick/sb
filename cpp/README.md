@@ -19,6 +19,7 @@ For reference, here is a example in performance between all four binaries (From 
 | Chromium Cold   | 319.5   | 313.3     | 311.4 | 311.6    | 310.8          |
 | Chromium Hot    | 37.2    | 35.1      | 35.4  | 35.2     | 35.3           |
 | Chromium Update | 233.9   | 225.1     | 225.6 | 225.7    | 224.1          |
+
 Everything after a Generic binary fell within the standard error of each profile, which means that the differences can largely be chalked up to chance. While you probably won't gain *too* much off of just using an optimized, `-03 -march=native` binary in the `cpp` recipe, the `PKGBUILD` defaults to `Optimized+BOLT`. PGO may be faster if you have a more specialized profiling suite.
 
 
@@ -72,6 +73,7 @@ Speed was the principal reason for implementing SB in C++, and the results are t
 | [Syncthing](https://github.com/syncthing/syncthing)                  | 53.4/133.2      | 5.6/60.8        | 14.8/93.1        | 21.7/97.3       |
 | [Yarr](https://github.com/nkanaev/yarr)                              | 29.8/135.0      | 5.3/61.0        | 10.2/98.1        | 17.4/101.6      |
 | Average Speedup                                                      | **612% Faster** | **945% Faster** | **3061% Faster** | **811% Faster** |
+
 * Cold Launch is an important metric if the startup service isn't be used, as it determines how long a program will take to launch for the first time after booting.  Applications can benefit from the loading of other applications (One Qt application will populate the shared SOF for other Qt applications, letting it launch "warm").
 * Hot Launch is the most important metric for SB. It defines how fast the program can launch with a warm SOF and both a `lib.cache` and `cmd.cache`. It effectively measures how quickly SB can read the `cmd.cache` and launch `bwrap`. The ideal is for this value to be zero, which would be equivalent to launching the application directly.
 * Update Libraries/Caches are important metrics for when the caches needs to be updated, particularly after an update. 
