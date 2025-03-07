@@ -24,7 +24,7 @@ pgo: $(SOURCES)
 
 bolt: $(SOURCES)
 	clang++ -fprofile-instr-generate $(REQUIRED) $(FAST) $^ -o sb
-	./pgo-helper
+	-./pgo-helper
 	llvm-profdata merge *.profraw -output=sb.profdata
 	clang++ -fprofile-instr-use=sb.profdata $(REQUIRED) $(FAST) -Wl,--emit-relocs $^ -o sb
 
