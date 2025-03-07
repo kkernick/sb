@@ -13,12 +13,14 @@ As mentioned in the [README](../README.md), SB++ has a new argument handler that
 * Incremented: `-vv`, which corresponds to the *third* value in the switches valid list (IE `debug` for `--verbose`). The first value, typically `false`, is when the flag has not been provided, so `-v` will increment it to the second.
 * Repeated, either to increment the value such as `--verbose --verbose` yielding `debug`, or to override older values such as `--verbose=false --verbose=error` yielding `error`. This is particularly useful for running a `.sb` profile from the command line, allowing you to change defined settings without modifying the script itself or the `sb.conf` file.
 * Reset to the default value with `!`: `--verbose=!`
+
 For lists, such as defining libraries:
 * Values can be collected in a single invocation: `--libraries lib1.so lib2.so` or `--libraries lib1.so,lib2.so`
 * Collected from multiple invocations: `--libraries lib1.so libraries lib2.so`
 * Some lists, such as `libraries`, supports wildcard semantics: `--libraries lib*.so`.
 * Some lists, such as `libraries`, support modifier semantics: `--libraries lib1.so:x` would exclude that library from being provided in the sandbox, regardless of dependency resolution.
 
+***
 
 * `--cmd/-C` specifies the program to run, and must be the first argument to which the switch can be omitted, such as `sb program`. You can use the switch to override the program, particularly for inherited profiles.
 * `--app-dirs` specifies program folders to be provided to the sandbox:
