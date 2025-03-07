@@ -161,7 +161,7 @@ namespace generate {
     bool lib = !sys_dirs.contains("lib"), bin = !sys_dirs.contains("bin");
 
     std::string arguments;
-    const std::set<std::string> omitted = {"startup", "dry", "update"};
+    const std::set<std::string> omitted = {"startup", "dry", "update", "dry_startup"};
     for (auto& [key, value] : arg::switches) {
       if (!omitted.contains(key)) {
         if (value.is_list()) arguments += join(value.get_list(), ' ');

@@ -39,10 +39,13 @@ for PROFILE in $EXAMPLES; do
 
   sleep 1
 
+  program=$(sed '2q;d' "$ROOT/$subdir/examples/$script" | awk '{print $2}')
+
+
   echo "======================= $PROFILE ======================="
 
   # Cold Boot--there is no cache.
-  hyperfine --command-name "Cold $PROFILE" --time-unit millisecond --prepare "rm -fr /run/sb/ /tmp/sb || true" "$PROFILE --dry"
+  hyperfine --command-name "Cold $PROFILE" --time-unit millisecond --prepare "rm -fr /run/sb/ /tmp/sb ~/.local/share/sb/$program/lib ~/.local/share/sb/shared || true" "$PROFILE --dry"
 
   sleep 1
 

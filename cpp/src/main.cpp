@@ -103,7 +103,7 @@ int main(int argc, char* argv[]) {
     instance_dir.create();
     log({"Initializing xdg-dbus-proxy..."});
     generate::flatpak_info(program, basename(instance_dir.get_path()), work_dir);
-    proxy_wd = generate::xdg_dbus_proxy(program, work_dir);
+    if (!arg::at("dry")) proxy_wd = generate::xdg_dbus_proxy(program, work_dir);
   }
 
   // The main program command.
