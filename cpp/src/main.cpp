@@ -310,6 +310,15 @@ int main(int argc, char* argv[]) {
     exec({"find", arg::mod("fs"), "-size", "0", "-delete"});
     exec({"find", arg::mod("fs"), "-empty", "-delete"});
     exec({"find", arg::mod("fs"), "-type", "l", "-delete"});
+    
+    // These only persist if --fs=persist, but dev sometimes has /dev/null
+    // files which can be *massive* if the app crashes. We want to remove those.
+    // Given that both /dev and /run are ephemeral directories (/dev is a devfs and
+    // /run is a tmpfs, users shoudln't be putting anything in them to begin with).
+    if (is_dir(arg::mod("fs") + /"dev")) 
+      exec({"rm", "-r", arg::mod("fs") + /"dev"});
+    if (is_dir(arg::mod("fs") + /"run")) 
+      exec({"rm", "-r", arg::mod("fs") + /"run"});
   }
 
   cleanup(0);

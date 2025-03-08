@@ -1,12 +1,12 @@
 pkgname=sb++-git
 pkgdesc="Sandbox Applications"
-pkgver=r289.b93a3b1
+pkgver=r290.c7dd75a
 pkgrel=1
 
 source=("git+https://github.com/kkernick/sb.git")
 sha256sums=("SKIP")
 depends=(findutils glibc which bubblewrap)
-makedepends=(git llvm-bolt lld)
+makedepends=(git lld)
 optdepends=(
   'strace: for --strace, useful for debugging'
   'hardened_malloc: for --hardened-malloc'
@@ -25,7 +25,7 @@ pkgver() {
 
 build() {
   cd $srcdir/sb/cpp
-  make bolt
+  make generic
 }
 
 package() {
