@@ -107,7 +107,11 @@ int main(int argc, char* argv[]) {
   }
 
   // The main program command.
-  std::vector<std::string> command = {"bwrap", "--new-session", "--die-with-parent", "--clearenv", "--as-pid-1", "--hostname", "sandbox", "--unshare-uts"};
+  std::vector<std::string> command = {"bwrap", "--new-session", "--die-with-parent", "--clearenv", "--as-pid-1", "--unshare-uts"};
+
+  if (!arg::at("hostname")) {
+    extend(command, {"--hostname", "sandbox"});
+  }
 
   // If we are using a local file system, attach it.
   if (arg::at("fs")) {

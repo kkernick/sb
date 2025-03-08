@@ -85,6 +85,11 @@ namespace arg {
       .valid={"false", "true"},
       .help="If the service is running at startup (Do not use).",
     }},
+    {"hostname", arg::config{
+      .l_name="--hostname", .s_name="",
+      .valid = {"false", "true"},
+      .help="Pass the real hostname to the sandbox",
+    }},
 
 
     // Discrete, Single-Value Switches.
