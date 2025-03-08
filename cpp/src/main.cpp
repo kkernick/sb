@@ -316,9 +316,9 @@ int main(int argc, char* argv[]) {
     // Given that both /dev and /run are ephemeral directories (/dev is a devfs and
     // /run is a tmpfs, users shoudln't be putting anything in them to begin with).
     if (is_dir(arg::mod("fs") + "/dev"))
-      exec({"rm", "-r", arg::mod("fs") + "/dev"});
+      std::filesystem::remove_all(arg::mod("fs") + "/dev");
     if (is_dir(arg::mod("fs") + "/run"))
-      exec({"rm", "-r", arg::mod("fs") + "/run"});
+      std::filesystem::remove_all(arg::mod("fs") + "/run");
   }
 
   cleanup(0);
