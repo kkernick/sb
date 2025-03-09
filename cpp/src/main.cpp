@@ -133,14 +133,10 @@ int main(int argc, char* argv[]) {
   if (arg::at("fs")) {
     const auto path = arg::mod("fs");
     std::filesystem::create_directories(path);
-    std::filesystem::create_directories(path + "/tmp");
-    std::filesystem::create_directories(path + "/home/sb/.cache");
 
-
-    extend(command, {
-      "--overlay-src", arg::mod("fs") + "/tmp", "--tmp-overlay", "/tmp",
-      "--tmpfs", "/home/sb/.cache",
-    });
+    if (is_dir(path + "/tmp")) extend(command, {"--overlay-src", arg::mod("fs") + "/tmp", "--tmp-overlay", "/tmp"});
+    else extend(command, {"--tmpfs", "/tmp"});
+    extend(command, {"--tmpfs", "/home/sb/.cache"});
 
     // Mount it.
     if (arg::get("fs") == "cache") extend(command, {"--overlay-src", arg::mod("fs"), "--tmp-overlay", "/"});
