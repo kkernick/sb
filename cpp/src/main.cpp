@@ -89,6 +89,9 @@ int main(int argc, char* argv[]) {
     exit(0);
   }
 
+  // Start getting the filter in another thread.
+  std::future<std::string> seccomp_future = pool.submit_task([&program]() -> std::string {return syscalls::filter(program);});
+
   // Initialize inotify
   inotify = inotify_init();
   if (inotify == -1) throw std::runtime_error(std::string("Failed to initialize inotify: ") + strerror(errno));
@@ -110,17 +113,14 @@ int main(int argc, char* argv[]) {
   // Defer instance dir to only when we actually need it.
   auto instance_dir = TemporaryDirectory(mkpath({runtime, ".flatpak"}), program, "", true);
   int proxy_wd = -1;
-  auto generate_proxy = [&instance_dir, &program, &proxy_wd, &work_dir]() {
-    if (arg::list("portals").empty() && arg::list("see").empty() && arg::list("talk").empty() && arg::list("own").empty())
-      log({"Application does not use portals"});
-    else {
-      instance_dir.create();
-      log({"Initializing xdg-dbus-proxy..."});
-      generate::flatpak_info(program, basename(instance_dir.get_path()), work_dir);
-      if (!arg::at("dry")) proxy_wd = generate::xdg_dbus_proxy(program, work_dir);
-    }
-  };
-  profile("Proxy", generate_proxy);
+  if (arg::list("portals").empty() && arg::list("see").empty() && arg::list("talk").empty() && arg::list("own").empty())
+    log({"Application does not use portals"});
+  else {
+    instance_dir.create();
+    log({"Initializing xdg-dbus-proxy..."});
+    generate::flatpak_info(program, basename(instance_dir.get_path()), work_dir);
+    if (!arg::at("dry")) proxy_wd = generate::xdg_dbus_proxy(program, work_dir);
+  }
 
   // The main program command.
   std::vector<std::string> command = {"bwrap", "--new-session", "--die-with-parent", "--clearenv", "--unshare-uts"};
@@ -173,9 +173,7 @@ int main(int argc, char* argv[]) {
   }
 
   // Hardened malloc.
-  if (arg::at("hardened_malloc")) {
-    extend(command, {"--ro-bind", work_dir.sub("ld.so.preload"), "/etc/ld.so.preload"});
-  }
+  if (arg::at("hardened_malloc")) extend(command, {"--ro-bind", work_dir.sub("ld.so.preload"), "/etc/ld.so.preload"});
 
   // Various environment variables; we don't want to cache these.
   if (arg::get("qt") == "kf6") genvs(command, {"KDE_FULL_SESSION", "KDE_SESSION_VERSION"});;
@@ -228,16 +226,6 @@ int main(int argc, char* argv[]) {
   };
   profile("Command Generation", generate_command);
 
-  int seccomp_fd = -1;
-  auto seccomp_generate = [&program, &command, &seccomp_fd]() {
-    auto seccomp_filter = syscalls::filter(program);
-    if (!seccomp_filter.empty()) {
-      seccomp_fd = open(seccomp_filter.c_str(), O_RDONLY);
-      extend(command, {"--seccomp", std::to_string(seccomp_fd)});
-    }
-  };
-  profile("SECCOMP Generation", seccomp_generate);
-
 
   //Passthrough any and all files.
   std::vector<std::string> post = {};
@@ -287,10 +275,17 @@ int main(int argc, char* argv[]) {
     else post.emplace_back(arg);
   }
 
+  // Get the seccomp filter and add it.
+  auto seccomp_filter = seccomp_future.get();
+  auto seccomp_fd = -1;
+  if (!seccomp_filter.empty()) {
+    seccomp_fd = open(seccomp_filter.c_str(), O_RDONLY);
+    extend(command, {"--seccomp", std::to_string(seccomp_fd)});
+  }
+
   // Final command args. Debug Shell replaces the actual app
   if (arg::get("shell") == "debug") command.emplace_back("sh");
   else {
-
     // Strace just prepends itself before running the command.
     // --shell=debug --strace will just debug shell; why would you
     // need to strace the debug shell?
@@ -310,7 +305,14 @@ int main(int argc, char* argv[]) {
   if (!arg::at("dry")) {
 
     // Wait for the proxy to setup.
-    if (proxy_wd != -1) inotify_wait(proxy_wd);
+    if (proxy_wd != -1) {
+      log({"Waiting for Proxy..."});
+      inotify_wait(proxy_wd);
+    }
+
+    // Wait for any tasks in the pool to complete.
+    log({"Waiting for auxiliary tasks to complete.."});
+    pool.wait();
 
     // If there's a post command, the main command is non-blocking,
     // we launch the post command, and wait on that.

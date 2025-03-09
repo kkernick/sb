@@ -13,7 +13,6 @@ namespace libraries {
   // Directories, so we can mount them after discovering dependencies.
   std::set<std::string> directories = {};
 
-  
   inline std::string cache_name(const std::string& library) {
     std::string name = library;
     std::replace(name.begin(), name.end(), '/', '.');
@@ -181,8 +180,8 @@ namespace libraries {
     };
 
     // Zoom.
-    pool.detach_loop(0, vector.size(), write);
-    pool.wait();
+    auto futures = pool.submit_loop(0, vector.size(), write);
+    futures.wait();
 
     // Mount the SOF and link it to the other locations.
     extend(command, {
@@ -192,7 +191,4 @@ namespace libraries {
       "--symlink", "/usr/lib", "/usr/lib64",
     });
   }
-
-  // Reset, so our caches aren't poisoned by the Proxy.
-  void reset() {directories = {};}
 }

@@ -185,12 +185,8 @@ namespace binaries {
 
           // Tokenize the string
           tokens = split(line, " \t()=;\"");
-          for (size_t x = 0; x < tokens.size(); ++x) tokenize(x);
-
-          // This cases a deadlock somewhere. It doesn't
-          // improve performance that much, anyways.
-          //pool.detach_loop(0, tokens.size(), tokenize);
-          //pool.wait();
+          auto future = pool.submit_loop(0, tokens.size(), tokenize);
+          future.wait();
         }
 
         // Update the cache; note libraries are already cached by libraries::get.

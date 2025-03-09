@@ -263,8 +263,10 @@ namespace shared {
       auto len = read(inotify, &buffer, sizeof(struct inotify_event) + PATH_MAX + 1);
       if (len <= 0) throw std::runtime_error("Failed to read from inotify FD");
       auto* event =  reinterpret_cast<inotify_event*>(&buffer);
-      if ((name.empty() || std::string(event->name) == name) && event->wd == wd)
+      if ((name.empty() || std::string(event->name) == name) && event->wd == wd) {
+        inotify_rm_watch(inotify, wd);
         return;
+      }
     }
   }
 

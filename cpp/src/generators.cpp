@@ -90,55 +90,58 @@ namespace generate {
 
 
   int xdg_dbus_proxy(const std::string& program, const TemporaryDirectory& work_dir) {
-    std::vector<std::string> command = {
-      "bwrap",
-      "--new-session",
-      "--clearenv",
-      "--setenv", "PATH", "/usr/bin",
-      "--disable-userns",
-      "--assert-userns-disabled",
-      "--unshare-all",
-      "--unshare-user",
-      "--bind", runtime, runtime,
-      "--ro-bind", work_dir.sub(".flatpak-info"), "/.flatpak-info",
-      "--symlink", "/.flatpak-info", "/run/user/" + real + "/flatpak-info",
-      "--bind", work_dir.get_path() + "/proxy", runtime + "/app/app.application." + program,
-      "--die-with-parent",
-    };
-
-    std::set<std::string> libraries = {};
-
-    if (arg::at("hardened_malloc")) {
-      extend(command, {"--ro-bind", work_dir.sub("ld.so.preload"), "/etc/ld.so.preload"});
-      libraries.merge(libraries::get("/usr/lib/libhardened_malloc.so"));
-    }
-
     auto proxy_path = work_dir.sub("proxy", true);
     auto wd = inotify_add_watch(inotify, proxy_path.c_str(), IN_CREATE);
     if (wd < 0) throw std::runtime_error(std::string("Failed to add inotify watcher: ") + strerror(errno));
 
-    binaries::setup(binaries::parse("/usr/bin/xdg-dbus-proxy", libraries), command);
-    libraries::setup(libraries, "xdg-dbus-proxy", command);
 
-    extend(command, {
-      "--",
-      "/usr/bin/xdg-dbus-proxy",
-      std::getenv("DBUS_SESSION_BUS_ADDRESS"),
-      runtime + "/app/app.application." + program + "/bus",
-      "--filter",
-      "--call=org.freedesktop.portal.Desktop=org.freedesktop.portal.Settings.Read@/org/freedesktop/portal/desktop",
-      "--broadcast=org.freedesktop.portal.Desktop=org.freedesktop.portal.Settings.SettingChanged@/org/freedesktop/portal/desktop",
-    });
+    auto proxy = [&work_dir, &program]() {
+      std::vector<std::string> command = {
+        "bwrap",
+        "--new-session",
+        "--clearenv",
+        "--setenv", "PATH", "/usr/bin",
+        "--disable-userns",
+        "--assert-userns-disabled",
+        "--unshare-all",
+        "--unshare-user",
+        "--bind", runtime, runtime,
+        "--ro-bind", work_dir.sub(".flatpak-info"), "/.flatpak-info",
+        "--symlink", "/.flatpak-info", "/run/user/" + real + "/flatpak-info",
+        "--bind", work_dir.get_path() + "/proxy", runtime + "/app/app.application." + program,
+        "--die-with-parent",
+      };
 
-    if (arg::at("verbose")) command.emplace_back("--log");
-    if (arg::at("xdg_open")) command.emplace_back("--talk=org.freedesktop.portal.OpenURI");
-    for (const auto& portal : arg::list("portals")) command.emplace_back("--talk=org.freedesktop.portal." + portal);
-    for (const auto& portal : arg::list("see")) command.emplace_back("--see=" + portal);
-    for (const auto& portal : arg::list("talk")) command.emplace_back("--talk=" + portal);
-    for (const auto& portal : arg::list("own")) command.emplace_back("--own=" + portal);
+      std::set<std::string> libraries = {};
+      if (arg::at("hardened_malloc")) {
+        extend(command, {"--ro-bind", work_dir.sub("ld.so.preload"), "/etc/ld.so.preload"});
+        libraries.merge(libraries::get("/usr/lib/libhardened_malloc.so"));
+      }
+      binaries::setup(binaries::parse("/usr/bin/xdg-dbus-proxy", libraries), command);
+      libraries::setup(libraries, "xdg-dbus-proxy", command);
 
-    exec(command, NONE);
-    libraries::reset();
+      extend(command, {
+        "--",
+        "/usr/bin/xdg-dbus-proxy",
+        std::getenv("DBUS_SESSION_BUS_ADDRESS"),
+        runtime + "/app/app.application." + program + "/bus",
+        "--filter",
+        "--call=org.freedesktop.portal.Desktop=org.freedesktop.portal.Settings.Read@/org/freedesktop/portal/desktop",
+        "--broadcast=org.freedesktop.portal.Desktop=org.freedesktop.portal.Settings.SettingChanged@/org/freedesktop/portal/desktop",
+      });
+
+      if (arg::at("verbose")) command.emplace_back("--log");
+      if (arg::at("xdg_open")) command.emplace_back("--talk=org.freedesktop.portal.OpenURI");
+      for (const auto& portal : arg::list("portals")) command.emplace_back("--talk=org.freedesktop.portal." + portal);
+      for (const auto& portal : arg::list("see")) command.emplace_back("--see=" + portal);
+      for (const auto& portal : arg::list("talk")) command.emplace_back("--talk=" + portal);
+      for (const auto& portal : arg::list("own")) command.emplace_back("--own=" + portal);
+      log({"Proxy:", join(command, ' ')});
+
+      exec(command, NONE);
+    };
+
+    pool.detach_task(proxy);
     return wd;
   }
 

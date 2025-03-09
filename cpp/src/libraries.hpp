@@ -40,9 +40,4 @@ namespace libraries {
    * @param command: The command vector to append the needed bwrap args to link to the SOF.
    */
    void setup(const std::set<std::string>& libraries, const std::string& application, std::vector<std::string>& command);
-
-   // Reset, to prevent cache poisoning between the Proxy and Program.
-   void reset();
-
-   void setup();
 }
