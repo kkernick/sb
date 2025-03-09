@@ -137,7 +137,6 @@ namespace generate {
       for (const auto& portal : arg::list("talk")) command.emplace_back("--talk=" + portal);
       for (const auto& portal : arg::list("own")) command.emplace_back("--own=" + portal);
       log({"Proxy:", join(command, ' ')});
-
       exec(command, NONE);
     };
 

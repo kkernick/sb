@@ -26,7 +26,6 @@ template <typename T, typename... Args> inline void profile(const std::string& n
 }
 
 int main(int argc, char* argv[]) {
-
   // Parse those args.
   arg::args = std::vector<std::string>(argv + 1, argv + argc);
   auto parse_args = []() {

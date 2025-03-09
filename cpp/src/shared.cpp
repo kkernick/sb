@@ -160,6 +160,7 @@ namespace shared {
           bytes = read(pipefd[0], &buffer, 255);
           result.append(buffer.data(), bytes);
         } while (bytes > 0);
+        kill(pid, SIGKILL);
       }
       else {
         close(pipefd[1]);

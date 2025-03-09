@@ -100,15 +100,14 @@ For lists, such as defining libraries:
 	* `data` will create the SOF at `$XDG_DATA_HOME/sb/app/lib`. The libraries are persistent on disk, which means you'll need to occasional refresh it. However, since the SOF is self contained, this also allows you to run different versions of an app, irrespective of the hosts files.
 	* `zram` will create the SOF at `/run/sb`, which should be a `zram` device mounted by the `sb.conf` zram generator service. This uses less RAM than `tmp`,  but is slower:
 
-| Profile       | `tmp`      | `data`      | `zram`  |
-| ------------- | ---------- | ----------- | ------- |
-| Chromium Cold | 474.8ms    | 61.1ms*     | 494.1ms |
-| Chromium Hot  | 62.3ms     | 67.7ms      | 66.9ms  |
-| Storage Usage | 1.2G (RAM) | 1.2G (Disk) | 533MB   |
+| Profile       | `data`      | `tmp`      | `zram`  |
+| ------------- | ----------- | ---------- | ------- |
+| Chromium Cold | 424.7ms     | 405.7ms    | 401.9ms |
+| Chromium Hot  | 47.7ms      | 46.9ms     | 47.5ms  |
+| Storage Usage | 1.2G (Disk) | 1.2G (RAM) | 533MB   |
 
-> [!note]
-> Because `data` and the host's libraries exist on the same file-system, or at least they typically do, cold boot is as fast as warm boot because all it needs to do is create the hard-links.
-
+> [!warning]
+> Race conditions can occur between the `sb.service` that populates the SOF on start, and other startup services. If you run a service confined by SB on startup, such as `syncthing`, either delay the service until *after* `sb.service` has run (Add `After=sb.service` to the service), or use `--sof=data`.
 
 * `--startup` Don't use it.
 * `--sys-dirs` System directories to mount into the sandbox:

@@ -39,7 +39,7 @@ for PROFILE in $EXAMPLES; do
 
   sleep 1
 
-  program=$(sed '2q;d' "$ROOT/$subdir/examples/$script" | awk '{print $2}')
+  program=$(sed '2q;d' "$ROOT/$subdir/examples/$PROFILE" | awk '{print $2}')
 
 
   echo "======================= $PROFILE ======================="

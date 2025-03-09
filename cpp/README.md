@@ -62,17 +62,11 @@ The following files are specific to SB++
 
 Speed was the principal reason for implementing SB in C++, and the results are to be expected from moving from Python to C++ (via `benchmark.sh`):
 
-| Profile (C/P)                                                        | Cold Launch     | Hot Launch      | Update Libraries | Update Caches   |
-| -------------------------------------------------------------------- | --------------- | --------------- | ---------------- | --------------- |
-| [Chromium](https://github.com/ungoogled-software/ungoogled-chromium) | 274.2/1173.8    | 10.4/66.9       | 23.0/247.3       | 195.0/414.3     |
-| [Zed](https://github.com/zed-industries/zed)                         | 347.8/892.3     | 6.6/64.2        | 16.1/194.3       | 58.9/230.5      |
-| [Obsidian](https://obsidian.md/)                                     | 255.6/1090.5    | 6.4/62.7        | 16.4/234.4       | 239.1/372.7     |
-| [Fooyin](https://github.com/fooyin/fooyin)                           | 374.6/3456.0    | 7.3/63.4        | 12.0/1098.1      | 89.0/1874.0     |
-| [Okular](https://invent.kde.org/graphics/okular)                     | 379.5/3125.3    | 7.3/63.7        | 15.1/923.1       | 86.7/1719.4     |
-| [KeePassXC](https://github.com/keepassxreboot/keepassxc)             | 424.3/3081.2    | 4.6/62.8        | 13.7/828.4       | 85.8/1625.3     |
-| [Syncthing](https://github.com/syncthing/syncthing)                  | 53.4/133.2      | 5.6/60.8        | 14.8/93.1        | 21.7/97.3       |
-| [Yarr](https://github.com/nkanaev/yarr)                              | 29.8/135.0      | 5.3/61.0        | 10.2/98.1        | 17.4/101.6      |
-| Average Speedup                                                      | **612% Faster** | **945% Faster** | **3061% Faster** | **811% Faster** |
+| Chromium  | Cold Launch | Hot Launch | Update Libraries | Update Caches |
+| --------- | ----------- | ---------- | ---------------- | ------------- |
+| Python-SB | 1557.7      | 65.7       | 301.7            | 532.0         |
+| SB++      | 379.7       | 7.4        | 24.0             | 200.1         |
+| Speedup   | **410%**    | **888%**   | **1257%**        | **261%**      |
 
 * Cold Launch is an important metric if the startup service isn't be used, as it determines how long a program will take to launch for the first time after booting.  Applications can benefit from the loading of other applications (One Qt application will populate the shared SOF for other Qt applications, letting it launch "warm").
 * Hot Launch is the most important metric for SB. It defines how fast the program can launch with a warm SOF and both a `lib.cache` and `cmd.cache`. It effectively measures how quickly SB can read the `cmd.cache` and launch `bwrap`. The ideal is for this value to be zero, which would be equivalent to launching the application directly.
