@@ -6,8 +6,5 @@ for profile in $(ls $HOME/.local/bin/*.sb); do
   echo "Refreshing: ${profile}"
   $profile --dry --update libraries
 done
-wait
 
-find /run/sb -maxdepth 2 -type d -name "lib" -exec rm -r {} +
-find /tmp/sb -maxdepth 2 -type d -name "lib" -exec rm -r {} +
-find ~/.local/share/sb -maxdepth 2 -type d -name "lib" -exec rm -r {} +
+sb-clean

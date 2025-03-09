@@ -1,0 +1,5 @@
+#!/bin/sh
+
+find /run/sb -maxdepth 2 -type d -name "lib" -o -name "shared" -exec rm -r {} +
+find /tmp/sb -maxdepth 2 -type d -name "lib" -o -name "shared" -exec rm -r {} +
+find ~/.local/share/sb -maxdepth 2 -type d -name "lib" -o -name "shared" -exec rm -r {} +

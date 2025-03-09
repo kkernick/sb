@@ -45,7 +45,7 @@ for PROFILE in $EXAMPLES; do
   echo "======================= $PROFILE ======================="
 
   # Cold Boot--there is no cache.
-  hyperfine --command-name "Cold $PROFILE" --time-unit millisecond --prepare "rm -fr /run/sb/ /tmp/sb ~/.local/share/sb/$program/lib ~/.local/share/sb/shared || true" "$PROFILE --dry"
+  hyperfine --command-name "Cold $PROFILE" --time-unit millisecond --prepare "sb-clean" "$PROFILE --dry"
 
   sleep 1
 
