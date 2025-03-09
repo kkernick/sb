@@ -10,6 +10,7 @@
 #include <pwd.h>
 #include <unistd.h>
 #include <sys/wait.h>
+#include <blake2.h>
 
 #include "shared.hpp"
 #include "arguments.hpp"
@@ -284,4 +285,19 @@ namespace shared {
 
   void merge(std::set<std::string>& command, std::set<std::string> path) {command.merge(path);}
 
+  std::string hash(const std::string& in) {
+    const size_t hash_length = BLAKE2B_OUTBYTES;
+    uint8_t hash[hash_length] = {0};
+
+    // Call blake2b to hash the input string
+    int result = blake2b(hash, in.c_str(), nullptr, hash_length, in.length(), 0);
+    if (result == 0) {
+      std::stringstream hex_hash;
+      hex_hash << std::hex << std::setfill('0');
+      for (size_t i = 0; i < hash_length; ++i)
+        hex_hash << std::setw(2) << static_cast<unsigned>(hash[i]);
+      return hex_hash.str();
+    }
+    else throw std::runtime_error("Failed to hash string!");
+  }
 }

@@ -1,5 +1,5 @@
 SOURCES = src/main.cpp src/shared.cpp src/libraries.cpp src/arguments.cpp src/binaries.cpp src/syscalls.cpp src/generators.cpp
-REQUIRED = -std=c++23 -lseccomp -fuse-ld=lld
+REQUIRED = -std=c++23 -lseccomp -lb2 -fuse-ld=lld
 FAST = -march=native -O3 -ffast-math -flto=thin
 
 cpp: $(SOURCES)

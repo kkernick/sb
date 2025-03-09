@@ -1,12 +1,12 @@
 pkgname=sb++-git
 pkgdesc="Sandbox Applications"
-pkgver=r293.54790a3
+pkgver=r294.5b91ce0
 pkgrel=1
 
 source=("git+https://github.com/kkernick/sb.git")
 sha256sums=("SKIP")
 depends=(findutils glibc which bubblewrap)
-makedepends=(git lld)
+makedepends=(git lld libb2)
 optdepends=(
   'strace: for --strace, useful for debugging'
   'hardened_malloc: for --hardened-malloc'

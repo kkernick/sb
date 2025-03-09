@@ -13,6 +13,17 @@
 
 using namespace shared;
 
+std::map<std::string, size_t> time_slice;
+
+template <typename T, typename... Args> inline void profile(const std::string& name, T& func, Args... args) {
+  auto begin = std::chrono::high_resolution_clock::now();
+  func(args...);
+  auto duration = duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count();
+  time_slice["total"] += duration;
+  time_slice[name] = duration;
+  log({name, ":", std::to_string(duration), "ns"});
+}
+
 
 void cleanup(int signo) {
   // For for children to die.
@@ -31,32 +42,34 @@ int main(int argc, char* argv[]) {
 
   // Parse those args.
   arg::args = std::vector<std::string>(argv + 1, argv + argc);
+  auto parse_args = []() {
+    if (arg::args.size() > 0 && arg::args[0].ends_with(".sb")) {
+      auto program = arg::args[0];
+      auto resolved = exists(arg::args[1]) ? program : split(exec({"which", program}), "\n")[0];
+      auto contents = split(read_file(resolved), "\n");
+      if (contents.size() == 2) {
+        auto old = arg::args;
+        arg::args = split(contents[1], " ");
 
-  if (arg::args.size() > 0 && arg::args[0].ends_with(".sb")) {
-    auto program = arg::args[0];
-    auto resolved = exists(arg::args[1]) ? program : split(exec({"which", program}), "\n")[0];
-    auto contents = split(read_file(resolved), "\n");
-    if (contents.size() == 2) {
-      auto old = arg::args;
-      arg::args = split(contents[1], " ");
+        // Remove the sb
+        arg::args.erase(arg::args.begin());
 
-      // Remove the sb
-      arg::args.erase(arg::args.begin());
+        for (auto& arg : arg::args) arg = trim(arg, "'\"");
 
-      for (auto& arg : arg::args) arg = trim(arg, "'\"");
+        auto arg_spot = std::find(arg::args.begin(), arg::args.end(), "$@");
+        if (arg_spot != arg::args.end()) arg::args.erase(arg_spot);
 
-      auto arg_spot = std::find(arg::args.begin(), arg::args.end(), "$@");
-      if (arg_spot != arg::args.end()) arg::args.erase(arg_spot);
-
-      std::set<std::string> ignore = {"sb", program, "--command", "-C"};
-      for (const auto& arg : old) {
-        if (!ignore.contains(arg))
-          arg::args.emplace_back(trim(arg, "'\""));
+        std::set<std::string> ignore = {"sb", program, "--command", "-C"};
+        for (const auto& arg : old) {
+          if (!ignore.contains(arg))
+            arg::args.emplace_back(trim(arg, "'\""));
+        }
       }
     }
-  }
+    arg::parse();
+  };
+  profile("Argument Parser", parse_args);
 
-  arg::parse();
   auto program = basename(arg::get("cmd"));
 
 
@@ -97,17 +110,20 @@ int main(int argc, char* argv[]) {
   // Defer instance dir to only when we actually need it.
   auto instance_dir = TemporaryDirectory(mkpath({runtime, ".flatpak"}), program, "", true);
   int proxy_wd = -1;
-  if (arg::list("portals").empty() && arg::list("see").empty() && arg::list("talk").empty() && arg::list("own").empty())
-    log({"Application does not use portals"});
-  else {
-    instance_dir.create();
-    log({"Initializing xdg-dbus-proxy..."});
-    generate::flatpak_info(program, basename(instance_dir.get_path()), work_dir);
-    if (!arg::at("dry")) proxy_wd = generate::xdg_dbus_proxy(program, work_dir);
-  }
+  auto generate_proxy = [&instance_dir, &program, &proxy_wd, &work_dir]() {
+    if (arg::list("portals").empty() && arg::list("see").empty() && arg::list("talk").empty() && arg::list("own").empty())
+      log({"Application does not use portals"});
+    else {
+      instance_dir.create();
+      log({"Initializing xdg-dbus-proxy..."});
+      generate::flatpak_info(program, basename(instance_dir.get_path()), work_dir);
+      if (!arg::at("dry")) proxy_wd = generate::xdg_dbus_proxy(program, work_dir);
+    }
+  };
+  profile("Proxy", generate_proxy);
 
   // The main program command.
-  std::vector<std::string> command = {"bwrap", "--new-session", "--die-with-parent", "--clearenv", "--as-pid-1", "--unshare-uts"};
+  std::vector<std::string> command = {"bwrap", "--new-session", "--die-with-parent", "--clearenv", "--unshare-uts"};
 
   if (!arg::at("hostname")) {
     extend(command, {"--hostname", "sandbox"});
@@ -197,24 +213,31 @@ int main(int argc, char* argv[]) {
   if (arg::get("seccomp") == "strace" && arg::at("verbose").under("errors")) arg::get("verbose") = "errors";
 
   // Lock and Generate
-  std::ofstream lock(lock_file);
-  try {
-    auto next = generate::cmd(program);
-    command.insert(command.end(), next.begin(), next.end());
-  }
-  catch (std::exception& e) {
-    std::cerr << "Failed to generate command: " << e.what() << std::endl;
+  auto generate_command = [&lock_file, &program, &command]() {
+    std::ofstream lock(lock_file);
+    try {
+      auto next = generate::cmd(program);
+      command.insert(command.end(), next.begin(), next.end());
+    }
+    catch (std::exception& e) {
+      std::cerr << "Failed to generate command: " << e.what() << std::endl;
+      std::filesystem::remove(lock_file);
+      exit(1);
+    }
     std::filesystem::remove(lock_file);
-    exit(1);
-  }
-  std::filesystem::remove(lock_file);
+  };
+  profile("Command Generation", generate_command);
 
-  auto seccomp_filter = syscalls::filter(program);
   int seccomp_fd = -1;
-  if (!seccomp_filter.empty()) {
-    seccomp_fd = open(seccomp_filter.c_str(), O_RDONLY);
-    extend(command, {"--seccomp", std::to_string(seccomp_fd)});
-  }
+  auto seccomp_generate = [&program, &command, &seccomp_fd]() {
+    auto seccomp_filter = syscalls::filter(program);
+    if (!seccomp_filter.empty()) {
+      seccomp_fd = open(seccomp_filter.c_str(), O_RDONLY);
+      extend(command, {"--seccomp", std::to_string(seccomp_fd)});
+    }
+  };
+  profile("SECCOMP Generation", seccomp_generate);
+
 
   //Passthrough any and all files.
   std::vector<std::string> post = {};
@@ -325,5 +348,9 @@ int main(int argc, char* argv[]) {
       std::filesystem::remove_all(arg::mod("fs") + "/run");
   }
 
+  if (arg::at("verbose")) {
+  for (const auto& [key, value] : time_slice)
+    std::cout << key << ": " << value << " (" << (float(value) / float(time_slice["total"])) * 100 << "%)" << std::endl;
+  }
   cleanup(0);
 }

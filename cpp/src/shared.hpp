@@ -249,4 +249,6 @@ namespace shared {
    * @param name: The optional name to look out for.
    */
   void inotify_wait(const int& wd, const std::string& name = "");
+  
+  std::string hash(const std::string& in);
 }

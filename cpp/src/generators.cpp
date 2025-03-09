@@ -169,7 +169,7 @@ namespace generate {
       }
     }
     arguments += arg::at("verbose").under("error");
-    auto hash = std::to_string(std::hash<std::string>{}(arguments));
+    auto hash = shared::hash(arguments);
 
     bool update_sof = arg::at("update");
     if (lib && !update_sof) {
@@ -179,9 +179,15 @@ namespace generate {
           log({"Reusing existing library cache"});
           libraries = unique_split(contents[1], " ");
         }
-        else update_sof = true;
+        else {
+          log({"Library cache out of date!"});
+          update_sof = true;
+        }
       }
-      else update_sof = true;
+      else {
+        log({"Library cache missing!"});
+        update_sof = true;
+      }
     }
     if (update_sof) log({"Updating SOF"});
 
@@ -210,6 +216,7 @@ namespace generate {
 
     // Initial command and environment.
     if (bin) {
+      log({"Resolving binaries"});
       binaries.merge(binaries::parse(arg::get("cmd"), libraries));
       binaries.merge(binaries::parsel(arg::list("binaries"), libraries));
 
@@ -219,6 +226,7 @@ namespace generate {
       }
     }
     if (update_sof) {
+      log({"Resolving libraries"});
       for (const auto& [lib, mod] : arg::modlist("libraries")) {
         if (mod != "x") libraries.merge(libraries::get(lib));
       }
@@ -229,17 +237,20 @@ namespace generate {
 
     // XDG Open
     if (arg::at("xdg_open")) {
+      log({"Adding XDG-Open"});
       if (bin) binaries.merge(binaries::parse("/usr/bin/sb-open", libraries));
       extend(command, {"--symlink", "/usr/bin/sb-open", "/usr/bin/xdg-open"});
     }
 
     // Hardened Malloc
     if (arg::at("hardened_malloc") && update_sof) {
+      log({"Adding Hardened Malloc"});
       libraries.merge(libraries::get("/usr/lib/libhardened_malloc.so"));
     }
 
     // A shell
     if (arg::at("shell")) {
+      log({"Adding Shell"});
       if (bin) binaries.merge(binaries::parse("/usr/bin/sh", libraries));
       share(command, {
         "/etc/shells",
@@ -249,11 +260,13 @@ namespace generate {
     }
 
     if (arg::at("include")) {
+      log({"Adding C/C++ Headers"});
       share(command, {"/usr/include", "/usr/local/include"});
       if (update_sof) merge(libraries::directories, {"/usr/lib/clang", "/usr/lib/gcc"});
     }
 
     if (arg::at("electron")) {
+      log({"Adding Electron"});
       share(command, {"/sys/block", "/sys/dev"});
       share(command, {"/dev/null", "/dev/urandom", "/dev/shm"}, "dev-bind");
 
@@ -271,6 +284,7 @@ namespace generate {
     }
 
     if (arg::at("gtk")) {
+      log({"Adding GTK"});
       share(command, {
         home + "/.gtkrc-2.0", config + "/gtkrc", config + "/gtkrc-2.0",
         config + "/gtk-2.0", config + "/gtk-3.0", config + "/gtk-4.0",
@@ -293,6 +307,7 @@ namespace generate {
     }
 
     if (arg::at("qt")) {
+      log({"Adding QT"});
       auto version = arg::get("qt");
       if (version == "kf6") {
         libraries::directories.emplace("/usr/lib/kf6");
@@ -322,6 +337,7 @@ namespace generate {
     }
 
     if (arg::at("gui")) {
+      log({"Adding GUI"});
       share(command, {"/dev/dri", "/dev/udmabuf"}, "dev-bind");
       share(command, {
         "/sys/devices",
@@ -352,6 +368,7 @@ namespace generate {
     }
 
     if (arg::at("pipewire")) {
+      log({"Adding Pipewire"});
       share(command, {
         runtime + "/pipewire-0", runtime + "/pulse",
         config + "/pulse", "/etc/pipewire", "/usr/share/pipewire"
@@ -362,6 +379,7 @@ namespace generate {
     }
 
     if (arg::at("locale")) {
+      log({"Adding System Locale"});
       share(command, {
         "/etc/locale.conf", "/etc/localtime",
         "/usr/share/zoneinfo", "/usr/share/X11/locale", "/usr/share/locale",
@@ -377,6 +395,7 @@ namespace generate {
       if (!shared.contains(ns)) command.emplace_back("--unshare-" + ns);
     }
     if (shared.contains("net")) {
+      log({"Adding Networking"});
       share(command, {
         "/etc/gai.conf", "/etc/hosts.conf", "/etc/hosts", "/etc/nsswitch.conf", "/etc/resolv.conf",
         "/etc/gnutls", "/etc/ca-certificates", "/usr/share/ca-certificates",
@@ -392,7 +411,7 @@ namespace generate {
     // Parse system directories.
     if (sys_dirs.contains("dev")) extend(command, {"--dev", "/dev"});
     else share(command, arg::list("devices"), "dev-bind");
-    
+
     if (sys_dirs.contains("proc")) extend(command, {"--proc", "/proc"});
     if (sys_dirs.contains("etc")) extend(command, {"--overlay-src", "/etc", "--tmp-overlay", "/etc"});
     if (sys_dirs.contains("share")) extend(command, {"--overlay-src", "/usr/share", "--tmp-overlay", "/usr/share"});
@@ -411,6 +430,7 @@ namespace generate {
     }
 
     if ((lib && update_sof) || !is_dir(sof_dir + "/lib")) {
+      log({"Resolving SOF"});
 
       // Generate the list of invalid entries. Because
       // we only read to the set, there is no risk in sharing it between

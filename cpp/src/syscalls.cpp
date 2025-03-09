@@ -37,7 +37,7 @@ namespace syscalls {
     // See if the existing file is already up to date, and just use that directly.
     auto content = split(read_file(syscall_file), "\n");
     if (content.size() > 1) {
-      auto hash = std::string(arg::get("seccomp") == "enforcing" ? "E" : "P") + std::to_string(std::hash<std::string>{}(content[1]));
+      auto hash = std::string(arg::get("seccomp") == "enforcing" ? "E" : "P") + shared::hash(content[1]);
       if (hash == split(content[0], " ")[1] && is_file(bpf) && arg::at("update").under("cache")) {
         log({"Using cached SECCOMP filter"});
         return bpf;
@@ -83,9 +83,9 @@ namespace syscalls {
     fclose(bpf_file);
 
     // Update the hash.
-    auto hash = std::hash<std::string>{}(content[1]);
+    auto hash = shared::hash(content[1] + arg::get("seccomp"));
     auto cache_file = std::ofstream(syscall_file);
-    cache_file << "HASH: " << (arg::get("seccomp") == "enforcing" ? 'E' : 'P') << hash << "\n";
+    cache_file << "HASH: " << hash << "\n";
     cache_file << content[1];
     cache_file.close();
 
@@ -122,7 +122,7 @@ namespace syscalls {
 
     joined = join(syscalls, ' ');
     auto out = std::ofstream(syscall_file);
-    out << "HASH: " << 'P' << std::hash<std::string>{}(joined) << '\n' << joined;
+    out << "HASH: " << 'P' << shared::hash(joined) << '\n' << joined;
     out.close();
   }
 }
