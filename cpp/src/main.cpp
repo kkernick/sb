@@ -3,6 +3,7 @@
 #include "shared.hpp"
 #include "syscalls.hpp"
 
+#include <chrono>
 #include <csignal>
 #include <cstring>
 #include <filesystem>
@@ -18,10 +19,10 @@ std::map<std::string, size_t> time_slice;
 template <typename T, typename... Args> inline void profile(const std::string& name, T& func, Args... args) {
   auto begin = std::chrono::high_resolution_clock::now();
   func(args...);
-  auto duration = duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - begin).count();
+  auto duration = duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - begin).count();
   time_slice["total"] += duration;
   time_slice[name] = duration;
-  log({name, ":", std::to_string(duration), "ns"});
+  log({name, ":", std::to_string(duration), "us"});
 }
 
 
@@ -92,6 +93,7 @@ int main(int argc, char* argv[]) {
   // Start getting the filter in another thread.
   std::future<std::string> seccomp_future = pool.submit_task([&program]() -> std::string {return syscalls::filter(program);});
 
+
   // Initialize inotify
   inotify = inotify_init();
   if (inotify == -1) throw std::runtime_error(std::string("Failed to initialize inotify: ") + strerror(errno));
@@ -134,13 +136,12 @@ int main(int argc, char* argv[]) {
     const auto path = arg::mod("fs");
     std::filesystem::create_directories(path);
 
-    if (is_dir(path + "/tmp")) extend(command, {"--overlay-src", arg::mod("fs") + "/tmp", "--tmp-overlay", "/tmp"});
-    else extend(command, {"--tmpfs", "/tmp"});
-    extend(command, {"--tmpfs", "/home/sb/.cache"});
-
     // Mount it.
     if (arg::get("fs") == "cache") extend(command, {"--overlay-src", arg::mod("fs"), "--tmp-overlay", "/"});
     else extend(command, {"--bind", arg::mod("fs"), "/"});
+
+    if (is_dir(path + "/tmp")) extend(command, {"--overlay-src", arg::mod("fs") + "/tmp", "--tmp-overlay", "/tmp"});
+    else extend(command, {"--tmpfs", "/tmp"});
   }
   else extend(command, {"--tmpfs", "/tmp", "--tmpfs", "/home/sb/.cache"});
 
@@ -272,12 +273,16 @@ int main(int argc, char* argv[]) {
   }
 
   // Get the seccomp filter and add it.
-  auto seccomp_filter = seccomp_future.get();
   auto seccomp_fd = -1;
-  if (!seccomp_filter.empty()) {
-    seccomp_fd = open(seccomp_filter.c_str(), O_RDONLY);
-    extend(command, {"--seccomp", std::to_string(seccomp_fd)});
-  }
+
+  auto seccomp_setup = [&seccomp_future, &seccomp_fd, &command]() {
+    auto seccomp_filter = seccomp_future.get();
+    if (!seccomp_filter.empty()) {
+      seccomp_fd = open(seccomp_filter.c_str(), O_RDONLY);
+      extend(command, {"--seccomp", std::to_string(seccomp_fd)});
+    }
+  };
+  profile("Exclusive SECCOMP Setup", seccomp_setup);
 
   // Final command args. Debug Shell replaces the actual app
   if (arg::get("shell") == "debug") command.emplace_back("sh");
@@ -301,10 +306,13 @@ int main(int argc, char* argv[]) {
   if (!arg::at("dry")) {
 
     // Wait for the proxy to setup.
-    if (proxy_wd != -1) {
-      log({"Waiting for Proxy..."});
-      inotify_wait(proxy_wd);
-    }
+    auto wait = [&proxy_wd]() {
+      if (proxy_wd != -1) {
+        log({"Waiting for Proxy..."});
+        inotify_wait(proxy_wd);
+      }
+    };
+    profile("Exclusive Proxy Setup", wait);
 
     // Wait for any tasks in the pool to complete.
     log({"Waiting for auxiliary tasks to complete.."});
@@ -348,7 +356,7 @@ int main(int argc, char* argv[]) {
 
   if (arg::at("verbose")) {
   for (const auto& [key, value] : time_slice)
-    std::cout << key << ": " << value << " (" << (float(value) / float(time_slice["total"])) * 100 << "%)" << std::endl;
+    std::cout << key << ": " << value << "us (" << (float(value) / float(time_slice["total"])) * 100 << "%)" << std::endl;
   }
   cleanup(0);
 }
