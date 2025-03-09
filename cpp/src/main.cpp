@@ -33,13 +33,14 @@ void cleanup(int signo) {
   }
 }
 
-
 int main(int argc, char* argv[]) {
   signal(SIGABRT,cleanup);
   signal(SIGINT,cleanup);
   signal(SIGSEGV,cleanup);
   signal(SIGTERM,cleanup);
 
+  // It seems we still must ignore chidlren lest the benchmarker make zombies.
+  signal(SIGCHLD, SIG_IGN);
 
   // Parse those args.
   arg::args = std::vector<std::string>(argv + 1, argv + argc);
