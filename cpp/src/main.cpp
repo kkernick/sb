@@ -25,22 +25,7 @@ template <typename T, typename... Args> inline void profile(const std::string& n
   log({name, ":", std::to_string(duration), "us"});
 }
 
-
-void cleanup(int signo) {
-  // For for children to die.
-  for (const auto& pid : children) {
-    kill(pid, SIGTERM);
-  }
-}
-
 int main(int argc, char* argv[]) {
-  signal(SIGABRT,cleanup);
-  signal(SIGINT,cleanup);
-  signal(SIGSEGV,cleanup);
-  signal(SIGTERM,cleanup);
-
-  // It seems we still must ignore chidlren lest the benchmarker make zombies.
-  signal(SIGCHLD, SIG_IGN);
 
   // Parse those args.
   arg::args = std::vector<std::string>(argv + 1, argv + argc);
@@ -359,5 +344,4 @@ int main(int argc, char* argv[]) {
   for (const auto& [key, value] : time_slice)
     std::cout << key << ": " << value << "us (" << (float(value) / float(time_slice["total"])) * 100 << "%)" << std::endl;
   }
-  cleanup(0);
 }

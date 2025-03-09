@@ -22,7 +22,6 @@ namespace shared {
   extern const std::string runtime, config, cache, data, home, session, nobody, real;
   extern int inotify;
 
-  extern std::set<int> children;
 
   typedef enum {NONE, STDOUT, STDERR, ONLY_STDOUT, ONLY_STDERR, ALL} exec_return;
 

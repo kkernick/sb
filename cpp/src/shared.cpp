@@ -24,7 +24,8 @@ namespace shared {
   std::mt19937 TemporaryDirectory::prng(TemporaryDirectory::dev());
   std::uniform_int_distribution<uint64_t> TemporaryDirectory::rand(0);
 
-  std::set<int> children = {};
+
+  int null_fd = open("/dev/null", O_WRONLY);
 
   // Environment variables.
   const std::string
@@ -129,7 +130,6 @@ namespace shared {
         for (const auto& v : cmd) argv.emplace_back(v.c_str());
         argv.emplace_back(nullptr);
 
-        int null_fd = open("/dev/null", O_WRONLY);
 
         // Send STDOUT to the parent
         close(pipefd[0]);
@@ -143,12 +143,7 @@ namespace shared {
         else if (policy == ONLY_STDERR)  dup2(null_fd, STDOUT_FILENO);
 
         close(pipefd[1]);
-
-        // Exit and quit
         execvp(argv[0], const_cast<char* const*>(argv.data()));
-
-        close(null_fd);
-        exit(0);
       }
 
       // Parent either returns immediately.
@@ -165,10 +160,8 @@ namespace shared {
           bytes = read(pipefd[0], &buffer, 255);
           result.append(buffer.data(), bytes);
         } while (bytes > 0);
-        waitpid(pid, nullptr, 0);
       }
       else {
-        children.emplace(pid);
         close(pipefd[1]);
       }
 
