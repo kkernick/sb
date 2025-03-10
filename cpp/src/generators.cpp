@@ -136,7 +136,6 @@ namespace generate {
       for (const auto& portal : arg::list("see")) command.emplace_back("--see=" + portal);
       for (const auto& portal : arg::list("talk")) command.emplace_back("--talk=" + portal);
       for (const auto& portal : arg::list("own")) command.emplace_back("--own=" + portal);
-      log({"Proxy:", join(command, ' ')});
       exec(command, NONE);
     };
 
@@ -264,7 +263,7 @@ namespace generate {
     if (arg::at("include")) {
       log({"Adding C/C++ Headers"});
       share(command, {"/usr/include", "/usr/local/include"});
-      if (update_sof) merge(libraries::directories, {"/usr/lib/clang", "/usr/lib/gcc"});
+      merge(libraries::directories, {"/usr/lib/clang", "/usr/lib/gcc"});
     }
 
     if (arg::at("electron")) {
