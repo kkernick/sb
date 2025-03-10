@@ -1,6 +1,6 @@
 pkgname=sb++-git
 pkgdesc="Sandbox Applications"
-pkgver=r303.41ae86f
+pkgver=r304.daeefd4
 pkgrel=1
 
 source=("git+https://github.com/kkernick/sb.git")
@@ -25,7 +25,7 @@ pkgver() {
 
 build() {
   cd $srcdir/sb/cpp
-  make bolt
+  make bolt-pgo
 }
 
 package() {
