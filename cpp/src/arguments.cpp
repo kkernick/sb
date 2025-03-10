@@ -95,7 +95,7 @@ namespace arg {
     // Discrete, Single-Value Switches.
     {"update", arg::config{
       .l_name="--update", .s_name="",
-      .valid={"libraries", "cache", "all"},
+      .valid={"libraries", "cache", "all", "wipe"},
       .help="Update caches, even if they exist",
     }},
     {"seccomp", arg::config{

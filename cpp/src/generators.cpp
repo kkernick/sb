@@ -95,7 +95,7 @@ namespace generate {
     if (wd < 0) throw std::runtime_error(std::string("Failed to add inotify watcher: ") + strerror(errno));
 
     auto proxy = [&work_dir, &program]() {
-      const auto app_dir = mkpath({arg::get("sof"), "xdg-dbus-proxy", "lib"});
+      const auto app_dir = join({arg::get("sof"), "xdg-dbus-proxy", "lib"}, '/');
       std::vector<std::string> command = {
         "bwrap",
         "--new-session",
@@ -150,6 +150,7 @@ namespace generate {
     pool.detach_task(proxy);
     return wd;
   }
+
 
   std::vector<std::string> cmd(const std::string& program) {
     auto sof_dir = mkpath({arg::get("sof"), program});

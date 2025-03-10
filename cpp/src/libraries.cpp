@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <filesystem>
 #include <fstream>
 #include <regex>
 
@@ -152,9 +153,10 @@ namespace libraries {
   // Setup the SOF
   void setup(const std::set<std::string>& libraries, const std::string& application) {
     const auto share_dir = mkpath({arg::get("sof"), "shared"});
-    const auto app_dir = mkpath({arg::get("sof"), application, "lib"});
+    const auto app_dir = join({arg::get("sof"), application, "lib"}, '/') + '/';
 
     if(is_dir(app_dir) && arg::at("update").under("libraries")) return;
+    std::filesystem::create_directories(app_dir);
 
     auto vector = std::vector<std::string>(); vector.reserve(libraries.size());
     vector.insert(vector.begin(), libraries.begin(), libraries.end());
@@ -188,7 +190,7 @@ namespace libraries {
   }
 
   void symlink(std::vector<std::string>& command, const std::string& application) {
-    const auto app_dir = mkpath({arg::get("sof"), application, "lib"});
+    const auto app_dir = join({arg::get("sof"), application, "lib"}, '/');
 
     if (is_dir(app_dir))
       extend(command, {"--overlay-src", app_dir, "--tmp-overlay", "/usr/lib"});

@@ -61,6 +61,16 @@ int main(int argc, char* argv[]) {
   auto program = basename(arg::get("cmd"));
 
 
+  if (arg::get("update") == "wipe" && arg::at("sof")) {
+    auto sof = arg::get("sof") + '/' + program + '/' + "/lib";
+    if (is_dir(sof)) std::filesystem::remove_all(sof);
+    else log({"SOF doesn't exist at:", sof});
+
+    auto proxy = arg::get("sof") + "/xdg-dbus-proxy/lib";
+    if (is_dir(proxy)) std::filesystem::remove_all(proxy);
+    else log({"Proxy SOF doesn't exist at:", proxy});
+  }
+
   // Create a script file and exit.
   if (arg::at("script")) {
     auto binary = home + "/.local/bin/" + program + ".desktop.sb";

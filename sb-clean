@@ -1,6 +1,0 @@
-#!/bin/sh
-
-for path in ~/.local/share/sb /tmp/sb /run/sb; do
-  find $path -maxdepth 3 -type d -name "lib" -exec rm -r "{}" +
-  find $path -maxdepth 1 -type d -name "shared" -exec rm -r "{}" +
-done

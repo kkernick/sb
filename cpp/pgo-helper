@@ -4,9 +4,8 @@ export PATH="$(pwd):$PATH"
 
 echo "Profiling application using installed SB profiles..."
 for script in $(ls ~/.local/bin/*.sb); do
-  
+
   echo "Running: $script"
-  sb-clean
-  $script --dry
+  $script --dry --update wipe
   $script --dry
 done
