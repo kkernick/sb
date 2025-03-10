@@ -34,4 +34,5 @@ namespace binaries {
    */
    void setup(const std::set<std::string>& binaries, std::vector<std::string>& command);
 
+   void symlink(std::vector<std::string>& command);
 }

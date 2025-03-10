@@ -9,7 +9,7 @@ generic: $(SOURCES)
 	clang++ $(REQUIRED) $^ -o sb
 
 debug: $(SOURCES)
-	clang++ -march=x86-64 -g $(REQUIRED) $^ -o sb
+	clang++ -march=x86-64 -g -DPROFILE $(REQUIRED) $^ -o sb
 
 
 pgo: $(SOURCES)

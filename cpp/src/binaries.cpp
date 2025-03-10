@@ -222,8 +222,9 @@ namespace binaries {
       if (binary.contains("bin")) extend(command, {"--ro-bind", binary, "/usr/bin/" + basename(binary)});
       else extend(command, {"--ro-bind", binary, binary});
     }
+  }
 
-    // Symlink
+  void symlink(std::vector<std::string>& command) {
     extend(command, {
       "--symlink", "/usr/bin", "/bin",
       "--symlink", "/usr/bin", "/sbin",

@@ -8,12 +8,15 @@ EXAMPLE="${3}"
 cd "$ROOT/$subdir"
 
 # Build
-if [[ "${RECIPE}" != "none" ]]; then
+if [[ "${RECIPE}" != "none" && "${RECIPE}" != "sys" ]]; then
   make $RECIPE
 fi
 
 # Export so our built version is used.
-export PATH="$(pwd):$(pwd)/examples:$PATH"
+
+if [[ "${RECIPE}" != "sys" ]]; then
+  export PATH="$(pwd):$(pwd)/examples:$PATH"
+fi
 echo "Using: $(which sb)"
 
 # Run the examples
@@ -56,17 +59,17 @@ for PROFILE in $EXAMPLES; do
 
   # Hot Boot, but we need to refresh libraries like after an update.
   if [[ "${subdir}" == "cpp" ]]; then
-    hyperfine --command-name "Lib $PROFILE" --time-unit millisecond --shell=none --prepare "$PROFILE --dry" "$PROFILE --dry --update libraries"
+    hyperfine --command-name "Lib $PROFILE" --time-unit millisecond --shell=none --prepare "$PROFILE --dry --update libraries" "$PROFILE --dry --update libraries"
   else
-    hyperfine --command-name "Lib $PROFILE" --time-unit millisecond --shell=none --prepare "$PROFILE --dry" "$PROFILE --dry --update-libraries"
+    hyperfine --command-name "Lib $PROFILE" --time-unit millisecond --shell=none --prepare "$PROFILE --dry --update libraries" "$PROFILE --dry --update-libraries"
   fi
 
   sleep 1
 
   # Hot Boot, but we need to refresh libraries like after an update.
   if [[ "${subdir}" == "cpp" ]]; then
-    hyperfine --command-name "Cache $PROFILE" --time-unit millisecond --shell=none --prepare "$PROFILE --dry" "$PROFILE --dry --update all"
+    hyperfine --command-name "Cache $PROFILE" --time-unit millisecond --shell=none --prepare "$PROFILE --dry --update all" "$PROFILE --dry --update all"
   else
-    hyperfine --command-name "Cache $PROFILE" --time-unit millisecond --shell=none --prepare "$PROFILE --dry" "$PROFILE --dry --update-libraries --update-cache"
+    hyperfine --command-name "Cache $PROFILE" --time-unit millisecond --shell=none --prepare "$PROFILE --dry --update all" "$PROFILE --dry --update-libraries --update-cache"
   fi
 done

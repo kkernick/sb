@@ -94,8 +94,8 @@ namespace generate {
     auto wd = inotify_add_watch(inotify, proxy_path.c_str(), IN_CREATE);
     if (wd < 0) throw std::runtime_error(std::string("Failed to add inotify watcher: ") + strerror(errno));
 
-
     auto proxy = [&work_dir, &program]() {
+      const auto app_dir = mkpath({arg::get("sof"), "xdg-dbus-proxy", "lib"});
       std::vector<std::string> command = {
         "bwrap",
         "--new-session",
@@ -110,15 +110,21 @@ namespace generate {
         "--symlink", "/.flatpak-info", "/run/user/" + real + "/flatpak-info",
         "--bind", work_dir.get_path() + "/proxy", runtime + "/app/app.application." + program,
         "--die-with-parent",
+        "--ro-bind", "/usr/bin/xdg-dbus-proxy", "/usr/bin/xdg-dbus-proxy",
       };
 
-      std::set<std::string> libraries = {};
-      if (arg::at("hardened_malloc")) {
+      if (arg::at("hardened_malloc"))
         extend(command, {"--ro-bind", work_dir.sub("ld.so.preload"), "/etc/ld.so.preload"});
-        libraries.merge(libraries::get("/usr/lib/libhardened_malloc.so"));
-      }
-      binaries::setup(binaries::parse("/usr/bin/xdg-dbus-proxy", libraries), command);
-      libraries::setup(libraries, "xdg-dbus-proxy", command);
+
+      auto resolve_libraries = [&work_dir]() {
+        std::set<std::string> libraries = {};
+        if (arg::at("hardened_malloc")) libraries.merge(libraries::get("/usr/lib/libhardened_malloc.so"));
+        binaries::parse("/usr/bin/xdg-dbus-proxy", libraries);
+        libraries::setup(libraries, "xdg-dbus-proxy");
+      };
+      auto lib_future = pool.submit_task(resolve_libraries);
+      libraries::symlink(command, "xdg-dbus-proxy");
+      binaries::symlink(command);
 
       extend(command, {
         "--",
@@ -136,6 +142,8 @@ namespace generate {
       for (const auto& portal : arg::list("see")) command.emplace_back("--see=" + portal);
       for (const auto& portal : arg::list("talk")) command.emplace_back("--talk=" + portal);
       for (const auto& portal : arg::list("own")) command.emplace_back("--own=" + portal);
+
+      lib_future.wait();
       exec(command, NONE);
     };
 
@@ -424,13 +432,15 @@ namespace generate {
     if (app_dirs.contains("share")) share(command, {"/etc" + program});
 
     if (bin) binaries::setup(binaries, command);
+    binaries::symlink(command);
+
     if (update_sof) {
       for (const auto& dir : libraries::directories) {
         libraries.merge(libraries::get(dir));
       }
     }
 
-    if ((lib && update_sof) || !is_dir(sof_dir + "/lib")) {
+    if (update_sof) {
       log({"Resolving SOF"});
 
       // Generate the list of invalid entries. Because
@@ -450,15 +460,13 @@ namespace generate {
         if (!exclusions.contains(lib)) trimmed.emplace(lib);
       }
 
-      libraries::setup(trimmed, program, command);
+      libraries::setup(trimmed, program);
       auto lib_out = std::ofstream(lib_cache);
       lib_out << hash << '\n' << join(trimmed, ' ');
       lib_out.close();
-
     }
-    // The SOF already exists, so just attach the symlinks.
-    else libraries::setup({}, program, command);
 
+    libraries::symlink(command, program);
     share(command, libraries::directories);
 
 

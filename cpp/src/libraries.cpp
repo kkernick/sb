@@ -150,9 +150,12 @@ namespace libraries {
 
 
   // Setup the SOF
-  void setup(const std::set<std::string>& libraries, const std::string& application, std::vector<std::string>& command) {
+  void setup(const std::set<std::string>& libraries, const std::string& application) {
     const auto share_dir = mkpath({arg::get("sof"), "shared"});
     const auto app_dir = mkpath({arg::get("sof"), application, "lib"});
+
+    if(is_dir(app_dir) && arg::at("update").under("libraries")) return;
+
     auto vector = std::vector<std::string>(); vector.reserve(libraries.size());
     vector.insert(vector.begin(), libraries.begin(), libraries.end());
 
@@ -182,10 +185,16 @@ namespace libraries {
     // Zoom.
     auto futures = pool.submit_loop(0, vector.size(), write);
     futures.wait();
+  }
+
+  void symlink(std::vector<std::string>& command, const std::string& application) {
+    const auto app_dir = mkpath({arg::get("sof"), application, "lib"});
+
+    if (is_dir(app_dir))
+      extend(command, {"--overlay-src", app_dir, "--tmp-overlay", "/usr/lib"});
 
     // Mount the SOF and link it to the other locations.
     extend(command, {
-      "--overlay-src", app_dir, "--tmp-overlay", "/usr/lib",
       "--symlink", "/usr/lib", "/lib64",
       "--symlink", "/usr/lib", "/lib",
       "--symlink", "/usr/lib", "/usr/lib64",

@@ -39,5 +39,8 @@ namespace libraries {
    * @param application: The name of the app.
    * @param command: The command vector to append the needed bwrap args to link to the SOF.
    */
-   void setup(const std::set<std::string>& libraries, const std::string& application, std::vector<std::string>& command);
+   void setup(const std::set<std::string>& libraries, const std::string& application);
+
+
+   void symlink(std::vector<std::string>& command, const std::string& application);
 }

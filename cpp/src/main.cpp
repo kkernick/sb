@@ -14,17 +14,6 @@
 
 using namespace shared;
 
-std::map<std::string, size_t> time_slice;
-
-template <typename T, typename... Args> inline void profile(const std::string& name, T& func, Args... args) {
-  auto begin = std::chrono::high_resolution_clock::now();
-  func(args...);
-  auto duration = duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - begin).count();
-  time_slice["total"] += duration;
-  time_slice[name] = duration;
-  log({name, ":", std::to_string(duration), "us"});
-}
-
 
 static void child_handler(int sig) {
     pid_t pid;
@@ -352,8 +341,8 @@ int main(int argc, char* argv[]) {
       std::filesystem::remove_all(arg::mod("fs") + "/run");
   }
 
-  if (arg::at("verbose")) {
+  #ifdef PROFILE
   for (const auto& [key, value] : time_slice)
     std::cout << key << ": " << value << "us (" << (float(value) / float(time_slice["total"])) * 100 << "%)" << std::endl;
-  }
+  #endif
 }

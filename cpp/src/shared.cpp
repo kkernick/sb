@@ -24,8 +24,11 @@ namespace shared {
   std::mt19937 TemporaryDirectory::prng(TemporaryDirectory::dev());
   std::uniform_int_distribution<uint64_t> TemporaryDirectory::rand(0);
 
-
   int null_fd = open("/dev/null", O_WRONLY);
+
+  #ifdef PROFILE
+  std::map<std::string, size_t> time_slice;
+  #endif
 
   // Environment variables.
   const std::string

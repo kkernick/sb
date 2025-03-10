@@ -12,6 +12,7 @@
 #include <sys/stat.h>
 #include <sys/inotify.h>
 #include <random>
+#include <map>
 
 // https://github.com/bshoshany/thread-pool
 #include "third_party/BS_thread_pool.hpp"
@@ -21,7 +22,6 @@ namespace shared {
   extern BS::thread_pool<BS::tp::none> pool;
   extern const std::string runtime, config, cache, data, home, session, nobody, real;
   extern int inotify;
-
 
   typedef enum {NONE, STDOUT, STDERR, ONLY_STDOUT, ONLY_STDERR, ALL} exec_return;
 
@@ -250,4 +250,20 @@ namespace shared {
   void inotify_wait(const int& wd, const std::string& name = "");
 
   std::string hash(const std::string& in);
+
+
+  #ifdef PROFILE
+  extern std::map<std::string, size_t> time_slice;
+
+  template <typename T> inline void profile(const std::string& name, T func) {
+    auto begin = std::chrono::high_resolution_clock::now();
+    func();
+    auto duration = duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - begin).count();
+    time_slice["total"] += duration;
+    time_slice[name] = duration;
+    log({name, ":", std::to_string(duration), "us"});
+  }
+  #else
+    #define profile(name, func) func();
+  #endif
 }
