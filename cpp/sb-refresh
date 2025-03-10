@@ -2,6 +2,16 @@
 
 find $XDG_DATA_HOME/sb/cache/ -type f -delete
 
+if [[ -d $XDG_DATA_HOME/sb/shared ]]; then
+  rm -r $XDG_DATA_HOME/sb/shared
+fi
+if [[ -d  /tmp/sb/shared ]]; then
+  rm -r /tmp/sb/shared
+fi
+if [[ -d  /run/sb/shared ]]; then
+  rm -r /run/sb/shared
+fi
+
 for profile in $(ls $HOME/.local/bin/*.sb); do
   echo "Refreshing: ${profile}"
   $profile --dry --update wipe

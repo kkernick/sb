@@ -191,9 +191,8 @@ namespace libraries {
 
   void symlink(std::vector<std::string>& command, const std::string& application) {
     const auto app_dir = join({arg::get("sof"), application, "lib"}, '/');
-
-    if (is_dir(app_dir))
-      extend(command, {"--overlay-src", app_dir, "--tmp-overlay", "/usr/lib"});
+    
+    if (is_dir(app_dir)) extend(command, {"--overlay-src", app_dir, "--tmp-overlay", "/usr/lib"});
 
     // Mount the SOF and link it to the other locations.
     extend(command, {

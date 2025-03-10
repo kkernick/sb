@@ -116,13 +116,11 @@ namespace generate {
       if (arg::at("hardened_malloc"))
         extend(command, {"--ro-bind", work_dir.sub("ld.so.preload"), "/etc/ld.so.preload"});
 
-      auto resolve_libraries = [&work_dir]() {
-        std::set<std::string> libraries = {};
-        if (arg::at("hardened_malloc")) libraries.merge(libraries::get("/usr/lib/libhardened_malloc.so"));
-        binaries::parse("/usr/bin/xdg-dbus-proxy", libraries);
-        libraries::setup(libraries, "xdg-dbus-proxy");
-      };
-      auto lib_future = pool.submit_task(resolve_libraries);
+      std::set<std::string> libraries = {};
+      if (arg::at("hardened_malloc")) libraries.merge(libraries::get("/usr/lib/libhardened_malloc.so"));
+      binaries::parse("/usr/bin/xdg-dbus-proxy", libraries);
+      libraries::setup(libraries, "xdg-dbus-proxy");
+
       libraries::symlink(command, "xdg-dbus-proxy");
       binaries::symlink(command);
 
@@ -143,7 +141,6 @@ namespace generate {
       for (const auto& portal : arg::list("talk")) command.emplace_back("--talk=" + portal);
       for (const auto& portal : arg::list("own")) command.emplace_back("--own=" + portal);
 
-      lib_future.wait();
       exec(command, NONE);
     };
 
@@ -441,7 +438,7 @@ namespace generate {
       }
     }
 
-    if (update_sof) {
+    if (update_sof || !is_dir(lib_dir)) {
       log({"Resolving SOF"});
 
       // Generate the list of invalid entries. Because
@@ -469,7 +466,6 @@ namespace generate {
 
     libraries::symlink(command, program);
     share(command, libraries::directories);
-
 
     auto out = std::ofstream(cmd_cache);
     out << hash << '\n' << join(command, ' ');
