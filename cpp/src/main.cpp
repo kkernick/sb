@@ -25,7 +25,20 @@ template <typename T, typename... Args> inline void profile(const std::string& n
   log({name, ":", std::to_string(duration), "us"});
 }
 
+
+static void child_handler(int sig) {
+    pid_t pid;
+    int status;
+    while((pid = waitpid(-1, &status, WNOHANG)) > 0);
+}
+
 int main(int argc, char* argv[]) {
+  struct sigaction sa;
+  sigemptyset(&sa.sa_mask);
+  sa.sa_flags = 0;
+  sa.sa_handler = child_handler;
+  sigaction(SIGCHLD, &sa, NULL);
+
   // Parse those args.
   arg::args = std::vector<std::string>(argv + 1, argv + argc);
   auto parse_args = []() {

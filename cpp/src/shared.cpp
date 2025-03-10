@@ -156,10 +156,13 @@ namespace shared {
         // Use a 256 buffer to append to the final result.
         std::array<char, 256> buffer = {};
         size_t bytes = 0;
-        do {
-          bytes = read(pipefd[0], &buffer, 255);
-          result.append(buffer.data(), bytes);
-        } while (bytes > 0);
+        try {
+          do {
+            bytes = read(pipefd[0], &buffer, 255);
+            result.append(buffer.data(), bytes);
+          } while (bytes > 0);
+        }
+        catch (std::length_error&) {};
         kill(pid, SIGKILL);
       }
       else {
