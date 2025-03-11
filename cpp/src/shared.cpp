@@ -32,12 +32,13 @@ namespace shared {
 
   // Environment variables.
   const std::string
-    runtime = std::getenv("XDG_RUNTIME_DIR"),
-    config = std::getenv("XDG_CONFIG_HOME"),
-    cache = std::getenv("XDG_CACHE_HOME"),
-    data = std::getenv("XDG_DATA_HOME"),
     home = std::getenv("HOME"),
+    runtime = std::getenv("XDG_RUNTIME_DIR"),
     session = std::getenv("DBUS_SESSION_BUS_ADDRESS"),
+
+    config = std::getenv("XDG_CONFIG_HOME") == nullptr ? home + "/.config/" : std::getenv("XDG_CONFIG_HOME"),
+    cache = std::getenv("XDG_CACHE_HOME") == nullptr ? home + "/.cache/" : std::getenv("XDG_CACHE_HOME"),
+    data = std::getenv("XDG_DATA_HOME") == nullptr ? home + "/.local/share/" : std::getenv("XDG_DATA_HOME"),
     nobody = std::to_string(getpwnam("nobody")->pw_uid),
     real = std::to_string(getuid());
 
