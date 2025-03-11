@@ -159,17 +159,17 @@ namespace libraries {
     vector.insert(vector.begin(), libraries.begin(), libraries.end());
 
     // Write Lambda. We batch writes to tremendously speed up initial SOF generation.
-    auto write_library = [share_dir, app_dir, &vector](const size_t& x) {
+    auto write_library = [&share_dir, &app_dir, &vector](const size_t& x) {
       const std::filesystem::path lib = vector[x];
 
       // We only write normalized library files, directories are mounted
-      if (!lib.string().starts_with("/usr/lib/")) return;
+      if (!lib.string().starts_with("/usr/lib/") || std::filesystem::is_directory(lib)) return;
       for (const auto& dir : directories) {
         if (lib.string().starts_with(dir))
         return;
       }
 
-      const auto base = lib.filename();
+      const auto base = vector[x].substr(vector[x].find("/lib/") + 5);
       auto shared_path = share_dir / base;
       auto local_path = app_dir / base;
 
