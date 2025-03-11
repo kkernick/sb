@@ -13,6 +13,10 @@
 #include <sys/inotify.h>
 #include <random>
 
+#ifdef PROFILE
+#include <map>
+#endif
+
 // https://github.com/bshoshany/thread-pool
 #include "third_party/BS_thread_pool.hpp"
 
@@ -143,6 +147,7 @@ namespace shared {
    * @param cmd: The command.
    * @returns: The output
    */
+  int exec_pid(const std::vector<std::string>& cmd);
   std::string exec(const std::vector<std::string>& cmd, exec_return = ONLY_STDOUT);
 
   /**
@@ -257,7 +262,7 @@ namespace shared {
   #ifdef PROFILE
   extern std::map<std::string, size_t> time_slice;
 
-  template <typename T> inline void profile(const std::string_view& name, T func) {
+  template <typename T> inline void profile(const std::string& name, T func) {
     auto begin = std::chrono::high_resolution_clock::now();
     func();
     auto duration = duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - begin).count();

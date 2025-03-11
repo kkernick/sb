@@ -40,7 +40,7 @@ namespace generate {
    * @param work_dir: The application's instance work dir.
    * @returns A FD for inotify, such that the program can detect when the bus has been created.
    */
-  int xdg_dbus_proxy(const std::string& program, const TemporaryDirectory& work_dir);
+  std::pair<int, std::future<int>> xdg_dbus_proxy(const std::string& program, const TemporaryDirectory& work_dir);
 
   /**
    * @brief Generate the bulk of the main program command.

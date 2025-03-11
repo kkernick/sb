@@ -89,7 +89,7 @@ namespace generate {
   }
 
 
-  int xdg_dbus_proxy(const std::string& program, const TemporaryDirectory& work_dir) {
+  std::pair<int, std::future<int>> xdg_dbus_proxy(const std::string& program, const TemporaryDirectory& work_dir) {
     auto proxy_path = work_dir.sub("proxy", true);
     auto wd = inotify_add_watch(inotify, proxy_path.c_str(), IN_CREATE);
     if (wd < 0) throw std::runtime_error(std::string("Failed to add inotify watcher: ") + strerror(errno));
@@ -142,11 +142,10 @@ namespace generate {
       for (const auto& portal : arg::list("talk")) command.emplace_back("--talk=" + portal);
       for (const auto& portal : arg::list("own")) command.emplace_back("--own=" + portal);
 
-      exec(command, NONE);
+      return exec_pid(command);
     };
 
-    pool.detach_task(proxy);
-    return wd;
+    return {wd,  pool.submit_task(proxy)};
   }
 
 
@@ -159,6 +158,7 @@ namespace generate {
     auto cmd_cache = local_dir + "/cmd.cache";
 
     std::vector<std::string> command;
+    command.reserve(200);
     std::set<std::string> binaries;
 
     // So that we can easily query as unique, and to emplace.
@@ -182,10 +182,20 @@ namespace generate {
     bool update_sof = arg::at("update");
     if (lib && !update_sof) {
       if (is_file(lib_cache)) {
-        auto contents = split(read_file(lib_cache), '\n');
-        if (contents.size() == 2 && hash == contents[0]) {
+        auto lib_file = split(read_file(lib_cache), '\n');
+        if (lib_file.size() == 2 && hash == lib_file[0]) {
+
+          // We should check the command cache here since it's predicated
+          // on use not needing to update anything.
+          if (is_file(cmd_cache) && is_dir(lib_dir)) {
+            auto cmd_file = split(read_file(cmd_cache), '\n');
+            if (cmd_file.size() == 2 && hash == cmd_file[0]) {
+              log({"Reusing existing command cache"});
+              return split(cmd_file[1], ' ');
+            }
+          }
           log({"Reusing existing library cache"});
-          libraries::required = unique_split(contents[1], ' ');
+          libraries::required = unique_split(lib_file[1], ' ');
         }
         else {
           log({"Library cache out of date!"});
@@ -198,15 +208,6 @@ namespace generate {
       }
     }
     if (update_sof) log({"Updating SOF"});
-
-    if (is_file(cmd_cache) && !update_sof && (!lib || is_dir(lib_dir))) {
-      auto contents = split(read_file(cmd_cache), '\n');
-      if (contents.size() == 2 && hash == contents[0]) {
-        log({"Reusing existing command cache"});
-        extend(command, split(contents[1], ' '));
-        return command;
-      }
-    }
 
     if (!lib) extend(command, {
       "--overlay-src", "/usr/lib", "--tmp-overlay", "/usr/lib",

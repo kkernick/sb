@@ -84,7 +84,7 @@ namespace libraries {
 
   // Get all dependencies for a library/binary.
   std::set<std::string> get(const std::string& library, std::string directory) {
-    std::set<std::string> libraries, direct;
+    std::set<std::string> libraries;
     std::string sub_dir = directory;
     std::vector<std::future<std::set<std::string>>> futures;
 
@@ -97,19 +97,19 @@ namespace libraries {
 
     // Resolve wildcards
     if (library.contains("*"))
-      direct = wildcard(library, "/usr/lib", {"-maxdepth", "1", "-type", "f,l", "-executable"});
+      libraries = wildcard(library, "/usr/lib", {"-maxdepth", "1", "-type", "f,l", "-executable"});
 
     // Find all shared libraries in dir.
     else if (is_dir(library)) {
-      direct = unique_split(exec({"find", library, "-type", "f,l", "-executable",}), '\n');
+      libraries = unique_split(exec({"find", library, "-type", "f,l", "-executable",}), '\n');
       sub_dir = library;
     }
 
     // Just use the direct dependencies of the library
-    else direct = {library};
+    else libraries = {library};
 
-    futures.reserve(direct.size());
-    for (const auto& lib : direct) {
+    futures.reserve(libraries.size());
+    for (const auto& lib : libraries) {
 
       // We use the cache as a means of only computing LDD once.
       // Therefore, we don't want to just say, "if we're updating
@@ -128,7 +128,6 @@ namespace libraries {
 
     for (auto& future : futures)
       libraries.merge(future.get());
-
 
     if (!libraries.empty()) {
       auto file = std::ofstream(cache);

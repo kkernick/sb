@@ -117,6 +117,27 @@ namespace shared {
   }
 
   // Execute a command.
+  
+  int exec_pid(const std::vector<std::string>& cmd) {
+    log({"EXEC:", std::string_view(join(cmd, ' '))}, "debug");
+
+    // For!
+    auto pid = fork();
+    if (pid < 0) throw std::runtime_error("Failed to fork");
+
+    else if (pid == 0) {
+      // The child creates a command array for execvp
+      std::vector<const char*> argv; argv.reserve(cmd.size() + 1);
+      for (const auto& v : cmd) argv.emplace_back(v.c_str());
+      argv.emplace_back(nullptr);
+  
+      dup2(null_fd, STDERR_FILENO);
+      dup2(null_fd, STDOUT_FILENO);
+      execvp(argv[0], const_cast<char* const*>(argv.data()));
+    }  
+    return pid;
+  }
+  
   std::string exec(const std::vector<std::string>& cmd, exec_return policy) {
       log({"EXEC:", std::string_view(join(cmd, ' '))}, "debug");
 

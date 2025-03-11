@@ -111,13 +111,17 @@ int main(int argc, char* argv[]) {
   // Defer instance dir to only when we actually need it.
   auto instance_dir = TemporaryDirectory(mkpath({runtime, ".flatpak"}), program, "", true);
   int proxy_wd = -1;
+  std::future<int> proxy_pid;
+
   if (arg::list("portals").empty() && arg::list("see").empty() && arg::list("talk").empty() && arg::list("own").empty())
     log({"Application does not use portals"});
   else {
     instance_dir.create();
     log({"Initializing xdg-dbus-proxy..."});
     generate::flatpak_info(program, basename(instance_dir.get_path()), work_dir);
-    if (!arg::at("dry")) proxy_wd = generate::xdg_dbus_proxy(program, work_dir);
+    if (!arg::at("dry")) {
+      auto[proxy_wd, proxy_pid] = generate::xdg_dbus_proxy(program, work_dir);
+    }
   }
 
   // The main program command.
@@ -302,6 +306,11 @@ int main(int argc, char* argv[]) {
     if (is_file(flags)) extend(command, splits(read_file(flags), " \n"));
   }
 
+  // Do this before our auxiliary wait.
+  auto proxy_resolved_wd = -1;
+  if (proxy_wd != -1)
+    proxy_resolved_wd = proxy_pid.get();
+
   // Wait for any tasks in the pool to complete.
   log({"Waiting for auxiliary tasks to complete.."});
   pool.wait();
@@ -321,7 +330,7 @@ int main(int argc, char* argv[]) {
     if (arg::at("post")) {
 
       // Run the sandbox non-blocking
-      exec(command, NONE);
+      exec_pid(command);
 
       // Assemble the post-command; args are provided in the modifier.
       command = {arg::get("post")};
@@ -336,11 +345,17 @@ int main(int argc, char* argv[]) {
   if (seccomp_fd != -1) close(seccomp_fd);
   if (bwrap_fd != -1) close(bwrap_fd);
 
+  // Please die.
+  if (proxy_resolved_wd != -1) {
+    kill(proxy_resolved_wd, SIGTERM);
+    while (wait(NULL) != -1 || errno == EINTR);
+  }
+
   // Cleanup files
-  if (arg::at("fs")) {
-    exec({"find", arg::mod("fs"), "-size", "0", "-delete"});
-    exec({"find", arg::mod("fs"), "-empty", "-delete"});
-    exec({"find", arg::mod("fs"), "-type", "l", "-delete"});
+  if (arg::get("fs") == "persist") {
+    exec_pid({"find", arg::mod("fs"), "-size", "0", "-delete"});
+    exec_pid({"find", arg::mod("fs"), "-empty", "-delete"});
+    exec_pid({"find", arg::mod("fs"), "-type", "l", "-delete"});
 
     // These only persist if --fs=persist, but dev sometimes has /dev/null
     // files which can be *massive* if the app crashes. We want to remove those.

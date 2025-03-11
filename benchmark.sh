@@ -48,28 +48,28 @@ for PROFILE in $EXAMPLES; do
   echo "======================= $PROFILE ======================="
 
   # Cold Boot--there is no cache.
-  hyperfine --command-name "Cold $PROFILE" --time-unit millisecond "$PROFILE --update wipe --dry"
+  hyperfine --show-output --command-name "Cold $PROFILE" --time-unit millisecond "$PROFILE --update wipe --dry"
 
   sleep 1
 
   # Hot Boot--like after sb.service has run.
-  hyperfine --command-name "Hot $PROFILE" --time-unit millisecond --shell=none "$PROFILE --dry"
+  hyperfine --show-output --command-name "Hot $PROFILE" --time-unit millisecond --shell=none "$PROFILE --dry"
 
   sleep 1
 
   # Hot Boot, but we need to refresh libraries like after an update.
   if [[ "${subdir}" == "cpp" ]]; then
-    hyperfine --command-name "Lib $PROFILE" --time-unit millisecond --shell=none "$PROFILE --dry --update libraries"
+    hyperfine --show-output --command-name "Lib $PROFILE" --time-unit millisecond --shell=none "$PROFILE --dry --update libraries"
   else
-    hyperfine --command-name "Lib $PROFILE" --time-unit millisecond --shell=none "$PROFILE --dry --update-libraries"
+    hyperfine --show-output --command-name "Lib $PROFILE" --time-unit millisecond --shell=none "$PROFILE --dry --update-libraries"
   fi
 
   sleep 1
 
   # Hot Boot, but we need to refresh libraries like after an update.
   if [[ "${subdir}" == "cpp" ]]; then
-    hyperfine --command-name "Cache $PROFILE" --time-unit millisecond --shell=none "$PROFILE --dry --update all"
+    hyperfine --show-output --command-name "Cache $PROFILE" --time-unit millisecond --shell=none "$PROFILE --dry --update all"
   else
-    hyperfine --command-name "Cache $PROFILE" --time-unit millisecond --shell=none "$PROFILE --dry --update-libraries --update-cache"
+    hyperfine --show-output --command-name "Cache $PROFILE" --time-unit millisecond --shell=none "$PROFILE --dry --update-libraries --update-cache"
   fi
 done
