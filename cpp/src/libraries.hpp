@@ -17,6 +17,7 @@
 namespace libraries {
 
   extern std::set<std::string> directories;
+  extern std::set<std::string> required;
 
   /**
    * @brief Recursively resolve all shared-libraries needed by a library.
@@ -41,6 +42,14 @@ namespace libraries {
    */
    void setup(const std::set<std::string>& libraries, const std::string& application);
 
-
+   /**
+    * @brief Add symlink commands.
+    * @param command: The command to append to
+    * @param application: The running application.
+    * @info This function symlinks /lib /lib64 and /usr/lib64 to /usr/lib, where
+    * the SOF is mounted
+    */
    void symlink(std::vector<std::string>& command, const std::string& application);
+
+   void resolve(const std::string& program, const std::string& lib_cache, const std::string& hash);
 }

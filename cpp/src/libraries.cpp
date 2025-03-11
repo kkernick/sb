@@ -12,7 +12,7 @@ using namespace shared;
 namespace libraries {
 
   // Directories, so we can mount them after discovering dependencies.
-  std::set<std::string> directories = {};
+  std::set<std::string> directories = {}, required = {};
 
   inline std::string cache_name(const std::string& library) {
     std::string name = library;
@@ -190,9 +190,6 @@ namespace libraries {
   }
 
   void symlink(std::vector<std::string>& command, const std::string& application) {
-    const auto app_dir = join({arg::get("sof"), application, "lib"}, '/');
-    
-    if (is_dir(app_dir)) extend(command, {"--overlay-src", app_dir, "--tmp-overlay", "/usr/lib"});
 
     // Mount the SOF and link it to the other locations.
     extend(command, {
@@ -200,5 +197,31 @@ namespace libraries {
       "--symlink", "/usr/lib", "/lib",
       "--symlink", "/usr/lib", "/usr/lib64",
     });
+  }
+
+  void resolve(const std::string& program, const std::string& lib_cache, const std::string& hash) {
+    log({"Resolving SOF"});
+
+    // Generate the list of invalid entries. Because
+    // we only read to the set, there is no risk in sharing it between
+    // the threads, so no mutex required.
+    std::set<std::string> exclusions = {};
+    for (const auto& [lib, mod] : arg::modlist("libraries")) {
+      if (mod == "x") {
+        if (lib.contains("*")) exclusions.merge(shared::wildcard(lib, "/usr/lib", {"-maxdepth", "1", "-mindepth", "1", "-type", "f,l", "-executable"}));
+        else if (is_dir(lib) && libraries::directories.contains(lib)) libraries::directories.erase(lib);
+        else exclusions.emplace(lib);
+      }
+    }
+
+    std::set<std::string> trimmed = {};
+    for (const auto& lib : required) {
+      if (!exclusions.contains(lib)) trimmed.emplace(lib);
+    }
+
+    libraries::setup(trimmed, program);
+    auto lib_out = std::ofstream(lib_cache);
+    lib_out << hash << '\n' << join(trimmed, ' ');
+    lib_out.close();
   }
 }
