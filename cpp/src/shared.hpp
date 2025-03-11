@@ -30,28 +30,28 @@ namespace shared {
    * @param path: The path.
    * @returns: Whether the path exists.
    */
-  bool exists(const std::string& path);
+  bool exists(const std::string_view& path);
 
   /**
    * @brief Check if a path is a directory
    * @param path: The path
    * @returns: If the path is a directory
    */
-  bool is_dir(const std::string& path);
+  bool is_dir(const std::string_view& path);
 
   /**
    * @brief Check if a path is a directory
    * @param path: The path
    * @returns: If the path is a directory
    */
-  bool is_file(const std::string& path);
+  bool is_file(const std::string_view& path);
 
   /**
    * @brief Check if a path is a directory
    * @param path: The path
    * @returns: If the path is a directory
    */
-  bool is_link(const std::string& path);
+  bool is_link(const std::string_view& path);
 
   /**
    * @brief Return the basename of a path.
@@ -72,14 +72,14 @@ namespace shared {
    * @param path: The path to the file.
    * @returns The file contents.
    */
-  std::string read_file(const std::string& path);
+  std::string read_file(const std::string_view& path);
 
   /**
    * @brief Construct a path from a list of elements.
    * @param p: The path
    * @returns The joined path.
    */
-  std::string mkpath(const std::vector<std::string>& p);
+  std::string mkpath(const std::vector<std::string_view>& p);
 
   /**
    * @brief A Temporary Directory
@@ -93,7 +93,7 @@ namespace shared {
 
       std::string path;
 
-      void generate(const std::string& parent, const std::string& prefix, const std::string& suffix) {
+      void generate(const std::string_view& parent, const std::string_view& prefix, const std::string_view& suffix) {
         std::stringstream path_stream;
         path_stream << parent;
         if (!parent.ends_with('/')) path_stream << '/';
@@ -107,7 +107,7 @@ namespace shared {
 
     TemporaryDirectory(
         const std::string& parent = std::filesystem::temp_directory_path(),
-        const std::string& prefix = "", const std::string& suffix = "",
+        const std::string_view& prefix = "", const std::string_view& suffix = "",
         const bool& defer = false
     ) {
       do {
@@ -137,7 +137,7 @@ namespace shared {
    * @brief Log output to console, if verbose.
    * @param msg: A list of strings to be printed.
    */
-  void log(const std::vector<std::string>& msg, const std::string& level="log");
+  void log(const std::vector<std::string_view>& msg, const std::string& level="log");
 
   /**
    * @brief Execute a command.
@@ -152,7 +152,7 @@ namespace shared {
    * @param delim: The delimiters.
    * @returns: A vector of each sub-string.
    */
-  std::vector<std::string> split(const std::string& str, const std::string& delim);
+  std::vector<std::string> split(const std::string_view& str, const std::string_view& delim);
 
   /**
    * @brief Split a string on a delimieter, only retaining unique values.
@@ -160,7 +160,7 @@ namespace shared {
    * @param delim: The delimiters to use
    * @returns: The unique values split.
    */
-  std::set<std::string> unique_split(const std::string& str, const std::string& delims);
+  std::set<std::string> unique_split(const std::string_view& str, const std::string_view& delims);
 
   /**
    * @brief Join a vector into a string.
@@ -177,7 +177,7 @@ namespace shared {
    * @param to_strip: A list of characters to remove
    * @returns The stripped string.
    */
-  std::string strip(const std::string& in, const std::string& to_strip);
+  std::string strip(const std::string_view& in, const std::string_view& to_strip);
 
   /**
    * @brief Trim characters from the front and end of a string.
@@ -188,7 +188,7 @@ namespace shared {
    * encountered a non-to_strip character, whereas strip removes
    * all instances regardless.
    */
-  std::string trim(const std::string& in, const std::string& to_strip);
+  std::string trim(const std::string& in, const std::string_view& to_strip);
 
   /**
    * @brief Resolve wildcard patterns.
@@ -247,15 +247,15 @@ namespace shared {
    * @param wd: The inotify FD for a specific watch.
    * @param name: The optional name to look out for.
    */
-  void inotify_wait(const int& wd, const std::string& name = "");
+  void inotify_wait(const int& wd, const std::string_view& name = "");
 
-  std::string hash(const std::string& in);
+  std::string hash(const std::string_view& in);
 
 
   #ifdef PROFILE
   extern std::map<std::string, size_t> time_slice;
 
-  template <typename T> inline void profile(const std::string& name, T func) {
+  template <typename T> inline void profile(const std::string_view& name, T func) {
     auto begin = std::chrono::high_resolution_clock::now();
     func();
     auto duration = duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - begin).count();

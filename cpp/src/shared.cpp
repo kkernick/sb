@@ -8,6 +8,7 @@
 #include <random>
 #include <fstream>
 #include <pwd.h>
+#include <string_view>
 #include <unistd.h>
 #include <sys/wait.h>
 #include <blake2.h>
@@ -44,29 +45,29 @@ namespace shared {
 
 
   // Check if a path exists.
-  bool exists(const std::string& path) {
+  bool exists(const std::string_view& path) {
     struct stat buffer;
-    return (stat (path.c_str(), &buffer) == 0);
+    return (stat (path.data(), &buffer) == 0);
   }
 
   // Check if path is a directory
-  bool is_dir(const std::string& path) {
+  bool is_dir(const std::string_view& path) {
     struct stat statbuf;
-    if (stat(path.c_str(), &statbuf) != 0) return 0;
+    if (stat(path.data(), &statbuf) != 0) return 0;
     return S_ISDIR(statbuf.st_mode);
   }
 
   // Check if a path is a file
-  bool is_file(const std::string& path) {
+  bool is_file(const std::string_view& path) {
     struct stat statbuf;
-    if (stat(path.c_str(), &statbuf) != 0) return 0;
+    if (stat(path.data(), &statbuf) != 0) return 0;
     return S_ISREG(statbuf.st_mode);
   }
 
   // Check if a path is a link
-  bool is_link(const std::string& path) {
+  bool is_link(const std::string_view& path) {
     struct stat statbuf;
-    if (stat(path.c_str(), &statbuf) != 0) return 0;
+    if (stat(path.data(), &statbuf) != 0) return 0;
     return S_ISLNK(statbuf.st_mode);
   }
 
@@ -85,9 +86,9 @@ namespace shared {
   }
 
   // Read a file
-  std::string read_file(const std::string& path) {
+  std::string read_file(const std::string_view& path) {
     std::string contents;
-    auto file = std::ifstream(path);
+    auto file = std::ifstream(path.data());
     if (file.is_open()) {
       file.seekg(0, std::ios::end);
       contents.resize(file.tellg());
@@ -99,7 +100,7 @@ namespace shared {
   }
 
   // Construct a path
-  std::string mkpath(const std::vector<std::string>& p) {
+  std::string mkpath(const std::vector<std::string_view>& p) {
     auto ret = join(p, '/');
     if (!ret.ends_with('/')) ret += '/';
     std::filesystem::create_directories(ret);
@@ -107,7 +108,7 @@ namespace shared {
   }
 
   // Log to output
-  void log(const std::vector<std::string>& msg, const std::string& level) {
+  void log(const std::vector<std::string_view>& msg, const std::string& level) {
     if (arg::at("verbose").meets(level)) {
       for (const auto& x : msg)
         std::cout << x << ' ';
@@ -117,15 +118,15 @@ namespace shared {
 
   // Execute a command.
   std::string exec(const std::vector<std::string>& cmd, exec_return policy) {
-      log({"EXEC:", join(cmd, ' ')}, "debug");
+      log({"EXEC:", std::string_view(join(cmd, ' '))}, "debug");
 
       // Create our pipe to talk over
       int pipefd[2];
-      if (pipe(pipefd) == -1) throw std::runtime_error(std::string("Failed to setup pipe: ") + strerror(errno));
+      if (pipe(pipefd) == -1) throw std::runtime_error("Failed to setup pipe");
 
       // For!
       auto pid = fork();
-      if (pid < 0) throw std::runtime_error(std::string("Failed to fork: ") + strerror(errno));
+      if (pid < 0) throw std::runtime_error("Failed to fork");
 
       else if (pid == 0) {
 
@@ -179,7 +180,7 @@ namespace shared {
 
 
   // Split the string.
-  std::vector<std::string> split(const std::string& str, const std::string& delims) {
+  std::vector<std::string> split(const std::string_view& str, const std::string_view& delims) {
     std::vector<std::string> ret;
     for (size_t r_bound = 0, l_bound = 0; r_bound <= str.length(); ++r_bound) {
       if (delims.contains(str[r_bound])|| r_bound == str.length()) {
@@ -189,7 +190,9 @@ namespace shared {
     }
     return ret;
   }
-  std::set<std::string> unique_split(const std::string& str, const std::string& delims) {
+
+
+  std::set<std::string> unique_split(const std::string_view& str, const std::string_view& delims) {
     std::set<std::string> ret;
     for (size_t r_bound = 0, l_bound = 0; r_bound <= str.length(); ++r_bound) {
       if (delims.contains(str[r_bound]) || r_bound == str.length()) {
@@ -213,14 +216,14 @@ namespace shared {
   template std::string join(const std::set<std::string>&, const char&);
 
 
-  std::string strip(const std::string& in, const std::string& to_strip) {
+  std::string strip(const std::string_view& in, const std::string_view& to_strip) {
     std::stringstream ret;
     for (const auto& x : in)
       if (!to_strip.contains(x)) ret << x;
     return ret.str();
   }
 
-  std::string trim(const std::string& in, const std::string& to_strip) {
+  std::string trim(const std::string& in, const std::string_view& to_strip) {
     if (in.empty()) return in;
 
     size_t l = 0, r = in.length() - 1;
@@ -241,7 +244,6 @@ namespace shared {
     return shared::unique_split(exec(command), "\n");
   };
 
-  std::string escape(const std::string& in) {return "'" + in + "'";}
 
   void genv(std::vector<std::string>& command, const std::string& env) {
     if (std::getenv(env.c_str()) != nullptr)
@@ -258,7 +260,7 @@ namespace shared {
     dest.insert(dest.end(), source.begin(), source.end());
   }
 
-  void inotify_wait(const int& wd, const std::string& name) {
+  void inotify_wait(const int& wd, const std::string_view& name) {
     char buffer[sizeof(struct inotify_event) + PATH_MAX + 1] = {0};
     while (true) {
       auto len = read(inotify, &buffer, sizeof(struct inotify_event) + PATH_MAX + 1);
@@ -288,12 +290,12 @@ namespace shared {
 
   void merge(std::set<std::string>& command, std::set<std::string> path) {command.merge(path);}
 
-  std::string hash(const std::string& in) {
+  std::string hash(const std::string_view& in) {
     const size_t hash_length = BLAKE2B_OUTBYTES;
     uint8_t hash[hash_length] = {0};
 
     // Call blake2b to hash the input string
-    int result = blake2b(hash, in.c_str(), nullptr, hash_length, in.length(), 0);
+    int result = blake2b(hash, in.data(), nullptr, hash_length, in.length(), 0);
     if (result == 0) {
       std::stringstream hex_hash;
       hex_hash << std::hex << std::setfill('0');

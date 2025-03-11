@@ -3,7 +3,6 @@
 #include "shared.hpp"
 #include "syscalls.hpp"
 
-#include <chrono>
 #include <csignal>
 #include <cstring>
 #include <filesystem>
@@ -122,7 +121,10 @@ int main(int argc, char* argv[]) {
   }
 
   // The main program command.
-  std::vector<std::string> command = {"bwrap", "--new-session", "--die-with-parent", "--clearenv", "--unshare-uts"};
+  std::vector<std::string> command;
+  command.reserve(300);
+
+  extend(command, {"bwrap", "--new-session", "--die-with-parent", "--clearenv", "--unshare-uts"});
 
   if (!arg::at("hostname")) {
     extend(command, {"--hostname", "sandbox"});
@@ -305,7 +307,6 @@ int main(int argc, char* argv[]) {
   pool.wait();
 
   if (!arg::at("dry")) {
-
     // Wait for the proxy to setup.
     auto wait = [&proxy_wd]() {
       if (proxy_wd != -1) {
