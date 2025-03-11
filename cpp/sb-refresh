@@ -14,5 +14,5 @@ fi
 
 for profile in $(ls $HOME/.local/bin/*.sb); do
   echo "Refreshing: ${profile}"
-  $profile --dry --update wipe
+  $profile --dry --refresh
 done

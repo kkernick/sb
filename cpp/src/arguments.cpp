@@ -90,12 +90,16 @@ namespace arg {
       .valid = {"false", "true"},
       .help="Pass the real hostname to the sandbox",
     }},
-
+    {"refresh", arg::config{
+      .l_name="--refresh", .s_name="",
+      .valid={"true", "false"},
+      .help="Refresh caches destructively (Removes cache and SOF)",
+    }},
 
     // Discrete, Single-Value Switches.
     {"update", arg::config{
       .l_name="--update", .s_name="",
-      .valid={"libraries", "cache", "all", "wipe"},
+      .valid={"libraries", "cache", "all"},
       .help="Update caches, even if they exist",
     }},
     {"seccomp", arg::config{

@@ -6,6 +6,6 @@ echo "Profiling application using installed SB profiles..."
 for script in $(ls ~/.local/bin/*.sb); do
 
   echo "Running: $script"
-  $script --dry --update wipe
+  $script --dry --refresh
   $script --dry
 done
