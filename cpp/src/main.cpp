@@ -314,8 +314,12 @@ int main(int argc, char* argv[]) {
 
   // Do this before our auxiliary wait.
   auto proxy_resolved_wd = -1;
-  if (std::get<0>(proxy_pair) != -1)
-    proxy_resolved_wd = std::get<1>(proxy_pair).get();
+  if (std::get<0>(proxy_pair) != -1) {
+    try {
+      proxy_resolved_wd = std::get<1>(proxy_pair).get();
+    }
+    catch (std::future_error) {}
+  }
 
   // Wait for any tasks in the pool to complete.
   log({"Waiting for auxiliary tasks to complete.."});
