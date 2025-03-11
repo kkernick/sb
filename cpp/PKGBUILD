@@ -6,7 +6,7 @@ pkgrel=1
 source=("git+https://github.com/kkernick/sb.git")
 sha256sums=("SKIP")
 depends=(findutils glibc which bubblewrap)
-makedepends=(git lld libb2)
+makedepends=(git lld libb2 clang llvm)
 optdepends=(
   'strace: for --strace, useful for debugging'
   'hardened_malloc: for --hardened-malloc'
@@ -25,7 +25,7 @@ pkgver() {
 
 build() {
   cd $srcdir/sb/cpp
-  make bolt-pgo
+  make cpp
 }
 
 package() {
