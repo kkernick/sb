@@ -14,11 +14,11 @@ Run `make` in this directory (`cpp`) to build a native-optimized binary of SB, c
 
 For reference, here is a example in performance between all four binaries (From `benchmark.sh`, in milliseconds):
 
-| Profile         | Generic | Optimized | PGO   | PGO+BOLT | Optimized+BOLT |
-| --------------- | ------- | --------- | ----- | -------- | -------------- |
-| Chromium Cold   | 319.5   | 313.3     | 311.4 | 311.6    | 310.8          |
-| Chromium Hot    | 37.2    | 35.1      | 35.4  | 35.2     | 35.3           |
-| Chromium Update | 233.9   | 225.1     | 225.6 | 225.7    | 224.1          |
+| Profile         | `generic` | `cpp` | `pgo` | `bolt` | `bolt-pgo` |
+| --------------- | --------- | ----- | ----- | ------ | ---------- |
+| Chromium Cold   | 261.8     | 256.5 | 268.4 | 264.5  | 267.6      |
+| Chromium Hot    | 3.4       | 2.9   | 3.0   | 3.4    | 3.3        |
+| Chromium Update | 169.3     | 162.1 | 164.4 | 164.3  | 164.7      |
 
 Everything after a Generic binary fell within the standard error of each profile, which means that the differences can largely be chalked up to chance. While you probably won't gain *too* much off of just using an optimized, `-03 -march=native` binary in the `cpp` recipe, the `PKGBUILD` defaults to `Optimized+BOLT`. PGO may be faster if you have a more specialized profiling suite.
 
@@ -62,11 +62,18 @@ The following files are specific to SB++
 
 Speed was the principal reason for implementing SB in C++, and the results are to be expected from moving from Python to C++ (via `benchmark.sh`):
 
-| Chromium  | Cold Launch | Hot Launch | Update Libraries | Update Caches |
-| --------- | ----------- | ---------- | ---------------- | ------------- |
-| Python-SB | 1557.7      | 65.7       | 301.7            | 532.0         |
-| SB++      | 379.7       | 7.4        | 24.0             | 200.1         |
-| Speedup   | **410%**    | **888%**   | **1257%**        | **261%**      |
+| Profile (ms)                                                         | Cold (P) | **Cold (C)** | Hot (P) | Hot (C)   | Libraries (P) | Libraries (C) | Caches (P) | Caches (C) |
+| -------------------------------------------------------------------- | -------- | ------------ | ------- | --------- | ------------- | ------------- | ---------- | ---------- |
+| [Chromium](https://github.com/ungoogled-software/ungoogled-chromium) | 1165.5   | **252.1**    | 64.5    | **2.8**   | 252.6         | **15.8**      | 418.5      | **161.1**  |
+| [Zed](https://github.com/zed-industries/zed)                         | 857.6    | **324.1**    | 64.5    | **3.0**   | 197.6         | **12.9**      | 230.3      | **56.8**   |
+| [Obsidian](https://obsidian.md/)                                     | 1125.3   | **238.9**    | 64.4    | **3.4**   | 241.8         | **13.5**      | 382.4      | **191.3**  |
+| [Fooyin](https://github.com/fooyin/fooyin)                           | 4544.2   | **962.4**    | 64.2    | **3.1**   | 1179.9        | **10.2**      | 2058.2     | **89.1**   |
+| [Okular](https://invent.kde.org/graphics/okular)                     | 4296.4   | **950.7**    | 63.9    | **3.4**   | 994.7         | **12.6**      | 1829.1     | **86.6**   |
+| [KeePassXC](https://github.com/keepassxreboot/keepassxc)             | 4176.1   | **948.4**    | 63.6    | **3.1**   | 910.1         | **14.9**      | 1745.0     | **88.1**   |
+| [Syncthing](https://github.com/syncthing/syncthing)                  | 154.4    | **30.3**     | 63.6    | **3.5**   | 96.2          | **12.1**      | 100.0      | **19.3**   |
+| [Yarr](https://github.com/nkanaev/yarr)                              | 154.8    | **27.6**     | 63.6    | **3.4**   | 99.7          | **8.1**       | 103.7      | **15.5**   |
+| Average                                                              | 2059.3   | **466.8**    | 64.0    | **3.2**   | 496.5         | **12.5**      | 858.4      | **88.5**   |
+| Speedup                                                              |          | **441%**     |         | **2000%** |               | **3972%**     |            | **970%**   |
 
 * Cold Launch is an important metric if the startup service isn't be used, as it determines how long a program will take to launch for the first time after booting.  Applications can benefit from the loading of other applications (One Qt application will populate the shared SOF for other Qt applications, letting it launch "warm").
 * Hot Launch is the most important metric for SB. It defines how fast the program can launch with a warm SOF and both a `lib.cache` and `cmd.cache`. It effectively measures how quickly SB can read the `cmd.cache` and launch `bwrap`. The ideal is for this value to be zero, which would be equivalent to launching the application directly.

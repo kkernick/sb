@@ -98,13 +98,13 @@ For lists, such as defining libraries:
 * `--sof` specifies the location for the SOF folder that contains libraries mounted to `/usr/lib` within the sandbox.
 	* `tmp` will create the SOF at `/tmp/sb/app`, and is recommended if cold boot time isn't an issue since it keeps libraries up to date with system as they are cycled every boot.
 	* `data` will create the SOF at `$XDG_DATA_HOME/sb/app/lib`. The libraries are persistent on disk, which means you'll need to occasional refresh it. However, since the SOF is self contained, this also allows you to run different versions of an app, irrespective of the hosts files.
-	* `zram` will create the SOF at `/run/sb`, which should be a `zram` device mounted by the `sb.conf` zram generator service. This uses less RAM than `tmp`,  but is slower:
+	* `zram` will create the SOF at `/run/sb`, which should be a `zram` device mounted by the `sb.conf` zram generator service. This uses less RAM than `tmp`, and has comparable or better performance:
 
-| Profile       | `data`      | `tmp`      | `zram`  |
-| ------------- | ----------- | ---------- | ------- |
-| Chromium Cold | 424.7ms     | 405.7ms    | 401.9ms |
-| Chromium Hot  | 47.7ms      | 46.9ms     | 47.5ms  |
-| Storage Usage | 1.2G (Disk) | 1.2G (RAM) | 533MB   |
+| Profile       | `data`        | `tmp`        | `zram`         |
+| ------------- | ------------- | ------------ | -------------- |
+| Chromium Cold | 258.4ms       | 266.8ms      | 258.1ms        |
+| Chromium Hot  | 3.2ms         | 3.0ms        | 3.0ms          |
+| Storage Usage | 535.8M (Disk) | 535.8M (RAM) | 309.5 MB (RAM) |
 
 > [!warning]
 > Race conditions can occur between the `sb.service` that populates the SOF on start, and other startup services. If you run a service confined by SB on startup, such as `syncthing`, either delay the service until *after* `sb.service` has run (Add `After=sb.service` to the service), or use `--sof=data`.
