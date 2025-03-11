@@ -180,23 +180,55 @@ namespace shared {
 
 
   // Split the string.
-  std::vector<std::string> split(const std::string_view& str, const std::string_view& delims) {
+  std::vector<std::string> split(const std::string_view& str, const char& delim) {
     std::vector<std::string> ret;
+
+    // Be greedy with memory.
+    ret.reserve(str.length());
+
+    for (size_t r_bound = 0, l_bound = 0; r_bound <= str.length(); ++r_bound) {
+      if (str[r_bound] == delim || r_bound == str.length()) {
+        if (r_bound != l_bound) ret.emplace_back(&str[l_bound], r_bound - l_bound);
+        l_bound = r_bound + 1;
+      }
+    }
+    ret.shrink_to_fit();
+    return ret;
+  }
+
+  std::vector<std::string> splits(const std::string_view& str, const std::string_view& delims) {
+    std::vector<std::string> ret;
+
+    // Be greedy with memory.
+    ret.reserve(str.length());
+
     for (size_t r_bound = 0, l_bound = 0; r_bound <= str.length(); ++r_bound) {
       if (delims.contains(str[r_bound])|| r_bound == str.length()) {
-        if (r_bound != l_bound) ret.emplace_back(str.substr(l_bound, r_bound - l_bound));
+        if (r_bound != l_bound) ret.emplace_back(&str[l_bound], r_bound - l_bound);
+        l_bound = r_bound + 1;
+      }
+    }
+    ret.shrink_to_fit();
+    return ret;
+  }
+
+
+  std::set<std::string> unique_split(const std::string_view& str, const char& delim) {
+    std::set<std::string> ret;
+    for (size_t r_bound = 0, l_bound = 0; r_bound <= str.length(); ++r_bound) {
+      if (str[r_bound] == delim || r_bound == str.length()) {
+        if (r_bound != l_bound) ret.emplace(&str[l_bound], r_bound - l_bound);
         l_bound = r_bound + 1;
       }
     }
     return ret;
   }
 
-
-  std::set<std::string> unique_split(const std::string_view& str, const std::string_view& delims) {
+  std::set<std::string> unique_splits(const std::string_view& str, const std::string_view& delims) {
     std::set<std::string> ret;
     for (size_t r_bound = 0, l_bound = 0; r_bound <= str.length(); ++r_bound) {
       if (delims.contains(str[r_bound]) || r_bound == str.length()) {
-        if (r_bound != l_bound) ret.emplace(str.substr(l_bound, r_bound - l_bound));
+        if (r_bound != l_bound) ret.emplace(&str[l_bound], r_bound - l_bound);
         l_bound = r_bound + 1;
       }
     }
@@ -241,7 +273,7 @@ namespace shared {
     command.insert(command.end(), {"find", local ? dirname(pattern) : path});
     command.insert(command.end(), args.begin(), args.end());
     command.insert(command.end(), {"-name", local ? basename(pattern) : pattern});
-    return shared::unique_split(exec(command), "\n");
+    return shared::unique_split(exec(command), '\n');
   };
 
 

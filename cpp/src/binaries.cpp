@@ -33,7 +33,7 @@ namespace binaries {
 
     // Resolve.
     if (!exists(path)) {
-        auto resolved = split(exec({"which", path}), "\n");
+        auto resolved = split(exec({"which", path}), '\n');
         if (resolved.size() == 0) throw std::runtime_error("Could not locate binary: " + path);
         else path = resolved[0];
     }
@@ -67,7 +67,7 @@ namespace binaries {
 
       // If the cache exists, and we don't need to update, use it.
       if (is_file(cache) && arg::at("update").under("cache")) {
-        local = unique_split(read_file(cache), " ");
+        local = unique_split(read_file(cache), ' ');
         for (const auto& bin : local) {
           required.merge(parse(bin, libraries));
         }
@@ -159,7 +159,7 @@ namespace binaries {
 
 
         // Get the shebang from the top.
-        auto lines = split(contents, "\n");
+        auto lines = split(contents, '\n');
         auto shebang = strip(lines[0], "#! \t\n");
         local.emplace(shebang);
 
@@ -178,13 +178,13 @@ namespace binaries {
           // If we have a variable declaration, parse and store it so we can resolve
           // future use.
           if (line.contains('=')) {
-            auto keypair = split(line, "=");
+            auto keypair = split(line, '=');
             const auto& key = keypair[0], val = keypair[1];
             if (!key.contains(' ') && !val.contains(' ')  && val != "()") variables[key] = resolve_environment(val);
           }
 
           // Tokenize the string
-          tokens = split(line, " \t()=;\"");
+          tokens = splits(line, " \t()=;\"");
           auto future = pool.submit_loop(0, tokens.size(), tokenize);
           future.wait();
         }

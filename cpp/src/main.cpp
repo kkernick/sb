@@ -32,11 +32,11 @@ int main(int argc, char* argv[]) {
   auto parse_args = []() {
     if (arg::args.size() > 0 && arg::args[0].ends_with(".sb")) {
       auto program = arg::args[0];
-      auto resolved = exists(arg::args[1]) ? program : split(exec({"which", program}), "\n")[0];
-      auto contents = split(read_file(resolved), "\n");
+      auto resolved = exists(arg::args[1]) ? program : split(exec({"which", program}), '\n')[0];
+      auto contents = split(read_file(resolved), '\n');
       if (contents.size() == 2) {
         auto old = arg::args;
-        arg::args = split(contents[1], " ");
+        arg::args = split(contents[1], ' ');
 
         // Remove the sb
         arg::args.erase(arg::args.begin());
@@ -299,7 +299,7 @@ int main(int argc, char* argv[]) {
 
     // Add flags
     auto flags = local_dir + "/flags.conf";
-    if (is_file(flags)) extend(command, split(read_file(flags), " \n"));
+    if (is_file(flags)) extend(command, splits(read_file(flags), " \n"));
   }
 
   // Wait for any tasks in the pool to complete.
@@ -325,7 +325,7 @@ int main(int argc, char* argv[]) {
 
       // Assemble the post-command; args are provided in the modifier.
       command = {arg::get("post")};
-      extend(command, split(arg::mod("post"), " "));
+      extend(command, split(arg::mod("post"), ' '));
     }
 
     if (arg::get("seccomp") == "strace") syscalls::update_policy(program, exec(command, STDERR));

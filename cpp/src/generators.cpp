@@ -47,7 +47,7 @@ namespace generate {
     if (!is_file(binary)) script(binary);
 
     // Modify the Exec and DBus lines
-    auto contents = split(read_file(src), "\n");
+    auto contents = split(read_file(src), '\n');
     for (auto& line : contents) {
       if (line.starts_with("Exec="))
         line = "Exec=" + binary + (line.contains(' ') ? line.substr(line.find(' ')) : "\n");
@@ -182,10 +182,10 @@ namespace generate {
     bool update_sof = arg::at("update");
     if (lib && !update_sof) {
       if (is_file(lib_cache)) {
-        auto contents = split(read_file(lib_cache), "\n");
+        auto contents = split(read_file(lib_cache), '\n');
         if (contents.size() == 2 && hash == contents[0]) {
           log({"Reusing existing library cache"});
-          libraries::required = unique_split(contents[1], " ");
+          libraries::required = unique_split(contents[1], ' ');
         }
         else {
           log({"Library cache out of date!"});
@@ -200,10 +200,10 @@ namespace generate {
     if (update_sof) log({"Updating SOF"});
 
     if (is_file(cmd_cache) && !update_sof && (!lib || is_dir(lib_dir))) {
-      auto contents = split(read_file(cmd_cache), "\n");
+      auto contents = split(read_file(cmd_cache), '\n');
       if (contents.size() == 2 && hash == contents[0]) {
         log({"Reusing existing command cache"});
-        extend(command, split(contents[1], " "));
+        extend(command, split(contents[1], ' '));
         return command;
       }
     }
@@ -230,7 +230,7 @@ namespace generate {
 
       // Get libraries needed for added executables.
       if (arg::at("fs") && is_dir(arg::mod("fs") + "/usr/bin")) {
-        binaries::parsel(unique_split(exec({"find", arg::mod("fs") + "/usr/bin", "-type", "f,l", "-executable"}), "\n"), libraries::required);
+        binaries::parsel(unique_split(exec({"find", arg::mod("fs") + "/usr/bin", "-type", "f,l", "-executable"}), '\n'), libraries::required);
       }
     }
     if (update_sof) {

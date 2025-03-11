@@ -33,7 +33,7 @@ namespace libraries {
     if (!exists(library)) return libraries;
 
     std::string cache = cache_name(library);
-    if (is_file(cache)) return unique_split(read_file(cache), " ");
+    if (is_file(cache)) return unique_split(read_file(cache), ' ');
 
     // If this is a library, add it.
     if (is_file(library) && library.contains("/lib/") && directory == "") {
@@ -93,7 +93,7 @@ namespace libraries {
 
     // If the cache exists, and we don't need to update, use it.
     if (is_file(cache) && arg::at("update").under("cache"))
-      return unique_split(read_file(cache), " ");
+      return unique_split(read_file(cache), ' ');
 
     // Resolve wildcards
     if (library.contains("*"))
@@ -101,7 +101,7 @@ namespace libraries {
 
     // Find all shared libraries in dir.
     else if (is_dir(library)) {
-      direct = unique_split(exec({"find", library, "-type", "f,l", "-executable",}), "\n");
+      direct = unique_split(exec({"find", library, "-type", "f,l", "-executable",}), '\n');
       sub_dir = library;
     }
 

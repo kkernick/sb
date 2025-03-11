@@ -12,7 +12,6 @@
 #include <sys/stat.h>
 #include <sys/inotify.h>
 #include <random>
-#include <map>
 
 // https://github.com/bshoshany/thread-pool
 #include "third_party/BS_thread_pool.hpp"
@@ -152,7 +151,9 @@ namespace shared {
    * @param delim: The delimiters.
    * @returns: A vector of each sub-string.
    */
-  std::vector<std::string> split(const std::string_view& str, const std::string_view& delim);
+  std::vector<std::string> split(const std::string_view& str, const char& delim);
+  std::vector<std::string> splits(const std::string_view& str, const std::string_view& delim);
+
 
   /**
    * @brief Split a string on a delimieter, only retaining unique values.
@@ -160,7 +161,8 @@ namespace shared {
    * @param delim: The delimiters to use
    * @returns: The unique values split.
    */
-  std::set<std::string> unique_split(const std::string_view& str, const std::string_view& delims);
+  std::set<std::string> unique_split(const std::string_view& str, const char& delim);
+  std::set<std::string> unique_splits(const std::string_view& str, const std::string_view& delims);
 
   /**
    * @brief Join a vector into a string.

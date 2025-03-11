@@ -86,7 +86,7 @@ namespace arg {
 
         // Digest modifiers.
         if (!list && custom == custom_policy::MODIFIABLE && val.contains(':')) {
-          auto s = shared::split(val, ":");
+          auto s = shared::split(val, ':');
           if (s.size() < 2) throw std::runtime_error("Invalid modifier: " + val);
           auto v = s[0]; auto mod = val.substr(val.find(':') + 1);
           if (valid.size() <= 1 || std::find(valid.begin(), valid.end(), v) != valid.end()) {
@@ -113,7 +113,7 @@ namespace arg {
 
             // If our key already has multiple values, split and handle separately.
             if (list && val.contains(',')) {
-              for (const auto& x : shared::split(val, ","))
+              for (const auto& x : shared::split(val, ','))
                 digest_keypair(key, x, pos);
             }
 
@@ -215,7 +215,7 @@ namespace arg {
 
         // If we have an equal, it's `key=value`
         if (key.contains("=")) {
-          auto keypair = shared::split(key, "=");
+          auto keypair = shared::split(key, '=');
           ret = digest_keypair(keypair[0], keypair[1], x);
         }
 
@@ -342,7 +342,7 @@ namespace arg {
         std::vector<std::pair<std::string, std::string>> ret;
         for (const auto& val : list_val) {
           if (val.contains(':')) {
-            auto s = shared::split(val, ":");
+            auto s = shared::split(val, ':');
             ret.emplace_back(std::pair{s[0], s[1]});
           }
           else ret.emplace_back(std::pair{val, ""});

@@ -225,12 +225,12 @@ namespace arg {
     // Parse a .conf file. They set defaults.
     auto c = join({shared::config, "sb", "sb.conf"}, '/');
     if (is_file(c)) {
-      for (const auto& conf : split(read_file(c), "\n")) {
+      for (const auto& conf : split(read_file(c), '\n')) {
         if (!conf.contains("=")) {
           std::cout << "Invalid configuration: " << conf << std::endl;
         }
         else {
-          auto s = split(conf, "=");
+          auto s = split(conf, '=');
           auto k = s[0], v = s[1];
           std::transform(k.begin(), k.end(), k.begin(), ::tolower);
 
