@@ -17,7 +17,6 @@ namespace arg {
     // You can either provide it via position 0, or through flags --cmd/-C
     {"cmd", arg::config{.l_name="--cmd", .s_name="-C", .position=0, .help="The command to sandbox"}},
 
-
     // Switches that just check if they are set.
     {"help", arg::config{.l_name="--help", .s_name="-h", .help="Print this message"}},
     {"verbose", arg::config{.l_name="--verbose", .s_name="-v", .valid={"log", "debug", "error", "strace"}, .help="Print verbose information"}},
@@ -123,7 +122,6 @@ namespace arg {
       .help="Share QT libraries.",
     }},
 
-
     // Lists of Values.
     {"libraries", arg::config{
       .l_name="--libraries", .s_name="",
@@ -150,11 +148,11 @@ namespace arg {
       .l_name="--files", .s_name="",
       .custom = custom_policy::MODIFIABLE,
       .list=true,
-      .help="Files to provide into the sandbox's enclave.",
+      .help="Files to provide into the sandbox's enclave. You can provide do/dw for direct read/write",
     }},
     {"app_dirs", arg::config{
       .l_name="--app-dirs", .s_name="",
-      .valid = {"etc", "lib", "share"},
+      .valid = {"etc", "lib", "share", "opt"},
       .list=true,
       .help="Application specific folders to add to the sandbox",
     }},
@@ -216,7 +214,7 @@ namespace arg {
       },
       [](const std::string& v) -> std::string {return v;},
       [](const std::string& v) -> std::string {
-        if (switches.contains("cmd") && !v.starts_with('/')) return join({data, "sb", basename(arg::get("cmd")), v}, '/');
+        if (switches.contains("cmd") && !v.starts_with('/')) return join({data, "sb", std::filesystem::path(arg::get("cmd")).filename(), v}, '/');
         return v;
       }
     }},
@@ -228,7 +226,7 @@ namespace arg {
 
     // Parse a .conf file. They set defaults.
     auto c = join({shared::config, "sb", "sb.conf"}, '/');
-    if (is_file(c)) {
+    if (std::filesystem::exists(c)) {
       for (const auto& conf : split(read_file(c), '\n')) {
         if (!conf.contains("=")) {
           std::cout << "Invalid configuration: " << conf << std::endl;

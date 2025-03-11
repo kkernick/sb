@@ -43,48 +43,6 @@ namespace shared {
     nobody = std::to_string(getpwnam("nobody")->pw_uid),
     real = std::to_string(getuid());
 
-
-  // Check if a path exists.
-  bool exists(const std::string_view& path) {
-    struct stat buffer;
-    return (stat (path.data(), &buffer) == 0);
-  }
-
-  // Check if path is a directory
-  bool is_dir(const std::string_view& path) {
-    struct stat statbuf;
-    if (stat(path.data(), &statbuf) != 0) return 0;
-    return S_ISDIR(statbuf.st_mode);
-  }
-
-  // Check if a path is a file
-  bool is_file(const std::string_view& path) {
-    struct stat statbuf;
-    if (stat(path.data(), &statbuf) != 0) return 0;
-    return S_ISREG(statbuf.st_mode);
-  }
-
-  // Check if a path is a link
-  bool is_link(const std::string_view& path) {
-    struct stat statbuf;
-    if (stat(path.data(), &statbuf) != 0) return 0;
-    return S_ISLNK(statbuf.st_mode);
-  }
-
-  // Get the basename of the path
-  std::string basename(const std::string& path) {
-    auto pos = path.rfind('/');
-    if (pos == std::string::npos) return path;
-    else return path.substr(pos + 1);
-  }
-
-  // Get the dirname of the path
-  std::string dirname(const std::string& path) {
-    auto pos = path.rfind('/');
-    if (pos == std::string::npos) return ".";
-    else return path.substr(0, pos);
-  }
-
   // Read a file
   std::string read_file(const std::string_view& path) {
     std::string contents;
@@ -99,14 +57,6 @@ namespace shared {
     return contents;
   }
 
-  // Construct a path
-  std::string mkpath(const std::vector<std::string_view>& p) {
-    auto ret = join(p, '/');
-    if (!ret.ends_with('/')) ret += '/';
-    std::filesystem::create_directories(ret);
-    return ret;
-  }
-
   // Log to output
   void log(const std::vector<std::string_view>& msg, const std::string& level) {
     if (arg::at("verbose").meets(level)) {
@@ -117,7 +67,7 @@ namespace shared {
   }
 
   // Execute a command.
-  
+
   int exec_pid(const std::vector<std::string>& cmd) {
     log({"EXEC:", std::string_view(join(cmd, ' '))}, "debug");
 
@@ -130,14 +80,11 @@ namespace shared {
       std::vector<const char*> argv; argv.reserve(cmd.size() + 1);
       for (const auto& v : cmd) argv.emplace_back(v.c_str());
       argv.emplace_back(nullptr);
-  
-      dup2(null_fd, STDERR_FILENO);
-      dup2(null_fd, STDOUT_FILENO);
       execvp(argv[0], const_cast<char* const*>(argv.data()));
-    }  
+    }
     return pid;
   }
-  
+
   std::string exec(const std::vector<std::string>& cmd, exec_return policy) {
       log({"EXEC:", std::string_view(join(cmd, ' '))}, "debug");
 
@@ -201,16 +148,30 @@ namespace shared {
 
 
   // Split the string.
-  std::vector<std::string> split(const std::string_view& str, const char& delim) {
+  std::vector<std::string> split(const std::string_view& str, const char& delim, const bool& escape) {
     std::vector<std::string> ret;
 
     // Be greedy with memory.
     ret.reserve(str.length());
 
+    bool wrapped = false;
     for (size_t r_bound = 0, l_bound = 0; r_bound <= str.length(); ++r_bound) {
-      if (str[r_bound] == delim || r_bound == str.length()) {
+      if (!wrapped && (str[r_bound] == delim || r_bound == str.length())) {
         if (r_bound != l_bound) ret.emplace_back(&str[l_bound], r_bound - l_bound);
         l_bound = r_bound + 1;
+      }
+
+      // If we hit a quote, we ignore the delimeters until we reach the match.
+      // We also skip over the quote itself when emplacing.
+      else if (escape && str[r_bound] == '\'') {
+        if (r_bound == l_bound)
+          ++l_bound;
+        else if (str[r_bound + 1] == delim) {
+          ret.emplace_back(&str[l_bound], r_bound - l_bound - 1);
+          l_bound = r_bound + 1;
+        }
+        wrapped ^= 1;
+
       }
     }
     ret.shrink_to_fit();
@@ -291,9 +252,9 @@ namespace shared {
 
     auto local = pattern.contains('/');
 
-    command.insert(command.end(), {"find", local ? dirname(pattern) : path});
+    command.insert(command.end(), {"find", local ? std::filesystem::path(pattern).parent_path().string() : path});
     command.insert(command.end(), args.begin(), args.end());
-    command.insert(command.end(), {"-name", local ? basename(pattern) : pattern});
+    command.insert(command.end(), {"-name", local ? std::filesystem::path(pattern).filename().string() : pattern});
     return shared::unique_split(exec(command), '\n');
   };
 
@@ -329,9 +290,9 @@ namespace shared {
   template <class T> void share(std::vector<std::string>& command, const T& paths, const std::string& mode) {
     std::vector<std::string> constructed; constructed.reserve(3 * paths.size());
     for (const auto& path : paths) {
-      if (exists(path)) {extend(constructed,
-          { "--" + mode,
-            path,
+      if (std::filesystem::exists(path)) {
+          extend(constructed, {
+            "--" + mode, path,
             path.starts_with(home) ? "/home/sb" + path.substr(home.length()) : path
           });
       }

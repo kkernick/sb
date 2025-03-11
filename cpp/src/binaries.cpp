@@ -3,6 +3,7 @@
 #include "libraries.hpp"
 #include "arguments.hpp"
 
+#include <filesystem>
 #include <regex>
 #include <map>
 #include <fstream>
@@ -32,7 +33,7 @@ namespace binaries {
     }
 
     // Resolve.
-    if (!exists(path)) {
+    if (!std::filesystem::exists(path)) {
         auto resolved = split(exec({"which", path}), '\n');
         if (resolved.size() == 0) throw std::runtime_error("Could not locate binary: " + path);
         else path = resolved[0];
@@ -62,12 +63,12 @@ namespace binaries {
       std::string name = path;
       std::replace(name.begin(), name.end(), '/', '.');
       std::replace(name.begin(), name.end(), '*', '.');
-      std::string cache = mkpath({data, "sb", "cache/"});
+      auto cache = std::filesystem::path(data) / "sb" / "cache";
       cache += name + ".bin.cache";
 
       // If the cache exists, and we don't need to update, use it.
-      if (is_file(cache) && arg::at("update").under("cache")) {
-        local = unique_split(read_file(cache), ' ');
+      if (std::filesystem::exists(cache) && arg::at("update").under("cache")) {
+        local = unique_split(read_file(cache.string()), ' ');
         for (const auto& bin : local) {
           required.merge(parse(bin, libraries));
         }
@@ -139,13 +140,13 @@ namespace binaries {
           if (token.empty() || token[0] == '-') return;
 
           // Ask which if it knows what this token is.
-          auto binary = trim(exists(token) ? token : exec({"which", token}), "\n\t ");
+          auto binary = trim(std::filesystem::exists(token) ? token : exec({"which", token}), "\n\t ");
 
           // If it does, add it and resolve it
           //
           if (binary.contains("/bin/")) {
             if (binary.starts_with("/bin/")) binary = binary.insert(0, "/usr");
-            auto base = basename(binary);
+            auto base = std::filesystem::path(binary).filename();
             if (discovered.contains(base)) return;
             discovered.emplace(base);
 
@@ -195,7 +196,7 @@ namespace binaries {
           file << join(local, ' ');
           file.close();
         }
-        else log({"Failed to write cache file:", cache});
+        else log({"Failed to write cache file:", cache.string()});
       }
     }
 
@@ -218,9 +219,24 @@ namespace binaries {
 
   // Setup the binaries.
   void setup(const std::set<std::string>& binaries, std::vector<std::string>& command) {
-    for (const auto& binary : binaries) {
-      if (binary.contains("bin")) extend(command, {"--ro-bind", binary, "/usr/bin/" + basename(binary)});
-      else extend(command, {"--ro-bind", binary, binary});
+    extend(command, {"--dir", "/usr/bin"});
+    for (auto binary : binaries) {
+      if (std::filesystem::is_symlink(binary)) {
+        auto dest = std::filesystem::read_symlink(binary).string();
+
+        if (!dest.contains('/')) dest.insert(0, "/usr/bin/");
+        else if (dest.starts_with("/bin")) dest.insert(0, "/usr");
+
+        if (binary.starts_with("/bin")) binary.insert(0, "/usr");
+        extend(command, {
+          "--ro-bind", dest, dest,
+          "--symlink", dest, binary
+        });
+      }
+      else {
+        if (binary.contains("bin")) extend(command, {"--ro-bind", binary, "/usr/bin/" + std::filesystem::path(binary).filename().string()});
+        else extend(command, {"--ro-bind", binary, binary});
+      }
     }
   }
 

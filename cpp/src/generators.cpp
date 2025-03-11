@@ -5,6 +5,7 @@
 #include "binaries.hpp"
 
 #include <cstring>
+#include <filesystem>
 #include <fstream>
 #include <stdexcept>
 
@@ -37,14 +38,14 @@ namespace generate {
 
     // Ensure the source exists.
     auto src = "/usr/share/applications/" + name;
-    if (!is_file(src)) {
+    if (!std::filesystem::exists(src)) {
       std::cerr << "Missing application: " << src << std::endl;
       exit(1);
     }
 
     // Ensure there's a script file to link to
     auto binary = home + "/.local/bin/" + name + ".sb";
-    if (!is_file(binary)) script(binary);
+    if (!std::filesystem::exists(binary)) script(binary);
 
     // Modify the Exec and DBus lines
     auto contents = split(read_file(src), '\n');
@@ -150,16 +151,16 @@ namespace generate {
 
 
   std::vector<std::string> cmd(const std::string& program) {
-    auto sof_dir = mkpath({arg::get("sof"), program});
-    auto local_dir = mkpath({data, "sb", program});
+    auto sof_dir = std::filesystem::path(arg::get("sof")) / program;
+    auto local_dir = std::filesystem::path(data) / "sb" / program;
 
-    auto lib_dir = sof_dir + "/lib";
-    auto lib_cache = local_dir + "/lib.cache";
-    auto cmd_cache = local_dir + "/cmd.cache";
+    auto lib_dir = sof_dir / "lib";
+    auto lib_cache = local_dir / "lib.cache";
+    auto cmd_cache = local_dir / "cmd.cache";
 
     std::vector<std::string> command;
     command.reserve(200);
-    std::set<std::string> binaries;
+    std::set<std::string> binaries, libraries;
 
     // So that we can easily query as unique, and to emplace.
     auto sys_dirs = arg::list("sys_dirs");
@@ -181,21 +182,21 @@ namespace generate {
 
     bool update_sof = arg::at("update");
     if (lib && !update_sof) {
-      if (is_file(lib_cache)) {
-        auto lib_file = split(read_file(lib_cache), '\n');
+      if (std::filesystem::exists(lib_cache)) {
+        auto lib_file = split(read_file(lib_cache.string()), '\n');
         if (lib_file.size() == 2 && hash == lib_file[0]) {
 
           // We should check the command cache here since it's predicated
           // on use not needing to update anything.
-          if (is_file(cmd_cache) && is_dir(lib_dir)) {
-            auto cmd_file = split(read_file(cmd_cache), '\n');
+          if (std::filesystem::exists(cmd_cache) && std::filesystem::is_directory(lib_dir)) {
+            auto cmd_file = split(read_file(cmd_cache.string()), '\n');
             if (cmd_file.size() == 2 && hash == cmd_file[0]) {
               log({"Reusing existing command cache"});
-              return split(cmd_file[1], ' ');
+              return split(cmd_file[1], ' ', true);
             }
           }
           log({"Reusing existing library cache"});
-          libraries::required = unique_split(lib_file[1], ' ');
+        libraries = unique_split(lib_file[1], ' ');
         }
         else {
           log({"Library cache out of date!"});
@@ -226,41 +227,44 @@ namespace generate {
     // Initial command and environment.
     if (bin) {
       log({"Resolving binaries"});
-      binaries.merge(binaries::parse(arg::get("cmd"), libraries::required));
-      binaries.merge(binaries::parsel(arg::list("binaries"), libraries::required));
+      binaries.merge(binaries::parse(arg::get("cmd"), libraries));
+      binaries.merge(binaries::parsel(arg::list("binaries"), libraries));
 
       // Get libraries needed for added executables.
-      if (arg::at("fs") && is_dir(arg::mod("fs") + "/usr/bin")) {
-        binaries::parsel(unique_split(exec({"find", arg::mod("fs") + "/usr/bin", "-type", "f,l", "-executable"}), '\n'), libraries::required);
+      if (arg::at("fs") && std::filesystem::is_directory(arg::mod("fs") + "/usr/bin")) {
+        binaries::parsel(unique_split(exec({"find", arg::mod("fs") + "/usr/bin", "-type", "f,l", "-executable"}), '\n'), libraries);
       }
     }
     if (update_sof) {
       log({"Resolving libraries"});
       for (const auto& [lib, mod] : arg::modlist("libraries")) {
-        if (mod != "x") libraries::required.merge(libraries::get(lib));
+        if (mod != "x") libraries.merge(libraries::get(lib));
       }
     }
 
-    if (arg::at("verbose").meets("error") && bin) binaries.merge(binaries::parse("strace", libraries::required));
+    if (arg::at("verbose").meets("error") && bin) binaries.merge(binaries::parse("strace", libraries));
     extend(command, {"--setenv", "HOME", "/home/sb", "--setenv", "PATH", "/usr/bin"});
 
     // XDG Open
     if (arg::at("xdg_open")) {
       log({"Adding XDG-Open"});
-      if (bin) binaries.merge(binaries::parse("/usr/bin/sb-open", libraries::required));
-      extend(command, {"--symlink", "/usr/bin/sb-open", "/usr/bin/xdg-open"});
+      if (bin) binaries.merge(binaries::parse("/usr/bin/sb-open", libraries));
+      extend(command, {
+        "--symlink", "/usr/bin/sb-open", "/usr/bin/xdg-open",
+        "--ro-bind", "/usr/bin/sb-mime", "/usr/bin/xdg-mime"
+      });
     }
 
     // Hardened Malloc
     if (arg::at("hardened_malloc") && update_sof) {
       log({"Adding Hardened Malloc"});
-      libraries::required.merge(libraries::get("/usr/lib/libhardened_malloc.so"));
+      libraries.merge(libraries::get("/usr/lib/libhardened_malloc.so"));
     }
 
     // A shell
     if (arg::at("shell")) {
       log({"Adding Shell"});
-      if (bin) binaries.merge(binaries::parse("/usr/bin/sh", libraries::required));
+      if (bin) binaries.merge(binaries::parse("/usr/bin/sh", libraries));
       share(command, {
         "/etc/shells",
         "/etc/profile", "/usr/share/terminfo", "/var/run/utmp",
@@ -279,12 +283,12 @@ namespace generate {
       share(command, {"/sys/block", "/sys/dev"});
       share(command, {"/dev/null", "/dev/urandom", "/dev/shm"}, "dev-bind");
 
-      if (update_sof) libraries::required.merge(libraries::getl({"libsoftokn3*", "libfreeblpriv3*", "libsensors*", "libnssckbi*", "libsmime3*"}));
+      if (update_sof) libraries.merge(libraries::getl({"libsoftokn3*", "libfreeblpriv3*", "libsensors*", "libnssckbi*", "libsmime3*"}));
 
       // IE custom.
       if (arg::get("electron") != "true") {
         auto mod = arg::get("electron");
-        if (bin) binaries.merge(binaries::parse("/usr/bin/electron" + mod, libraries::required));
+        if (bin) binaries.merge(binaries::parse("/usr/bin/electron" + mod, libraries));
         libraries::directories.emplace("/usr/lib/electron" + mod);
       }
       arg::get("gtk") = true;
@@ -311,7 +315,7 @@ namespace generate {
         "/usr/lib/girepository-1.0"
       });
 
-      if (update_sof) libraries::required.merge(libraries::getl({"libgvfs*", "librsvg*", "libgio*", "libgdk*", "libgtk*"}));
+      if (update_sof) libraries.merge(libraries::getl({"libgvfs*", "librsvg*", "libgio*", "libgdk*", "libgtk*"}));
       arg::get("gui") = true;
     }
 
@@ -320,7 +324,7 @@ namespace generate {
       auto version = arg::get("qt");
       if (version == "kf6") {
         libraries::directories.emplace("/usr/lib/kf6");
-        libraries::required.merge(libraries::getl({"*Kirigami*", "libKF" + version + "*"}));
+        libraries.merge(libraries::getl({"*Kirigami*", "libKF" + version + "*"}));
         version = "6";
       }
 
@@ -339,8 +343,8 @@ namespace generate {
       share(command, {"/usr/share/qt" + version});
       libraries::directories.emplace("/usr/lib/qt" + version);
       if (update_sof) {
-        libraries::required.merge(libraries::get("libQt" + version + "*"));
-       if (version != "kf6") libraries::required.merge(libraries::get("/usr/lib/kf6/kioworker"));
+        libraries.merge(libraries::get("libQt" + version + "*"));
+       if (version != "kf6") libraries.merge(libraries::get("/usr/lib/kf6/kioworker"));
       }
       arg::get("gui") = true;
     }
@@ -369,7 +373,7 @@ namespace generate {
 
       merge(libraries::directories, {"/usr/lib/dri", "/usr/lib/gbm"});
       if (update_sof) {
-        libraries::required.merge(libraries::getl({
+        libraries.merge(libraries::getl({
           "libvulkan*", "libglapi*", "*mesa*", "*Mesa*", "libdrm*", "libGL*", "libVkLayer*", "libgbm*",
           "libva*", "*egl*", "*EGL*"}
         ));
@@ -382,7 +386,7 @@ namespace generate {
         runtime + "/pipewire-0", runtime + "/pulse",
         config + "/pulse", "/etc/pipewire", "/usr/share/pipewire"
       });
-      if (update_sof) libraries::required.merge(libraries::get("libpipewire*"));
+      if (update_sof) libraries.merge(libraries::get("libpipewire*"));
       merge(libraries::directories, {"/usr/lib/pipewire-0.3", "/usr/lib/spa-0.2", "/usr/lib/pulseaudio"});
 
     }
@@ -395,7 +399,7 @@ namespace generate {
         config + "/plasma-localerc"
       });
       libraries::directories.emplace("/usr/lib/locale");
-      if (bin) binaries.merge(binaries::parse("locale", libraries::required));
+      if (bin) binaries.merge(binaries::parse("locale", libraries));
     }
 
     if (shared.contains("none")) command.emplace_back("--unshare-all");
@@ -412,7 +416,7 @@ namespace generate {
         "/etc/ssl", "/usr/share/ssl",
         "/usr/share/p11-kit"
       });
-      if (update_sof) libraries::required.merge(libraries::getl({"libnss*", "libgnutls*"}));
+      if (update_sof) libraries.merge(libraries::getl({"libnss*", "libgnutls*"}));
       libraries::directories.emplace("/usr/lib/pkcs11");
     }
     if (!shared.contains("user")) extend(command, {"--disable-userns", "--assert-userns-disabled"});
@@ -429,21 +433,19 @@ namespace generate {
     // Application directories.
     if (app_dirs.contains("lib") && lib) libraries::directories.emplace("/usr/lib/" + program);
     if (app_dirs.contains("share")) share(command, {"/usr/share/" + program});
-    if (app_dirs.contains("share")) share(command, {"/etc" + program});
+    if (app_dirs.contains("etc")) share(command, {"/etc" + program});
+    if (app_dirs.contains("opt")) libraries::directories.emplace("/opt/" + program);
 
     if (bin) binaries::setup(binaries, command);
     binaries::symlink(command);
 
-    if (update_sof) {
-      for (const auto& dir : libraries::directories) {
-        libraries::required.merge(libraries::get(dir));
-      }
-    }
+    if (update_sof || !std::filesystem::is_directory(lib_dir)) {
+      for (const auto& dir : libraries::directories)
+        libraries.merge(libraries::get(dir));
 
-    if (update_sof || !is_dir(lib_dir)) {
       // Because updating the SOF merely writes to the SOF directory, we can freely detach it
       // into another thread, and then call pool.wait() just before running the program.
-      pool.detach_task([program, lib_cache, hash]() {libraries::resolve(program, lib_cache, hash);});
+      pool.detach_task([program, lib_cache, hash, libraries]() {libraries::resolve(libraries, program, lib_cache, hash);});
       extend(command, {"--overlay-src", lib_dir, "--tmp-overlay", "/usr/lib"});
     }
 
@@ -451,7 +453,13 @@ namespace generate {
     share(command, libraries::directories);
 
     auto out = std::ofstream(cmd_cache);
-    out << hash << '\n' << join(command, ' ');
+    out << hash << '\n';
+    for (const auto& arg : command) {
+      if (arg.contains(' '))
+        out << '\'' << arg << '\'';
+      else out << arg;
+      out << ' ';
+    }
     out.close();
 
     return command;

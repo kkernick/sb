@@ -4,12 +4,8 @@
 
 #pragma once
 
-#include <cstdio>
 #include <filesystem>
-#include <string>
-#include <vector>
 #include <set>
-#include <sys/stat.h>
 #include <sys/inotify.h>
 #include <random>
 
@@ -29,60 +25,11 @@ namespace shared {
   typedef enum {NONE, STDOUT, STDERR, ONLY_STDOUT, ONLY_STDERR, ALL} exec_return;
 
   /**
-   * @brief Check if a path exists.
-   * @param path: The path.
-   * @returns: Whether the path exists.
-   */
-  bool exists(const std::string_view& path);
-
-  /**
-   * @brief Check if a path is a directory
-   * @param path: The path
-   * @returns: If the path is a directory
-   */
-  bool is_dir(const std::string_view& path);
-
-  /**
-   * @brief Check if a path is a directory
-   * @param path: The path
-   * @returns: If the path is a directory
-   */
-  bool is_file(const std::string_view& path);
-
-  /**
-   * @brief Check if a path is a directory
-   * @param path: The path
-   * @returns: If the path is a directory
-   */
-  bool is_link(const std::string_view& path);
-
-  /**
-   * @brief Return the basename of a path.
-   * @param path: The path
-   * @returns: The basename.
-   */
-  std::string basename(const std::string& path);
-
-  /**
-   * @brief Return the dirname of a path.
-   * @param path: The path
-   * @returns: The directory.
-   */
-  std::string dirname(const std::string& path);
-
-  /**
    * @brief Read a file completely.
    * @param path: The path to the file.
    * @returns The file contents.
    */
   std::string read_file(const std::string_view& path);
-
-  /**
-   * @brief Construct a path from a list of elements.
-   * @param p: The path
-   * @returns The joined path.
-   */
-  std::string mkpath(const std::vector<std::string_view>& p);
 
   /**
    * @brief A Temporary Directory
@@ -115,7 +62,7 @@ namespace shared {
     ) {
       do {
         generate(parent, prefix, suffix);
-      } while (is_dir(path));
+      } while (std::filesystem::is_directory(path));
       if (!defer) create();
     }
 
@@ -156,7 +103,7 @@ namespace shared {
    * @param delim: The delimiters.
    * @returns: A vector of each sub-string.
    */
-  std::vector<std::string> split(const std::string_view& str, const char& delim);
+  std::vector<std::string> split(const std::string_view& str, const char& delim, const bool& escape = false);
   std::vector<std::string> splits(const std::string_view& str, const std::string_view& delim);
 
 

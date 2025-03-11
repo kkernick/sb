@@ -17,7 +17,6 @@
 namespace libraries {
 
   extern std::set<std::string> directories;
-  extern std::set<std::string> required;
 
   /**
    * @brief Recursively resolve all shared-libraries needed by a library.
@@ -51,5 +50,5 @@ namespace libraries {
     */
    void symlink(std::vector<std::string>& command, const std::string& application);
 
-   void resolve(const std::string& program, const std::string& lib_cache, const std::string& hash);
+   void resolve(const std::set<std::string>& required, const std::string& program, const std::string& lib_cache, const std::string& hash);
 }

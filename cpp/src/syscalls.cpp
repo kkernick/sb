@@ -16,14 +16,14 @@ namespace syscalls {
     if (arg::at("seccomp").under("permissive")) return "";
 
     // Get our files.
-    auto local_dir = mkpath({data, "sb", application});
-    auto syscall_file = local_dir + "/syscalls.txt",
-    bpf = local_dir + "/filter.bpf";
+    auto local_dir = std::filesystem::path(data) / "sb" / application;
+    auto syscall_file = local_dir / "syscalls.txt",
+    bpf = local_dir / "filter.bpf";
 
     // If we are lacking a syscall file, permissive can just create one, but there's
     // nothing we can do except panic if we're expected to enforce something that doesn't
     // exist.
-    if (!is_file(syscall_file)) {
+    if (!std::filesystem::exists(syscall_file)) {
       if (arg::get("seccomp") == "enforcing")
         throw std::runtime_error("Cannot enforce a non-existent syscall policy!");
 
@@ -35,10 +35,10 @@ namespace syscalls {
     }
 
     // See if the existing file is already up to date, and just use that directly.
-    auto content = split(read_file(syscall_file), '\n');
+    auto content = split(read_file(syscall_file.string()), '\n');
     if (content.size() > 1) {
       auto hash = std::string(arg::get("seccomp") == "enforcing" ? "E" : "P") + shared::hash(content[1]);
-      if (hash == split(content[0], ' ')[1] && is_file(bpf) && arg::at("update").under("cache")) {
+      if (hash == split(content[0], ' ')[1] && std::filesystem::exists(bpf) && arg::at("update").under("cache")) {
         log({"Using cached SECCOMP filter"});
         return bpf;
       }
@@ -107,12 +107,12 @@ namespace syscalls {
     }
 
     // Get our files.
-    auto local_dir = mkpath({data, "sb", application});
-    auto syscall_file = local_dir + "syscalls.txt";
+    auto local_dir = std::filesystem::path(data) / "sb" / application;
+    auto syscall_file = local_dir / "syscalls.txt";
 
     std::string joined;
-    if (is_file(syscall_file)) {
-      auto content = split(read_file(syscall_file), '\n');
+    if (std::filesystem::exists(syscall_file)) {
+      auto content = split(read_file(syscall_file.string()), '\n');
       switch (content.size()) {
         case 1:  if (!content[0].starts_with("HASH")) syscalls.merge(unique_split(content[0], ' ')); break;
         case 2: syscalls.merge(unique_split(content[1], ' ')); break;

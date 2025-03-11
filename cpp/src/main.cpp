@@ -10,9 +10,9 @@
 #include <fcntl.h>
 #include <sys/inotify.h>
 #include <sys/wait.h>
+#include <filesystem>
 
 using namespace shared;
-
 
 static void child_handler(int sig) {
     pid_t pid;
@@ -32,7 +32,7 @@ int main(int argc, char* argv[]) {
   auto parse_args = []() {
     if (arg::args.size() > 0 && arg::args[0].ends_with(".sb")) {
       auto program = arg::args[0];
-      auto resolved = exists(arg::args[1]) ? program : split(exec({"which", program}), '\n')[0];
+      auto resolved = std::filesystem::exists(arg::args[1]) ? program : split(exec({"which", program}), '\n')[0];
       auto contents = split(read_file(resolved), '\n');
       if (contents.size() == 2) {
         auto old = arg::args;
@@ -57,24 +57,24 @@ int main(int argc, char* argv[]) {
   };
   profile("Argument Parser", parse_args);
 
-  auto program = basename(arg::get("cmd"));
+  auto program = std::filesystem::path(arg::get("cmd")).filename().string();
 
 
   if (arg::at("refresh") && arg::at("sof")) {
-    auto sof = arg::get("sof") + '/' + program + '/' + "/lib";
-    if (is_dir(sof)) std::filesystem::remove_all(sof);
-    else log({"SOF doesn't exist at:", sof});
+    auto sof = std::filesystem::path(arg::get("sof")) / program / "lib";
 
-    auto proxy = arg::get("sof") + "/xdg-dbus-proxy/lib";
-    if (is_dir(proxy)) std::filesystem::remove_all(proxy);
-    else log({"Proxy SOF doesn't exist at:", proxy});
-    
+    if (std::filesystem::is_directory(sof)) std::filesystem::remove_all(sof);
+    else log({"SOF doesn't exist at:", sof.string()});
+
+    auto proxy = std::filesystem::path(arg::get("sof")) / "xdg-dbus-proxy" / "lib";
+    if (std::filesystem::is_directory(proxy)) std::filesystem::remove_all(proxy);
+    else log({"Proxy SOF doesn't exist at:", proxy.string()});
     arg::get("update") = "libraries";
   }
 
   // Create a script file and exit.
   if (arg::at("script")) {
-    auto binary = home + "/.local/bin/" + program + ".desktop.sb";
+    auto binary = std::filesystem::path(home) / ".local" / "bin" / (program + ".desktop.sb");
     generate::script(binary);
     exit(0);
   }
@@ -97,13 +97,15 @@ int main(int argc, char* argv[]) {
   if (inotify == -1) throw std::runtime_error(std::string("Failed to initialize inotify: ") + strerror(errno));
 
   // Get the application's directories.
-  auto app_sof = mkpath({arg::get("sof"), program});
-  auto local_dir = mkpath({data, "sb", program});
+  auto app_sof = std::filesystem::path(arg::get("sof")) / program;
+  std::filesystem::create_directory(app_sof);
+
+  auto local_dir = std::filesystem::path(data) / "sb" / program;
   auto work_dir = TemporaryDirectory(app_sof);
 
   // Create the ld.so.preload to ensure hardened malloc is enforced.
   if (arg::at("hardened_malloc")) {
-      if (!exists("/usr/lib/libhardened_malloc.so"))
+      if (!std::filesystem::exists("/usr/lib/libhardened_malloc.so"))
         throw std::runtime_error("Installed hardened malloc!");
       auto preload = std::ofstream(work_dir.sub("ld.so.preload"));
       preload << "/usr/lib/libhardened_malloc.so";
@@ -111,7 +113,7 @@ int main(int argc, char* argv[]) {
   }
 
   // Defer instance dir to only when we actually need it.
-  auto instance_dir = TemporaryDirectory(mkpath({runtime, ".flatpak"}), program, "", true);
+  auto instance_dir = TemporaryDirectory(runtime + "/.flatpak", program, "", true);
 
   std::pair<int, std::future<int>> proxy_pair;
 
@@ -126,7 +128,7 @@ int main(int argc, char* argv[]) {
   else {
     instance_dir.create();
     log({"Initializing xdg-dbus-proxy..."});
-    generate::flatpak_info(program, basename(instance_dir.get_path()), work_dir);
+    generate::flatpak_info(program, std::filesystem::path(instance_dir.get_path()).filename(), work_dir);
     if (!arg::at("dry")) {
       proxy_pair = generate::xdg_dbus_proxy(program, work_dir);
     }
@@ -151,7 +153,7 @@ int main(int argc, char* argv[]) {
     if (arg::get("fs") == "cache") extend(command, {"--overlay-src", arg::mod("fs"), "--tmp-overlay", "/"});
     else extend(command, {"--bind", arg::mod("fs"), "/"});
 
-    if (is_dir(path + "/tmp")) extend(command, {"--overlay-src", arg::mod("fs") + "/tmp", "--tmp-overlay", "/tmp"});
+    if (std::filesystem::is_directory(path + "/tmp")) extend(command, {"--overlay-src", arg::mod("fs") + "/tmp", "--tmp-overlay", "/tmp"});
     else extend(command, {"--tmpfs", "/tmp"});
   }
   else extend(command, {"--tmpfs", "/tmp", "--tmpfs", "/home/sb/.cache"});
@@ -208,8 +210,8 @@ int main(int argc, char* argv[]) {
   else extend(command, {"--uid", nobody, "--gid", nobody});
 
   // Only one instance has control off the SOF to prevent races.
-  auto lock_file = app_sof + "sb.lock";
-  while (is_file(lock_file)) {
+  auto lock_file = app_sof / "sb.lock";
+  while (std::filesystem::exists(lock_file)) {
     log({"Another instance of the application is writing to the SOF. Waiting..."});
     auto wd = inotify_add_watch(inotify, lock_file.c_str(), IN_DELETE_SELF);
     inotify_wait(wd);
@@ -247,7 +249,7 @@ int main(int argc, char* argv[]) {
       // Discard, which only applies on folders, puts a TMPFS overlay to make directories appear
       // writable within the sandbox, but to which said changes are discarded.
       else if (policy == "discard") {
-        if (!is_dir(path)) throw std::runtime_error("Discard policy can only apply to directories!");
+        if (!std::filesystem::is_directory(path)) throw std::runtime_error("Discard policy can only apply to directories!");
         extend(command, {"--overlay-src", path, "--tmp-overlay", "/enclave" + path});
         return;
       }
@@ -255,7 +257,7 @@ int main(int argc, char* argv[]) {
       else if (policy == "false") throw std::runtime_error("--file-passthrough must be set if --files does not use modifiers!");
 
       // Otherwise complain if the policy is invalid.
-      else throw std::runtime_error("Invalid policy: " + policy);
+      else throw std::runtime_error("Invalid policy for " + path + ':' + policy);
 
       // Give it within the enclave.
       extend(command, {path, "/enclave/" + path});
@@ -271,12 +273,14 @@ int main(int argc, char* argv[]) {
   // needs to be set to provide a default.
   for (const auto& [val, mod] : arg::modlist("files")) {
     if (mod.empty()) passthrough(val, arg::get("file_passthrough"));
+    else if (mod == "do") share(command, {val});
+    else if (mod == "dw") share(command, {val}, "bind");
     else passthrough(val, mod);
   }
 
   // Unknown arguments do not get parsed.
   for (const auto& arg : arg::unknown) {
-    if (exists(arg)) {
+    if (std::filesystem::exists(arg)) {
       passthrough(arg, arg::get("file_passthrough"));
       post.emplace_back("/enclave/" + arg);
     }
@@ -310,8 +314,8 @@ int main(int argc, char* argv[]) {
     extend(command, post);
 
     // Add flags
-    auto flags = local_dir + "/flags.conf";
-    if (is_file(flags)) extend(command, splits(read_file(flags), " \n"));
+    auto flags = local_dir / "flags.conf";
+    if (std::filesystem::exists(flags)) extend(command, splits(read_file(flags.string()), " \n"));
   }
 
   // Do this before our auxiliary wait.
@@ -373,10 +377,17 @@ int main(int argc, char* argv[]) {
     // files which can be *massive* if the app crashes. We want to remove those.
     // Given that both /dev and /run are ephemeral directories (/dev is a devfs and
     // /run is a tmpfs, users shoudln't be putting anything in them to begin with).
-    if (is_dir(arg::mod("fs") + "/dev"))
-      std::filesystem::remove_all(arg::mod("fs") + "/dev");
-    if (is_dir(arg::mod("fs") + "/run"))
-      std::filesystem::remove_all(arg::mod("fs") + "/run");
+    try {
+      if (std::filesystem::is_directory(arg::mod("fs") + "/dev"))
+        std::filesystem::remove_all(arg::mod("fs") + "/dev");
+      }
+    catch (std::filesystem::filesystem_error&) {};
+
+    try {
+      if (std::filesystem::is_directory(arg::mod("fs") + "/run"))
+        std::filesystem::remove_all(arg::mod("fs") + "/run");
+      }
+    catch (std::filesystem::filesystem_error&) {};
   }
 
   #ifdef PROFILE
