@@ -318,7 +318,7 @@ int main(int argc, char* argv[]) {
     try {
       proxy_resolved_wd = std::get<1>(proxy_pair).get();
     }
-    catch (std::future_error) {}
+    catch (std::future_error&) {}
   }
 
   // Wait for any tasks in the pool to complete.
