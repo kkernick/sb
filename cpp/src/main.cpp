@@ -300,6 +300,10 @@ int main(int argc, char* argv[]) {
     if (is_file(flags)) extend(command, split(read_file(flags), " \n"));
   }
 
+  // Wait for any tasks in the pool to complete.
+  log({"Waiting for auxiliary tasks to complete.."});
+  pool.wait();
+
   if (!arg::at("dry")) {
 
     // Wait for the proxy to setup.
@@ -310,10 +314,6 @@ int main(int argc, char* argv[]) {
       }
     };
     profile("Exclusive Proxy Setup", wait);
-
-    // Wait for any tasks in the pool to complete.
-    log({"Waiting for auxiliary tasks to complete.."});
-    pool.wait();
 
     // If there's a post command, the main command is non-blocking,
     // we launch the post command, and wait on that.
