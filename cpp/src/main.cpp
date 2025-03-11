@@ -113,8 +113,14 @@ int main(int argc, char* argv[]) {
 
   std::pair<int, std::future<int>> proxy_pair;
 
-  if (arg::list("portals").empty() && arg::list("see").empty() && arg::list("talk").empty() && arg::list("own").empty())
+  if (arg::list("portals").empty() && arg::list("see").empty() && arg::list("talk").empty() && arg::list("own").empty()) {
     log({"Application does not use portals"});
+
+    // Elegant? Hell no, but we NEED to cart around the proxy's future, otherwise we would need to wait for the
+    // program to launch within this scope. If that requires a dud async call so that we don't get invalid futures,
+    // then so be it.
+    proxy_pair = {-1, std::async(std::launch::async, []() {return -1;})};
+  }
   else {
     instance_dir.create();
     log({"Initializing xdg-dbus-proxy..."});
