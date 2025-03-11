@@ -110,8 +110,8 @@ int main(int argc, char* argv[]) {
 
   // Defer instance dir to only when we actually need it.
   auto instance_dir = TemporaryDirectory(mkpath({runtime, ".flatpak"}), program, "", true);
-  int proxy_wd = -1;
-  std::future<int> proxy_pid;
+
+  std::pair<int, std::future<int>> proxy_pair;
 
   if (arg::list("portals").empty() && arg::list("see").empty() && arg::list("talk").empty() && arg::list("own").empty())
     log({"Application does not use portals"});
@@ -120,7 +120,7 @@ int main(int argc, char* argv[]) {
     log({"Initializing xdg-dbus-proxy..."});
     generate::flatpak_info(program, basename(instance_dir.get_path()), work_dir);
     if (!arg::at("dry")) {
-      auto[proxy_wd, proxy_pid] = generate::xdg_dbus_proxy(program, work_dir);
+      proxy_pair = generate::xdg_dbus_proxy(program, work_dir);
     }
   }
 
@@ -149,7 +149,7 @@ int main(int argc, char* argv[]) {
   else extend(command, {"--tmpfs", "/tmp", "--tmpfs", "/home/sb/.cache"});
 
   // Mount *AFTER* the root file system has been overlain to prevent it being hidden.
-  if (proxy_wd != -1) {
+  if (std::get<0>(proxy_pair) != -1) {
     extend(command, {
       "--ro-bind", work_dir.sub(".flatpak-info"), "/.flatpak-info",
       "--symlink", "/.flatpak-info", "/run/user/" + real + "/flatpak-info"
@@ -182,7 +182,7 @@ int main(int argc, char* argv[]) {
 
   // Setup the bwrap json output, and mount for portals.
   int bwrap_fd = -1;
-  if (proxy_wd != -1) {
+  if (std::get<0>(proxy_pair) != -1) {
     bwrap_fd = creat(instance_dir.sub("bwrapinfo.json").c_str(), S_IRUSR | S_IWUSR | S_IROTH);
     if (bwrap_fd == -1) throw std::runtime_error(std::string("Failed to create bwrapinfo: ") + strerror(errno));
     extend(command, {
@@ -308,8 +308,8 @@ int main(int argc, char* argv[]) {
 
   // Do this before our auxiliary wait.
   auto proxy_resolved_wd = -1;
-  if (proxy_wd != -1)
-    proxy_resolved_wd = proxy_pid.get();
+  if (std::get<0>(proxy_pair) != -1)
+    proxy_resolved_wd = std::get<1>(proxy_pair).get();
 
   // Wait for any tasks in the pool to complete.
   log({"Waiting for auxiliary tasks to complete.."});
@@ -317,10 +317,10 @@ int main(int argc, char* argv[]) {
 
   if (!arg::at("dry")) {
     // Wait for the proxy to setup.
-    auto wait = [&proxy_wd]() {
-      if (proxy_wd != -1) {
+    auto wait = [&proxy_pair]() {
+      if (std::get<0>(proxy_pair) != -1) {
         log({"Waiting for Proxy..."});
-        inotify_wait(proxy_wd);
+        inotify_wait(std::get<0>(proxy_pair));
       }
     };
     profile("Exclusive Proxy Setup", wait);
