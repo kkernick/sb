@@ -40,7 +40,6 @@ static void cleanup(int sig) {
   auto sof = arg::get("sof");
   if (std::filesystem::exists(sof + "/sb.lock"))
     std::filesystem::remove(sof + "/sb.lock");
-  exit(0);
 }
 
 int main(int argc, char* argv[]) {
