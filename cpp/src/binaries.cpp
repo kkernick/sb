@@ -68,7 +68,7 @@ namespace binaries {
 
       // If the cache exists, and we don't need to update, use it.
       if (std::filesystem::exists(cache) && arg::at("update").under("cache")) {
-        local = unique_split(read_file(cache.string()), ' ');
+        local = split<std::set<std::string>>(read_file(cache), ' ');
         for (const auto& bin : local) {
           required.merge(parse(bin, libraries));
         }

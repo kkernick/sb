@@ -44,9 +44,9 @@ namespace shared {
     real = std::to_string(getuid());
 
   // Read a file
-  std::string read_file(const std::string_view& path) {
+  std::string read_file(const std::filesystem::path& path) {
     std::string contents;
-    auto file = std::ifstream(path.data());
+    auto file = std::ifstream(path);
     if (file.is_open()) {
       file.seekg(0, std::ios::end);
       contents.resize(file.tellg());
@@ -146,18 +146,17 @@ namespace shared {
       return trim(result, "\0");
   }
 
+  void emplace(std::vector<std::string>& vec, const std::string_view& val) {vec.emplace_back(val);}
+  void emplace(std::set<std::string>& vec, const std::string_view& val) {vec.emplace(val);}
 
   // Split the string.
-  std::vector<std::string> split(const std::string_view& str, const char& delim, const bool& escape) {
-    std::vector<std::string> ret;
-
-    // Be greedy with memory.
-    ret.reserve(str.length());
+  template <class T> T split(const std::string_view& str, const char& delim, const bool& escape) {
+    T ret;
 
     bool wrapped = false;
     for (size_t r_bound = 0, l_bound = 0; r_bound <= str.length(); ++r_bound) {
       if (!wrapped && (str[r_bound] == delim || r_bound == str.length())) {
-        if (r_bound != l_bound) ret.emplace_back(&str[l_bound], r_bound - l_bound);
+        if (r_bound != l_bound) emplace(ret, std::string_view(&str[l_bound], r_bound - l_bound));
         l_bound = r_bound + 1;
       }
 
@@ -167,55 +166,32 @@ namespace shared {
         if (r_bound == l_bound)
           ++l_bound;
         else if (str[r_bound + 1] == delim) {
-          ret.emplace_back(&str[l_bound], r_bound - l_bound - 1);
+          emplace(ret, std::string_view(&str[l_bound], r_bound - l_bound - 1));
           l_bound = r_bound + 1;
         }
         wrapped ^= 1;
-
       }
     }
-    ret.shrink_to_fit();
     return ret;
   }
+  template std::vector<std::string> split(const std::string_view&, const char&, const bool&);
+  template std::set<std::string> split(const std::string_view&, const char&, const bool&);
 
-  std::vector<std::string> splits(const std::string_view& str, const std::string_view& delims) {
-    std::vector<std::string> ret;
 
-    // Be greedy with memory.
-    ret.reserve(str.length());
+  template <class T> T splits(const std::string_view& str, const std::string_view& delims) {
+    T ret;
 
     for (size_t r_bound = 0, l_bound = 0; r_bound <= str.length(); ++r_bound) {
       if (delims.contains(str[r_bound])|| r_bound == str.length()) {
-        if (r_bound != l_bound) ret.emplace_back(&str[l_bound], r_bound - l_bound);
-        l_bound = r_bound + 1;
-      }
-    }
-    ret.shrink_to_fit();
-    return ret;
-  }
-
-
-  std::set<std::string> unique_split(const std::string_view& str, const char& delim) {
-    std::set<std::string> ret;
-    for (size_t r_bound = 0, l_bound = 0; r_bound <= str.length(); ++r_bound) {
-      if (str[r_bound] == delim || r_bound == str.length()) {
-        if (r_bound != l_bound) ret.emplace(&str[l_bound], r_bound - l_bound);
+        if (r_bound != l_bound) emplace(ret, std::string_view(&str[l_bound], r_bound - l_bound));
         l_bound = r_bound + 1;
       }
     }
     return ret;
   }
+  template std::vector<std::string> splits(const std::string_view&, const std::string_view&);
+  template std::set<std::string> splits(const std::string_view&, const std::string_view&);
 
-  std::set<std::string> unique_splits(const std::string_view& str, const std::string_view& delims) {
-    std::set<std::string> ret;
-    for (size_t r_bound = 0, l_bound = 0; r_bound <= str.length(); ++r_bound) {
-      if (delims.contains(str[r_bound]) || r_bound == str.length()) {
-        if (r_bound != l_bound) ret.emplace(&str[l_bound], r_bound - l_bound);
-        l_bound = r_bound + 1;
-      }
-    }
-    return ret;
-  }
 
   // Join a vector into a string.
   template <class T> std::string join(const T& list, const char& joiner) {
@@ -255,7 +231,7 @@ namespace shared {
     command.insert(command.end(), {"find", local ? std::filesystem::path(pattern).parent_path().string() : path});
     command.insert(command.end(), args.begin(), args.end());
     command.insert(command.end(), {"-name", local ? std::filesystem::path(pattern).filename().string() : pattern});
-    return shared::unique_split(exec(command), '\n');
+    return shared::split<std::set<std::string>>(exec(command), '\n');
   };
 
 

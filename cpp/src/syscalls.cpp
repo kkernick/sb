@@ -35,7 +35,7 @@ namespace syscalls {
     }
 
     // See if the existing file is already up to date, and just use that directly.
-    auto content = split(read_file(syscall_file.string()), '\n');
+    auto content = split(read_file(syscall_file), '\n');
     if (content.size() > 1) {
       auto hash = std::string(arg::get("seccomp") == "enforcing" ? "E" : "P") + shared::hash(content[1]);
       if (hash == split(content[0], ' ')[1] && std::filesystem::exists(bpf) && arg::at("update").under("cache")) {
@@ -50,7 +50,7 @@ namespace syscalls {
     else content = {"0", ""};
 
     // Get the syscalls that should be allowed
-    std::set<std::string> syscalls = unique_split(content[1], ' ');
+    std::set<std::string> syscalls = split<std::set<std::string>>(content[1], ' ');
     log({arg::get("seccomp") == "enforcing" ? "Enforced": "Logged", "Syscalls:", std::to_string(syscalls.size())});
 
     // Setup the filter.
@@ -112,10 +112,10 @@ namespace syscalls {
 
     std::string joined;
     if (std::filesystem::exists(syscall_file)) {
-      auto content = split(read_file(syscall_file.string()), '\n');
+      auto content = split(read_file(syscall_file), '\n');
       switch (content.size()) {
-        case 1:  if (!content[0].starts_with("HASH")) syscalls.merge(unique_split(content[0], ' ')); break;
-        case 2: syscalls.merge(unique_split(content[1], ' ')); break;
+        case 1:  if (!content[0].starts_with("HASH")) syscalls.merge(split<std::set<std::string>>(content[0], ' ')); break;
+        case 2: syscalls.merge(split<std::set<std::string>>(content[1], ' ')); break;
         default: break;
       }
     }

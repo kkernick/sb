@@ -29,7 +29,7 @@ namespace shared {
    * @param path: The path to the file.
    * @returns The file contents.
    */
-  std::string read_file(const std::string_view& path);
+  std::string read_file(const std::filesystem::path& path);
 
   /**
    * @brief A Temporary Directory
@@ -103,18 +103,8 @@ namespace shared {
    * @param delim: The delimiters.
    * @returns: A vector of each sub-string.
    */
-  std::vector<std::string> split(const std::string_view& str, const char& delim, const bool& escape = false);
-  std::vector<std::string> splits(const std::string_view& str, const std::string_view& delim);
-
-
-  /**
-   * @brief Split a string on a delimieter, only retaining unique values.
-   * @param str: The string
-   * @param delim: The delimiters to use
-   * @returns: The unique values split.
-   */
-  std::set<std::string> unique_split(const std::string_view& str, const char& delim);
-  std::set<std::string> unique_splits(const std::string_view& str, const std::string_view& delims);
+  template <class T = std::vector<std::string>> T split(const std::string_view& str, const char& delim, const bool& escape = false);
+  template <class T = std::vector<std::string>> T splits(const std::string_view& str, const std::string_view& delim);
 
   /**
    * @brief Join a vector into a string.

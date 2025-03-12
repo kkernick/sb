@@ -129,7 +129,7 @@ int main(int argc, char* argv[]) {
     instance_dir.create();
     log({"Initializing xdg-dbus-proxy..."});
     generate::flatpak_info(program, std::filesystem::path(instance_dir.get_path()).filename(), work_dir);
-    if (!arg::at("dry")) {
+    if (!arg::at("dry") || arg::at("startup")) {
       proxy_pair = generate::xdg_dbus_proxy(program, work_dir);
     }
   }
@@ -315,7 +315,7 @@ int main(int argc, char* argv[]) {
 
     // Add flags
     auto flags = local_dir / "flags.conf";
-    if (std::filesystem::exists(flags)) extend(command, splits(read_file(flags.string()), " \n"));
+    if (std::filesystem::exists(flags)) extend(command, splits(read_file(flags), " \n"));
   }
 
   // Do this before our auxiliary wait.
