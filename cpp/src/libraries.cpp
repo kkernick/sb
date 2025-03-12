@@ -20,6 +20,7 @@ namespace libraries {
     std::replace(name.begin(), name.end(), '/', '.');
     name = strip(name, "*");
     auto cache = std::filesystem::path(data) / "sb" / "cache" / std::string(name + ".lib.cache");
+    std::filesystem::create_directories(cache.parent_path());
     return cache;
   }
 

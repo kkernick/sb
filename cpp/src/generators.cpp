@@ -155,6 +155,8 @@ namespace generate {
   std::vector<std::string> cmd(const std::string& program) {
     auto sof_dir = std::filesystem::path(arg::get("sof")) / program;
     auto local_dir = std::filesystem::path(data) / "sb" / program;
+    std::filesystem::create_directories(sof_dir);
+    std::filesystem::create_directories(local_dir);
 
     auto lib_dir = sof_dir / "lib";
     auto lib_cache = local_dir / "lib.cache";
