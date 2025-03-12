@@ -144,7 +144,8 @@ namespace generate {
       for (const auto& portal : arg::list("talk")) command.emplace_back("--talk=" + portal);
       for (const auto& portal : arg::list("own")) command.emplace_back("--own=" + portal);
 
-      return exec_pid(command);
+      if (!arg::at("dry")) return exec_pid(command);
+      return -1;
     };
 
     return {wd,  pool.submit_task(proxy)};

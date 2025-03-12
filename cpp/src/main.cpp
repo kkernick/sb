@@ -14,10 +14,33 @@
 
 using namespace shared;
 
+int proxy_resolved_wd = -1;
+
 static void child_handler(int sig) {
     pid_t pid;
     int status;
     while((pid = waitpid(-1, &status, WNOHANG)) > 0);
+}
+
+static void cleanup(int sig) {
+  // Please die.
+  if (proxy_resolved_wd != -1) {
+    kill(proxy_resolved_wd, SIGTERM);
+    while (wait(NULL) != -1 || errno == EINTR);
+  }
+
+  if (arg::get("fs") == "persist") {
+    auto path = arg::mod("fs");
+    exec_pid({"find", path, "-type", "l", "-delete"});
+    exec_pid({"find", path, "-type", "f", "-empty", "-delete"});
+    exec_pid({"find", path, "-type", "d", "-size", "0", "-delete"});
+    exec_pid({"find", path, "-type", "d", "-empty", "-delete"});
+  }
+
+  auto sof = arg::get("sof");
+  if (std::filesystem::exists(sof + "/sb.lock"))
+    std::filesystem::remove(sof + "/sb.lock");
+  exit(0);
 }
 
 int main(int argc, char* argv[]) {
@@ -26,6 +49,11 @@ int main(int argc, char* argv[]) {
   sa.sa_flags = 0;
   sa.sa_handler = child_handler;
   sigaction(SIGCHLD, &sa, NULL);
+
+  sa.sa_handler = cleanup;
+  sigaction(SIGTERM, &sa, NULL);
+  sigaction(SIGINT, &sa, NULL);
+  sigaction(SIGABRT, &sa, NULL);
 
   // Parse those args.
   arg::args = std::vector<std::string>(argv + 1, argv + argc);
@@ -129,9 +157,7 @@ int main(int argc, char* argv[]) {
     instance_dir.create();
     log({"Initializing xdg-dbus-proxy..."});
     generate::flatpak_info(program, std::filesystem::path(instance_dir.get_path()).filename(), work_dir);
-    if (!arg::at("dry") || arg::at("startup")) {
-      proxy_pair = generate::xdg_dbus_proxy(program, work_dir);
-    }
+    proxy_pair = generate::xdg_dbus_proxy(program, work_dir);
   }
 
   // The main program command.
@@ -319,7 +345,6 @@ int main(int argc, char* argv[]) {
   }
 
   // Do this before our auxiliary wait.
-  auto proxy_resolved_wd = -1;
   if (std::get<0>(proxy_pair) != -1) {
     try {
       proxy_resolved_wd = std::get<1>(proxy_pair).get();
@@ -361,37 +386,10 @@ int main(int argc, char* argv[]) {
   if (seccomp_fd != -1) close(seccomp_fd);
   if (bwrap_fd != -1) close(bwrap_fd);
 
-  // Please die.
-  if (proxy_resolved_wd != -1) {
-    kill(proxy_resolved_wd, SIGTERM);
-    while (wait(NULL) != -1 || errno == EINTR);
-  }
-
-  // Cleanup files
-  if (arg::get("fs") == "persist") {
-    exec_pid({"find", arg::mod("fs"), "-size", "0", "-delete"});
-    exec_pid({"find", arg::mod("fs"), "-empty", "-delete"});
-    exec_pid({"find", arg::mod("fs"), "-type", "l", "-delete"});
-
-    // These only persist if --fs=persist, but dev sometimes has /dev/null
-    // files which can be *massive* if the app crashes. We want to remove those.
-    // Given that both /dev and /run are ephemeral directories (/dev is a devfs and
-    // /run is a tmpfs, users shoudln't be putting anything in them to begin with).
-    try {
-      if (std::filesystem::is_directory(arg::mod("fs") + "/dev"))
-        std::filesystem::remove_all(arg::mod("fs") + "/dev");
-      }
-    catch (std::filesystem::filesystem_error&) {};
-
-    try {
-      if (std::filesystem::is_directory(arg::mod("fs") + "/run"))
-        std::filesystem::remove_all(arg::mod("fs") + "/run");
-      }
-    catch (std::filesystem::filesystem_error&) {};
-  }
-
   #ifdef PROFILE
   for (const auto& [key, value] : time_slice)
     std::cout << key << ": " << value << "us (" << (float(value) / float(time_slice["total"])) * 100 << "%)" << std::endl;
   #endif
+
+  cleanup(0);
 }

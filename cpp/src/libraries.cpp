@@ -19,7 +19,7 @@ namespace libraries {
     std::string name = library;
     std::replace(name.begin(), name.end(), '/', '.');
     name = strip(name, "*");
-    auto cache = std::filesystem::path(data) / "sb" / "cache" / (name + ".lib.cache");
+    auto cache = std::filesystem::path(data) / "sb" / "cache" / std::string(name + ".lib.cache");
     return cache;
   }
 
