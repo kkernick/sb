@@ -315,7 +315,7 @@ int main(int argc, char* argv[]) {
 
     // Add flags
     auto flags = local_dir / "flags.conf";
-    if (std::filesystem::exists(flags)) extend(command, splits(read_file(flags), " \n"));
+    if (std::filesystem::exists(flags)) extend(command, splits(read_file(flags.string()), " \n"));
   }
 
   // Do this before our auxiliary wait.

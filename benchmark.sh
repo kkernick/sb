@@ -53,7 +53,7 @@ for PROFILE in $EXAMPLES; do
   sleep 1
 
   # Hot Boot--like after sb.service has run.
-  hyperfine --show-output --command-name "Hot $PROFILE" --time-unit millisecond --shell=none "$PROFILE --dry"
+  hyperfine --show-output --command-name "Hot $PROFILE" --time-unit millisecond --warmup 1 --shell=none "$PROFILE --dry"
 
   sleep 1
 

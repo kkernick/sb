@@ -1,6 +1,7 @@
 #include <array>
 #include <cstring>
 #include <fcntl.h>
+#include <initializer_list>
 #include <stdexcept>
 #include <sstream>
 #include <iostream>
@@ -245,10 +246,12 @@ namespace shared {
    for (const auto& env : envs) genv(command, env);
   }
 
-  void extend(std::vector<std::string>& dest, const std::vector<std::string>& source) {
+  template <class T> void extend(std::vector<std::string>& dest, const T& source) {
     dest.reserve(dest.size() + distance(source.begin(), source.end()));
     dest.insert(dest.end(), source.begin(), source.end());
   }
+  template void extend(std::vector<std::string>&, const std::initializer_list<std::string_view>&);
+  template void extend(std::vector<std::string>&, const std::vector<std::string>&);
 
   void inotify_wait(const int& wd, const std::string_view& name) {
     char buffer[sizeof(struct inotify_event) + PATH_MAX + 1] = {0};
@@ -267,14 +270,15 @@ namespace shared {
     std::vector<std::string> constructed; constructed.reserve(3 * paths.size());
     for (const auto& path : paths) {
       if (std::filesystem::exists(path)) {
-          extend(constructed, {
-            "--" + mode, path,
-            path.starts_with(home) ? "/home/sb" + path.substr(home.length()) : path
-          });
+          extend(constructed, {"--" + mode, path});
+          if (path.starts_with(home))
+            constructed.emplace_back(std::string(path.substr(home.length())));
+          else constructed.emplace_back(path);
       }
     }
     extend(command, constructed);
   }
+  template void share(std::vector<std::string>&, const std::initializer_list<std::string_view>&, const std::string&);
   template void share(std::vector<std::string>&, const std::vector<std::string>&, const std::string&);
   template void share(std::vector<std::string>&, const std::set<std::string>&, const std::string&);
 

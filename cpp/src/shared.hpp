@@ -5,6 +5,7 @@
 #pragma once
 
 #include <filesystem>
+#include <initializer_list>
 #include <set>
 #include <sys/inotify.h>
 #include <random>
@@ -157,8 +158,7 @@ namespace shared {
    * @param dest: The container to extend.
    * @param source: The values to pull from.
    */
-  void extend(std::vector<std::string>& dest, const std::vector<std::string>& source);
-  void extend(std::set<std::string>& dest, const std::set<std::string>& source);
+  template <class T = std::initializer_list<std::string_view>> void extend(std::vector<std::string>& dest, const T& source);
 
 
   /**
@@ -167,7 +167,7 @@ namespace shared {
    * @param path: The path to share.
    * @param mode: The mode to use to share.
    */
-  template <class T = std::vector<std::string>> void share(std::vector<std::string>& command, const T& path, const std::string& mode = "ro-bind");
+  template <class T = std::initializer_list<std::string_view>> void share(std::vector<std::string>& command, const T& path, const std::string& mode = "ro-bind");
 
   /**
    * @brief Merge two sets together.

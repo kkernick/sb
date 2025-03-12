@@ -13,7 +13,7 @@ using namespace shared;
 namespace libraries {
 
   // Directories, so we can mount them after discovering dependencies.
-  std::set<std::string> directories = {};
+  std::vector<std::string> directories = {};
 
   inline std::string cache_name(const std::string& library) {
     std::string name = library;
@@ -228,7 +228,10 @@ namespace libraries {
     for (const auto& [lib, mod] : arg::modlist("libraries")) {
       if (mod == "x") {
         if (lib.contains("*")) exclusions.merge(shared::wildcard(lib, "/usr/lib", {"-maxdepth", "1", "-mindepth", "1", "-type", "f,l", "-executable"}));
-        else if (std::filesystem::is_directory(lib) && libraries::directories.contains(lib)) libraries::directories.erase(lib);
+        else if (std::filesystem::is_directory(lib)) {
+          auto iter = std::find(directories.begin(), directories.end(), lib);
+          if (iter != directories.end()) directories.erase(iter);
+        }
         else exclusions.emplace(lib);
       }
     }

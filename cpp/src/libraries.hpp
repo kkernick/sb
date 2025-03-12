@@ -16,7 +16,7 @@
 
 namespace libraries {
 
-  extern std::set<std::string> directories;
+  extern std::vector<std::string> directories;
 
   /**
    * @brief Recursively resolve all shared-libraries needed by a library.

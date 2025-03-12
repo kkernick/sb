@@ -275,7 +275,7 @@ namespace generate {
     if (arg::at("include")) {
       log({"Adding C/C++ Headers"});
       share(command, {"/usr/include", "/usr/local/include"});
-      merge(libraries::directories, {"/usr/lib/clang", "/usr/lib/gcc"});
+      extend(libraries::directories, {"/usr/lib/clang", "/usr/lib/gcc"});
     }
 
     if (arg::at("electron")) {
@@ -289,7 +289,7 @@ namespace generate {
       if (arg::get("electron") != "true") {
         auto mod = arg::get("electron");
         if (bin) binaries.merge(binaries::parse("/usr/bin/electron" + mod, libraries));
-        libraries::directories.emplace("/usr/lib/electron" + mod);
+        libraries::directories.emplace_back("/usr/lib/electron" + mod);
       }
       arg::get("gtk") = true;
       sys_dirs.emplace("proc");
@@ -309,7 +309,7 @@ namespace generate {
       });
       extend(command, {"--setenv", "GTK_USE_PORTAL", "1", "--setenv", "GTK_A11Y", "none"});
 
-      merge(libraries::directories, {
+      extend(libraries::directories, {
         "/usr/lib/gdk-pixbuf-2.0/", "/usr/lib/gtk-3.0", "/usr/lib/tinysparql-3.0/",
         "/usr/lib/gtk-4.0", "/usr/lib/gio", "/usr/lib/gvfs",
         "/usr/lib/girepository-1.0"
@@ -323,7 +323,7 @@ namespace generate {
       log({"Adding QT"});
       auto version = arg::get("qt");
       if (version == "kf6") {
-        libraries::directories.emplace("/usr/lib/kf6");
+        libraries::directories.emplace_back("/usr/lib/kf6");
         libraries.merge(libraries::getl({"*Kirigami*", "libKF" + version + "*"}));
         version = "6";
       }
@@ -331,17 +331,13 @@ namespace generate {
       share(command, {
         config + "/kdedefaults",
         config + "/breezerc",
-        config + "/kcminputrc",
         config + "/kdeglobals",
-        config + "/kwinrc",
-        config + "/kxmlgui5",
         config + "/Trolltech.conf",
-        "/etc/xdg/" + program + "rc",
         config + "/kde.org",
       });
 
       share(command, {"/usr/share/qt" + version});
-      libraries::directories.emplace("/usr/lib/qt" + version);
+      libraries::directories.emplace_back("/usr/lib/qt" + version);
       if (update_sof) {
         libraries.merge(libraries::get("libQt" + version + "*"));
        if (version != "kf6") libraries.merge(libraries::get("/usr/lib/kf6/kioworker"));
@@ -371,7 +367,7 @@ namespace generate {
 
       share(command, {"/usr/share/fonts", home + "/.fonts"});
 
-      merge(libraries::directories, {"/usr/lib/dri", "/usr/lib/gbm"});
+      extend(libraries::directories, {"/usr/lib/dri", "/usr/lib/gbm"});
       if (update_sof) {
         libraries.merge(libraries::getl({
           "libvulkan*", "libglapi*", "*mesa*", "*Mesa*", "libdrm*", "libGL*", "libVkLayer*", "libgbm*",
@@ -387,7 +383,7 @@ namespace generate {
         config + "/pulse", "/etc/pipewire", "/usr/share/pipewire"
       });
       if (update_sof) libraries.merge(libraries::get("libpipewire*"));
-      merge(libraries::directories, {"/usr/lib/pipewire-0.3", "/usr/lib/spa-0.2", "/usr/lib/pulseaudio"});
+      extend(libraries::directories, {"/usr/lib/pipewire-0.3", "/usr/lib/spa-0.2", "/usr/lib/pulseaudio"});
 
     }
 
@@ -398,7 +394,7 @@ namespace generate {
         "/usr/share/zoneinfo", "/usr/share/X11/locale", "/usr/share/locale",
         config + "/plasma-localerc"
       });
-      libraries::directories.emplace("/usr/lib/locale");
+      libraries::directories.emplace_back("/usr/lib/locale");
       if (bin) binaries.merge(binaries::parse("locale", libraries));
     }
 
@@ -417,7 +413,7 @@ namespace generate {
         "/usr/share/p11-kit"
       });
       if (update_sof) libraries.merge(libraries::getl({"libnss*", "libgnutls*"}));
-      libraries::directories.emplace("/usr/lib/pkcs11");
+      libraries::directories.emplace_back("/usr/lib/pkcs11");
     }
     if (!shared.contains("user")) extend(command, {"--disable-userns", "--assert-userns-disabled"});
 
@@ -431,10 +427,10 @@ namespace generate {
     if (sys_dirs.contains("var")) extend(command, {"--overlay-src", "/var", "--tmp-overlay", "/var"});
 
     // Application directories.
-    if (app_dirs.contains("lib") && lib) libraries::directories.emplace("/usr/lib/" + program);
+    if (app_dirs.contains("lib") && lib) libraries::directories.emplace_back("/usr/lib/" + program);
     if (app_dirs.contains("share")) share(command, {"/usr/share/" + program});
     if (app_dirs.contains("etc")) share(command, {"/etc" + program});
-    if (app_dirs.contains("opt")) libraries::directories.emplace("/opt/" + program);
+    if (app_dirs.contains("opt")) libraries::directories.emplace_back("/opt/" + program);
 
     if (bin) binaries::setup(binaries, command);
     binaries::symlink(command);
@@ -446,7 +442,7 @@ namespace generate {
       // Because updating the SOF merely writes to the SOF directory, we can freely detach it
       // into another thread, and then call pool.wait() just before running the program.
       pool.detach_task([program, lib_cache, hash, libraries]() {libraries::resolve(libraries, program, lib_cache, hash);});
-      extend(command, {"--overlay-src", lib_dir, "--tmp-overlay", "/usr/lib"});
+      extend(command, {"--overlay-src", lib_dir.string(), "--tmp-overlay", "/usr/lib"});
     }
 
     libraries::symlink(command, program);
