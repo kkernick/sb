@@ -31,10 +31,8 @@ static void cleanup(int sig) {
 
   if (arg::get("fs") == "persist") {
     auto path = arg::mod("fs");
-    exec_pid({"find", path, "-type", "l", "-delete"});
-    exec_pid({"find", path, "-type", "f", "-empty", "-delete"});
-    exec_pid({"find", path, "-type", "d", "-size", "0", "-delete"});
-    exec_pid({"find", path, "-type", "d", "-empty", "-delete"});
+    exec_pid({"find", path, "-type", "l", "-exec", "rm", "-f", "{}", ";"});
+    exec_pid({"find", path, "-type", "f", "-empty", "-exec", "rm", "-f", "{}", ";"});
   }
 
   auto sof = arg::get("sof");

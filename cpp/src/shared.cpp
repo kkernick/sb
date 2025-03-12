@@ -273,7 +273,7 @@ namespace shared {
       if (std::filesystem::exists(path)) {
           extend(constructed, {"--" + mode, path});
           if (path.starts_with(home))
-            constructed.emplace_back(std::string(path.substr(home.length())));
+            constructed.emplace_back(std::string(path.substr(home.length())).insert(0, "/home/sb/"));
           else constructed.emplace_back(path);
       }
     }
