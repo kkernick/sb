@@ -34,9 +34,9 @@ namespace binaries {
 
     // Resolve.
     if (!std::filesystem::exists(path)) {
-        auto resolved = split(exec({"which", path}), '\n');
-        if (resolved.size() == 0) throw std::runtime_error("Could not locate binary: " + path);
-        else path = resolved[0];
+        auto resolved = path.insert(0, "/usr/bin/");
+        if (!std::filesystem::exists(path)) throw std::runtime_error("Could not locate binary: " + path);
+        else path = resolved;
     }
 
     // Normalize to /usr
@@ -141,11 +141,10 @@ namespace binaries {
           if (token.empty() || token[0] == '-') return;
 
           // Ask which if it knows what this token is.
-          auto binary = trim(std::filesystem::exists(token) ? token : exec({"which", token}), "\n\t ");
+          auto binary = trim(std::filesystem::exists(token) ? token : token.insert(0, "/usr/bin/"), "\n\t ");
 
           // If it does, add it and resolve it
-          //
-          if (binary.contains("/bin/")) {
+          if (std::filesystem::exists(binary) && binary.contains("/bin/")) {
             if (binary.starts_with("/bin/")) binary = binary.insert(0, "/usr");
             auto base = std::filesystem::path(binary).filename();
             if (discovered.contains(base)) return;
@@ -202,7 +201,9 @@ namespace binaries {
     }
 
     // Actual executables have their shared libraries parsed.
-    else libraries.merge(libraries::get(path));
+    else {
+      libraries.merge(libraries::get(path));
+    }
 
     // Merge and return.
     required.merge(local);

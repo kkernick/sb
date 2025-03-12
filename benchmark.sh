@@ -4,6 +4,7 @@ ROOT=$(pwd)
 subdir="${1}"
 COMMIT="${2}"
 EXAMPLE="${3}"
+NO_COMPILE="${4}"
 
 cd "$ROOT/$subdir"
 
@@ -14,7 +15,9 @@ if [[ "${COMMIT}" != "main" ]]; then
 fi
 
 # Build
-make
+if [[ "${NO_COMPILE}" != "no" ]]; then
+  make
+fi
 
 # Export so our built version is used.
 export PATH="$(pwd):$(pwd)/examples:$PATH"
@@ -50,6 +53,7 @@ for PROFILE in $EXAMPLES; do
   echo "======================= $PROFILE ======================="
 
   # Cold Boot--there is no cache.
+  mkdir /tmp/sb
   hyperfine --command-name "Cold $PROFILE" $ARGS --prepare "rm -r /tmp/sb" "$PROFILE --dry --sof=tmp"
   sleep 1
 
