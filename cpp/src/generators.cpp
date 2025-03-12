@@ -118,10 +118,32 @@ namespace generate {
       if (arg::at("hardened_malloc"))
         extend(command, {"--ro-bind", work_dir.sub("ld.so.preload"), "/etc/ld.so.preload"});
 
-      std::set<std::string> libraries = {};
-      if (arg::at("hardened_malloc")) libraries.merge(libraries::get("/usr/lib/libhardened_malloc.so"));
-      binaries::parse("/usr/bin/xdg-dbus-proxy", libraries);
-      libraries::setup(libraries, "xdg-dbus-proxy");
+      auto lib_gen = []() {
+        auto lib_dir = std::filesystem::path(arg::get("sof")) / "xdg-dbus-proxy" / "lib";
+        if (!std::filesystem::is_directory(lib_dir)) {
+
+          std::set<std::string> libraries = {};
+
+          auto cache = std::filesystem::path(data) / "sb" / "xdg-dbus-proxy" / "lib.cache";
+          if (std::filesystem::exists(cache)) {
+            log({"Using Proxy Cache"});
+            libraries = split<std::set<std::string>>(read_file(cache), ' ');
+          }
+          else {
+            log({"Generating Proxy Cache"});
+            if (arg::at("hardened_malloc")) libraries.merge(libraries::get("/usr/lib/libhardened_malloc.so"));
+            binaries::parse("/usr/bin/xdg-dbus-proxy", libraries);
+            std::filesystem::create_directories(cache.parent_path());
+            auto cache_out = std::ofstream(cache);
+            for (const auto& lib : libraries)
+              cache_out << lib <<  ' ';
+            cache_out.close();
+          }
+
+          libraries::setup(libraries, "xdg-dbus-proxy");
+        }
+      };
+      auto lib_future = pool.submit_task(lib_gen);
 
       extend(command, {"--overlay-src", app_dir, "--tmp-overlay", "/usr/lib"});
       libraries::symlink(command, "xdg-dbus-proxy");
@@ -144,6 +166,7 @@ namespace generate {
       for (const auto& portal : arg::list("talk")) command.emplace_back("--talk=" + portal);
       for (const auto& portal : arg::list("own")) command.emplace_back("--own=" + portal);
 
+      lib_future.wait();
       if (!arg::at("dry")) return exec_pid(command);
       return -1;
     };
@@ -239,7 +262,7 @@ namespace generate {
         binaries::parsel(split<std::set<std::string>>(exec({"find", arg::mod("fs") + "/usr/bin", "-type", "f,l", "-executable"}), '\n'), libraries);
       }
     }
-    
+
     log({"Resolving libraries"});
     for (const auto& [lib, mod] : arg::modlist("libraries")) {
       if (mod != "x") {
@@ -247,7 +270,7 @@ namespace generate {
         if (update_sof) libraries.merge(libraries::get(lib));
       }
     }
-    
+
     if (arg::at("verbose").meets("error") && bin) binaries.merge(binaries::parse("strace", libraries));
     extend(command, {"--setenv", "HOME", "/home/sb", "--setenv", "PATH", "/usr/bin"});
 

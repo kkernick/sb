@@ -2,21 +2,22 @@
 
 ROOT=$(pwd)
 subdir="${1}"
-RECIPE="${2}"
+COMMIT="${2}"
 EXAMPLE="${3}"
 
 cd "$ROOT/$subdir"
 
-# Build
-if [[ "${RECIPE}" != "none" && "${RECIPE}" != "sys" ]]; then
-  make $RECIPE
+if [[ "${COMMIT}" != "main" ]]; then
+	git stash push --quiet
+	git checkout $COMMIT --quiet
+	echo "Benchmarking version at ${COMMIT}"
 fi
+
+# Build
+make
 
 # Export so our built version is used.
-
-if [[ "${RECIPE}" != "sys" ]]; then
-  export PATH="$(pwd):$(pwd)/examples:$PATH"
-fi
+export PATH="$(pwd):$(pwd)/examples:$PATH"
 echo "Using: $(which sb)"
 
 # Run the examples
@@ -42,34 +43,43 @@ for PROFILE in $EXAMPLES; do
 
   sleep 1
 
+  ARGS="--time-unit microsecond --min-runs 20 --shell=none"
   program=$(sed '2q;d' "$ROOT/$subdir/examples/$PROFILE" | awk '{print $2}')
 
 
   echo "======================= $PROFILE ======================="
 
   # Cold Boot--there is no cache.
-  hyperfine --show-output --command-name "Cold $PROFILE" --time-unit millisecond "$PROFILE --refresh --dry"
-
+  hyperfine --command-name "Cold $PROFILE" $ARGS --prepare "rm -r /tmp/sb" "$PROFILE --dry --sof=tmp"
   sleep 1
+
+  # Add warmup since we're not cold-boot anymore
+  ARGS="${ARGS} --warmup 1"
 
   # Hot Boot--like after sb.service has run.
-  hyperfine --show-output --command-name "Hot $PROFILE" --time-unit millisecond --warmup 1 --shell=none "$PROFILE --dry"
-
+  hyperfine --command-name "Hot $PROFILE" $ARGS "$PROFILE --dry"
   sleep 1
 
   # Hot Boot, but we need to refresh libraries like after an update.
   if [[ "${subdir}" == "cpp" ]]; then
-    hyperfine --show-output --command-name "Lib $PROFILE" --time-unit millisecond --shell=none "$PROFILE --dry --update libraries"
+    UPDATE="--update libraries"
   else
-    hyperfine --show-output --command-name "Lib $PROFILE" --time-unit millisecond --shell=none "$PROFILE --dry --update-libraries"
+    UPDATE="--update-libraries"
   fi
-
+  hyperfine --command-name "Lib $PROFILE" $ARGS "$PROFILE --dry $UPDATE --sof=tmp"
   sleep 1
 
   # Hot Boot, but we need to refresh libraries like after an update.
   if [[ "${subdir}" == "cpp" ]]; then
-    hyperfine --show-output --command-name "Cache $PROFILE" --time-unit millisecond --shell=none "$PROFILE --dry --update all"
+    UPDATE="--update cache"
   else
-    hyperfine --show-output --command-name "Cache $PROFILE" --time-unit millisecond --shell=none "$PROFILE --dry --update-libraries --update-cache"
+    UPDATE="--update-libraries --update-cache"
   fi
+  hyperfine --command-name "Cache $PROFILE" $ARGS "$PROFILE --dry $UPDATE --sof=tmp"
 done
+
+if [[ "$COMMIT" != "main" ]]; then
+	git reset --hard --quiet
+	git checkout main --quiet
+	git stash pop --quiet
+fi

@@ -21,6 +21,7 @@ namespace shared {
 
   // Init our shared values.
   BS::thread_pool<BS::tp::none> pool = {};
+
   int inotify = -1;
   std::random_device TemporaryDirectory::dev = {};
   std::mt19937 TemporaryDirectory::prng(TemporaryDirectory::dev());

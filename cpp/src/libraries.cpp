@@ -15,12 +15,11 @@ namespace libraries {
   // Directories, so we can mount them after discovering dependencies.
   std::vector<std::string> directories = {};
 
-  inline std::string cache_name(const std::string& library) {
+  inline std::filesystem::path cache_name(const std::string& library) {
     std::string name = library;
     std::replace(name.begin(), name.end(), '/', '.');
     name = strip(name, "*");
     auto cache = std::filesystem::path(data) / "sb" / "cache" / std::string(name + ".lib.cache");
-    std::filesystem::create_directories(cache.parent_path());
     return cache;
   }
 
@@ -31,8 +30,10 @@ namespace libraries {
 
     if (!std::filesystem::exists(library)) return libraries;
 
-    std::string cache = cache_name(library);
+    auto cache = cache_name(library);
     if (std::filesystem::exists(cache)) return split<std::set<std::string>>(read_file(cache), ' ');
+    std::filesystem::create_directories(cache.parent_path());
+
 
     // If this is a library, add it.
     if (std::filesystem::exists(library) && library.contains("/lib/") && directory == "") {
@@ -73,7 +74,7 @@ namespace libraries {
         file << join(libraries, ' ');
         file.close();
       }
-      else log({"Failed to write cache file:", cache});
+      else log({"Failed to write cache file:", cache.string()});
     }
 
     return libraries;
@@ -87,11 +88,12 @@ namespace libraries {
     std::vector<std::future<std::set<std::string>>> futures;
 
     // Our cached definitions
-    std::string cache = cache_name(library);
+    auto cache = cache_name(library);
 
     // If the cache exists, and we don't need to update, use it.
     if (std::filesystem::exists(cache) && arg::at("update").under("cache"))
       return split<std::set<std::string>>(read_file(cache), ' ');
+    std::filesystem::create_directories(cache.parent_path());
 
     // Resolve wildcards
     if (library.contains("*"))
@@ -133,7 +135,7 @@ namespace libraries {
         file << join(libraries, ' ');
         file.close();
       }
-      else log({"Failed to write cache file:", cache});
+      else log({"Failed to write cache file:", cache.string()});
     }
     return libraries;
   }

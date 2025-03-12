@@ -64,7 +64,6 @@ namespace binaries {
       std::replace(name.begin(), name.end(), '/', '.');
       std::replace(name.begin(), name.end(), '*', '.');
       auto cache = std::filesystem::path(data) / "sb" / "cache" / std::string(name + ".bin.cache");
-      std::filesystem::create_directories(cache.parent_path());
 
       // If the cache exists, and we don't need to update, use it.
       if (std::filesystem::exists(cache) && arg::at("update").under("cache")) {
@@ -74,6 +73,8 @@ namespace binaries {
         }
       }
       else {
+        std::filesystem::create_directories(cache.parent_path());
+
         // Variables defined
         std::map<std::string, std::string> variables = {};
 

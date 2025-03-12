@@ -11,7 +11,6 @@ generic: $(SOURCES)
 debug: $(SOURCES)
 	clang++ -march=x86-64 -g -DPROFILE $(REQUIRED) $^ -o sb
 
-
 pgo: $(SOURCES)
 	clang++ -fprofile-instr-generate $(REQUIRED) $(FAST) $^ -o sb
 
