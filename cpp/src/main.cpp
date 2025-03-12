@@ -125,7 +125,7 @@ int main(int argc, char* argv[]) {
 
   // Get the application's directories.
   auto app_sof = std::filesystem::path(arg::get("sof")) / program;
-  std::filesystem::create_directory(app_sof);
+  std::filesystem::create_directories(app_sof);
 
   auto local_dir = std::filesystem::path(data) / "sb" / program;
   auto work_dir = TemporaryDirectory(app_sof);
