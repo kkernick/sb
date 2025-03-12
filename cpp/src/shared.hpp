@@ -73,7 +73,7 @@ namespace shared {
 
     const std::string& get_path() const {return path;}
 
-    void create() const {std::filesystem::create_directory(path);}
+    void create() const {std::filesystem::create_directories(path);}
 
     std::string sub(const std::string& name, const bool& dir=false) const {
       const auto new_path = path + "/" + name;
