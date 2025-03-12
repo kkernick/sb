@@ -31,6 +31,7 @@ namespace generate {
     out << "#!/bin/sh\n";
     out << "sb " << join(arguments, ' ') << " -- \"$@\"";
     out.close();
+    exec_pid({"chmod", "+x", binary});
   }
 
   // Generate the desktop file
