@@ -253,7 +253,6 @@ namespace generate {
       if (bin) binaries.merge(binaries::parse("/usr/bin/sb-open", libraries));
       extend(command, {
         "--symlink", "/usr/bin/sb-open", "/usr/bin/xdg-open",
-        "--ro-bind", "/usr/bin/sb-mime", "/usr/bin/xdg-mime"
       });
     }
 
