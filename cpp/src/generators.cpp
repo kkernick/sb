@@ -239,13 +239,15 @@ namespace generate {
         binaries::parsel(split<std::set<std::string>>(exec({"find", arg::mod("fs") + "/usr/bin", "-type", "f,l", "-executable"}), '\n'), libraries);
       }
     }
-    if (update_sof) {
-      log({"Resolving libraries"});
-      for (const auto& [lib, mod] : arg::modlist("libraries")) {
-        if (mod != "x") libraries.merge(libraries::get(lib));
+    
+    log({"Resolving libraries"});
+    for (const auto& [lib, mod] : arg::modlist("libraries")) {
+      if (mod != "x") {
+        if (std::filesystem::is_directory(lib)) libraries::directories.emplace_back(lib);
+        if (update_sof) libraries.merge(libraries::get(lib));
       }
     }
-
+    
     if (arg::at("verbose").meets("error") && bin) binaries.merge(binaries::parse("strace", libraries));
     extend(command, {"--setenv", "HOME", "/home/sb", "--setenv", "PATH", "/usr/bin"});
 
