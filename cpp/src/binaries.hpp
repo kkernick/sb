@@ -8,11 +8,12 @@
  * uncover libraries and binaries inaccessible to the old tokenizer.
  */
 
-#include <string>
-#include <set>
-#include <vector>
+#include "shared.hpp"
+#include "libraries.hpp"
 
 namespace binaries {
+
+  using bin_t = shared::set;
 
   /**
    * @brief Parse a binary to determine dependencies.
@@ -21,10 +22,7 @@ namespace binaries {
    * @returns A set of all binaries used by the program, including itself.
    * @info libraries is updated.
    */
-  std::set<std::string> parse(std::string path, std::set<std::string>& libraries);
-
-  // Parse multiple paths.
-  std::set<std::string> parsel(const std::set<std::string>& paths, std::set<std::string>& libraries);
+  void parse(bin_t& required, const std::string_view& p, libraries::lib_t& libraries);
 
   /**
    * @brief Setup the sandbox for the used binaries.
@@ -32,7 +30,7 @@ namespace binaries {
    * @param application: The application to link to this SOF.
    * @param command: The sandbox command
    */
-   void setup(const std::set<std::string>& binaries, std::vector<std::string>& command);
+   void setup(const bin_t& binaries, shared::vector& command);
 
-   void symlink(std::vector<std::string>& command);
+   void symlink(shared::vector& command);
 }

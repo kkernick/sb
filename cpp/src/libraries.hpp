@@ -10,13 +10,12 @@
 
 #pragma once
 
-#include <string>
-#include <set>
-#include <vector>
+#include "shared.hpp"
 
 namespace libraries {
 
-  extern std::vector<std::string> directories;
+  using lib_t = shared::set;
+  extern lib_t directories;
 
   /**
    * @brief Recursively resolve all shared-libraries needed by a library.
@@ -26,11 +25,7 @@ namespace libraries {
    * @note library can be any executable file, such as binaries in /usr/bin, but only
    * shared-libraries in /usr/lib will be included in the return.
    */
-  std::set<std::string> get(const std::string& library, std::string directory = "");
-
-  // Get multiple libraries
-  std::set<std::string> getl(const std::set<std::string>& libraries, std::string directory = "");
-
+   void get(lib_t& libraries, const std::string_view& library, const std::string& directory = "");
 
   /**
    * @brief Setup an SOF directory
@@ -39,7 +34,7 @@ namespace libraries {
    * @param application: The name of the app.
    * @param command: The command vector to append the needed bwrap args to link to the SOF.
    */
-   void setup(const std::set<std::string>& libraries, const std::string& application);
+   void setup(const lib_t& libraries, const std::string_view& application);
 
    /**
     * @brief Add symlink commands.
@@ -48,7 +43,7 @@ namespace libraries {
     * @info This function symlinks /lib /lib64 and /usr/lib64 to /usr/lib, where
     * the SOF is mounted
     */
-   void symlink(std::vector<std::string>& command, const std::string& application);
+   void symlink(shared::vector& command);
 
-   void resolve(const std::set<std::string>& required, const std::string& program, const std::string& lib_cache, const std::string& hash);
+   void resolve(const lib_t& required, const std::string_view& program, const std::string& lib_cache, const std::string_view& hash);
 }

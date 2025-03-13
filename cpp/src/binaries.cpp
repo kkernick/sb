@@ -13,29 +13,31 @@ using namespace shared;
 namespace binaries {
 
   // Binaries that have already been searched
-  std::set<std::string> searched = {};
-  std::set<std::string> builtins = {"printf", "echo"};
+  set searched = {};
+  set builtins = {"printf", "echo"};
 
   // Parse the commands used in a binary.
-  std::set<std::string> parse(std::string path, std::set<std::string>& libraries) {
+  void parse(bin_t& required, const std::string_view& p, libraries::lib_t& libraries) {
 
     // Required binaries
-    std::set<std::string> local, required = {};
+    bin_t local = {};
+    auto path = std::string(p);
 
     // Don't do work more than once
-    if (path.empty() || searched.contains(path)) return required;
+    if (path.empty() || searched.contains(path)) return;
     searched.emplace(path);
 
     // Get libraries dependencies for libraries.
     if (path.contains("/lib/")) {
-      libraries.merge(libraries::get(path));
-      return required;
+      libraries::get(libraries, path);
+      return;
     }
 
     // Resolve.
     if (!std::filesystem::exists(path)) {
         auto resolved = path.insert(0, "/usr/bin/");
-        if (!std::filesystem::exists(path)) throw std::runtime_error("Could not locate binary: " + path);
+        if (!std::filesystem::exists(path))
+          throw std::runtime_error("Could not locate binary: " + path);
         else path = resolved;
     }
 
@@ -45,7 +47,7 @@ namespace binaries {
 
     // Get the file contents.
     auto contents = read_file(path);
-    if (contents.empty()) return required;
+    if (contents.empty()) return;
 
     // Shell script
     // Shell scripts are parsed line-by-line, tokenizing the string and extracting
@@ -67,10 +69,8 @@ namespace binaries {
 
       // If the cache exists, and we don't need to update, use it.
       if (std::filesystem::exists(cache) && arg::at("update").under("cache")) {
-        local = split<std::set<std::string>>(read_file(cache), ' ');
-        for (const auto& bin : local) {
-          required.merge(parse(bin, libraries));
-        }
+        local = init<bin_t>(usplit, read_file(cache), ' ', false);
+        batch(parse, required, local, libraries);
       }
       else {
         std::filesystem::create_directories(cache.parent_path());
@@ -121,7 +121,7 @@ namespace binaries {
           ) return value;
 
           // Let the shell resolve the nuances.
-          return trim(exec({"echo", value}), "\n");
+          return one_line({"echo", value});
         };
 
         std::vector<std::string> tokens;
@@ -149,23 +149,22 @@ namespace binaries {
             auto base = std::filesystem::path(binary).filename();
             if (discovered.contains(base)) return;
             discovered.emplace(base);
-
-            auto parsed = parse(binary, libraries);
+            auto parsed = init<binaries::bin_t>(parse, binary, libraries);
 
             local.emplace(binary);
             required.merge(parsed);
           }
-          if (binary.contains("/lib/")) libraries.merge(libraries::get(binary));
+          if (binary.contains("/lib/")) libraries::get(libraries, binary);
         };
 
 
         // Get the shebang from the top.
-        auto lines = split(contents, '\n');
+        auto lines = init<vector>(split, contents, '\n', false);
         auto shebang = strip(lines[0], "#! \t\n");
         local.emplace(shebang);
 
         if (shebang.starts_with("/bin/")) shebang = shebang.insert(0, "/usr");
-        required.merge(parse(shebang, libraries));
+        parse(required, shebang, libraries);
 
         // Go through the other lines.
         for (size_t x = 0; x < lines.size(); ++x) {
@@ -179,13 +178,13 @@ namespace binaries {
           // If we have a variable declaration, parse and store it so we can resolve
           // future use.
           if (line.contains('=')) {
-            auto keypair = split(line, '=');
+            auto keypair = init<vector>(split, line, '=', false);
             const auto& key = keypair[0], val = keypair[1];
             if (!key.contains(' ') && !val.contains(' ')  && val != "()") variables[key] = resolve_environment(val);
           }
 
           // Tokenize the string
-          tokens = splits(line, " \t()=;\"");
+          tokens = init<vector>(splits, line, " \t()=;\"", false);
           auto future = pool.submit_loop(0, tokens.size(), tokenize);
           future.wait();
         }
@@ -201,26 +200,15 @@ namespace binaries {
     }
 
     // Actual executables have their shared libraries parsed.
-    else {
-      libraries.merge(libraries::get(path));
-    }
+    else libraries::get(libraries, path);
 
     // Merge and return.
     required.merge(local);
-    return required;
-  }
-
-
-  // Parse in batch.
-  std::set<std::string> parsel(const std::set<std::string>& paths, std::set<std::string>& libraries) {
-    std::set<std::string> ret;
-    for (const auto& path : paths) ret.merge(parse(path, libraries));
-    return ret;
   }
 
 
   // Setup the binaries.
-  void setup(const std::set<std::string>& binaries, std::vector<std::string>& command) {
+  void setup(const bin_t& binaries, vector& command) {
     extend(command, {"--dir", "/usr/bin"});
     for (auto binary : binaries) {
       if (std::filesystem::is_symlink(binary)) {
@@ -242,7 +230,7 @@ namespace binaries {
     }
   }
 
-  void symlink(std::vector<std::string>& command) {
+  void symlink(vector& command) {
     extend(command, {
       "--symlink", "/usr/bin", "/bin",
       "--symlink", "/usr/bin", "/sbin",

@@ -19,11 +19,32 @@
 
 namespace shared {
 
-  extern BS::thread_pool<BS::tp::none> pool;
+  extern BS::thread_pool<BS::tp::wait_deadlock_checks> pool;
   extern const std::string runtime, config, cache, data, home, session, nobody, real;
   extern int inotify;
 
-  typedef enum {NONE, STDOUT, STDERR, ONLY_STDOUT, ONLY_STDERR, ALL} exec_return;
+  typedef enum {NONE, STDOUT, STDERR, ALL} exec_return;
+
+  using set = std::set<std::string>;
+  using vector = std::vector<std::string>;
+  using list = std::initializer_list<std::string_view>;
+
+
+  template <class T, class A, class ...Args> T init(const A& fun, const Args&... args) {
+    T ret;
+    fun(ret, args...);
+    return ret;
+  }
+  template <class T, class A, class ...Args, class ...Refs> T init(const A& fun, const Args&... args, Refs&... refs) {
+    T ret;
+    fun(ret, args..., refs...);
+    return ret;
+  }
+
+  template <class T, class A, class L = list, class ...Args> void batch(const A& fun, T& accum, const L& mem, Args... args) {
+    for (const auto& val : mem) fun(accum, val, args...);
+  }
+
 
   /**
    * @brief Read a file completely.
@@ -83,20 +104,19 @@ namespace shared {
   };
 
 
-
   /**
    * @brief Log output to console, if verbose.
    * @param msg: A list of strings to be printed.
    */
-  void log(const std::vector<std::string_view>& msg, const std::string& level="log");
+  void log(const list& msg, const std::string& level="log");
 
-  /**
-   * @brief Execute a command.
-   * @param cmd: The command.
-   * @returns: The output
-   */
-  int exec_pid(const std::vector<std::string>& cmd);
-  std::string exec(const std::vector<std::string>& cmd, exec_return = ONLY_STDOUT);
+  template <class T = list> int detach(const T& cmd);
+  template <class T = list> int wait_for(const T& cmd);
+  template <class C = vector, class T = list> C exec(const T& cmd, const exec_return& policy = STDOUT);
+  template <class T = list> set uexec(const T& cmd, const exec_return& policy = STDOUT);
+  template <class T = list> std::string dump(const T& cmd, const exec_return& policy = STDOUT);
+  template <class T = list> std::string one_line(const T& cmd, const exec_return& policy = STDOUT);
+
 
   /**
    * @brief Split a string on a set of delimiters.
@@ -104,8 +124,11 @@ namespace shared {
    * @param delim: The delimiters.
    * @returns: A vector of each sub-string.
    */
-  template <class T = std::vector<std::string>> T split(const std::string_view& str, const char& delim, const bool& escape = false);
-  template <class T = std::vector<std::string>> T splits(const std::string_view& str, const std::string_view& delim);
+   void split(vector& working, const std::string_view& str, const char& delim, const bool& escape = false);
+   void splits(vector& working, const std::string_view& str, const std::string_view& delim, const bool& escape = false);
+   void usplit(set& working, const std::string_view& str, const char& delim, const bool& escape = true);
+   void usplits(set& working, const std::string_view& str, const std::string_view& delim, const bool& escape = true);
+
 
   /**
    * @brief Join a vector into a string.
@@ -114,7 +137,7 @@ namespace shared {
    * @param joiner: The character to join each member.
    * @returns: The joined string.
    */
-  template <class T = std::vector<std::string>> std::string join(const T& list, const char& joiner =  ' ');
+  template <class T = vector> std::string join(const T& list, const char& joiner =  ' ');
 
   /**
    * @brief Strip all instance of character from a string.
@@ -142,7 +165,7 @@ namespace shared {
    * @param args: Any additional arguments to find.
    * @returns: All unique matches.
    */
-  std::set<std::string> wildcard(const std::string& pattern, const std::string& path, const std::vector<std::string>& args = {});
+  set wildcard(const std::string_view& pattern, const std::string_view& path, const list& args = {});
 
   /**
    * @brief Escape a string.
@@ -158,7 +181,9 @@ namespace shared {
    * @param dest: The container to extend.
    * @param source: The values to pull from.
    */
-  template <class T = std::initializer_list<std::string_view>> void extend(std::vector<std::string>& dest, const T& source);
+  template <class T = list> void extend(vector& dest, const T& source);
+  template <class T = list> void extend(set& dest, const T& source);
+  void extend(set& dest, set source);
 
 
   /**
@@ -167,7 +192,7 @@ namespace shared {
    * @param path: The path to share.
    * @param mode: The mode to use to share.
    */
-  template <class T = std::initializer_list<std::string_view>> void share(std::vector<std::string>& command, const T& path, const std::string& mode = "ro-bind");
+  template <class T = list> void share(vector& command, const T& path, const std::string& mode = "ro-bind");
 
   /**
    * @brief Merge two sets together.
@@ -175,7 +200,7 @@ namespace shared {
    * @param path: The set to merge into the first.
    * @info This function exists because C++ cannot deduce bracket initializers.
    */
-  void merge(std::set<std::string>& command, std::set<std::string> path);
+  void merge(set& command, set path);
 
   /**
    * @brief Attach an environment variable to the sandbox.
@@ -183,8 +208,8 @@ namespace shared {
    * @param env: The environment variable to add.
    * @info: The value of the variable is the actual value.
    */
-  void genv(std::vector<std::string>& command, const std::string& env);
-  void genvs(std::vector<std::string>& command, const std::vector<std::string>& envs);
+  void genv(vector& command, const std::string_view& env);
+  void genvs(vector& command, const list& envs);
 
   /**
    * @brief Wait for an inotify watcher.

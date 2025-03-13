@@ -86,7 +86,7 @@ namespace arg {
 
         // Digest modifiers.
         if (!list && custom == custom_policy::MODIFIABLE && val.contains(':')) {
-          auto s = shared::split(val, ':');
+          auto s = shared::init<shared::vector>(shared::split, val, ':', false);
           if (s.size() < 2) throw std::runtime_error("Invalid modifier: " + val);
           auto v = s[0]; auto mod = val.substr(val.find(':') + 1);
           if (valid.size() <= 1 || std::find(valid.begin(), valid.end(), v) != valid.end()) {
@@ -113,7 +113,7 @@ namespace arg {
 
             // If our key already has multiple values, split and handle separately.
             if (list && val.contains(',')) {
-              for (const auto& x : shared::split(val, ','))
+              for (const auto& x : shared::init<shared::vector>(shared::split, val, ',', false))
                 digest_keypair(key, x, pos);
             }
 
@@ -215,7 +215,7 @@ namespace arg {
 
         // If we have an equal, it's `key=value`
         if (key.contains("=")) {
-          auto keypair = shared::split(key, '=');
+          auto keypair = shared::init<shared::vector>(shared::split, key, '=', false);
           ret = digest_keypair(keypair[0], keypair[1], x);
         }
 
@@ -331,6 +331,12 @@ namespace arg {
         return list_val;
       }
 
+      std::vector<std::string>& get_order() {
+        if (mandatory && !set) throw std::runtime_error("Missing mandatory argument: " + long_name);
+        if (!list) throw std::runtime_error("Argument must be a list: " + long_name);
+        return order;
+      }
+
       // Get the list of each value.
       std::set<std::string>& get_valid() {return valid;}
 
@@ -342,7 +348,7 @@ namespace arg {
         std::vector<std::pair<std::string, std::string>> ret;
         for (const auto& val : list_val) {
           if (val.contains(':')) {
-            auto s = shared::split(val, ':');
+            auto s = shared::init<shared::vector>(shared::split, val, ':', false);
             ret.emplace_back(std::pair{s[0], s[1]});
           }
           else ret.emplace_back(std::pair{val, ""});
@@ -377,6 +383,7 @@ namespace arg {
   inline std::string& mod(const std::string& key) {return switches.at(key).mod();}
   inline size_t level(const std::string& key) {return switches.at(key).level();}
   inline std::set<std::string>& list(const std::string& key) {return switches.at(key).get_list();}
+  inline std::vector<std::string>& order(const std::string& key) {return switches.at(key).get_order();}
   inline std::set<std::string>& valid(const std::string& key) {return switches.at(key).get_valid();}
   inline const bool& is_list(const std::string& key) {return switches.at(key).is_list();}
 
@@ -385,5 +392,5 @@ namespace arg {
   /**
    * @brief Parse command line arguments.
    */
-  void parse();
+  void parse_args();
 }

@@ -31,8 +31,8 @@ static void cleanup(int sig) {
 
   if (arg::get("fs") == "persist") {
     auto path = arg::mod("fs");
-    exec_pid({"find", path, "-type", "l", "-exec", "rm", "-f", "{}", ";"});
-    exec_pid({"find", path, "-type", "f", "-empty", "-exec", "rm", "-f", "{}", ";"});
+    detach({"find", path, "-type", "l", "-exec", "rm", "-f", "{}", ";"});
+    detach({"find", path, "-type", "f", "-empty", "-exec", "rm", "-f", "{}", ";"});
   }
 
   auto sof = arg::get("sof");
@@ -57,11 +57,11 @@ int main(int argc, char* argv[]) {
   auto parse_args = []() {
     if (arg::args.size() > 0 && arg::args[0].ends_with(".sb")) {
       auto program = arg::args[0];
-      auto resolved = std::filesystem::exists(arg::args[1]) ? program : split(exec({"which", program}), '\n')[0];
-      auto contents = split(read_file(resolved), '\n');
+      auto resolved = std::filesystem::exists(arg::args[1]) ? program : one_line({"which", program});
+      auto contents = init<vector>(split, read_file(resolved), '\n', false);
       if (contents.size() == 2) {
         auto old = arg::args;
-        arg::args = split(contents[1], ' ');
+        arg::args = init<vector>(split, contents[1], ' ', false);
 
         // Remove the sb
         arg::args.erase(arg::args.begin());
@@ -78,7 +78,7 @@ int main(int argc, char* argv[]) {
         }
       }
     }
-    arg::parse();
+    arg::parse_args();
   };
   profile("Argument Parser", parse_args);
 
@@ -338,7 +338,7 @@ int main(int argc, char* argv[]) {
 
     // Add flags
     auto flags = local_dir / "flags.conf";
-    if (std::filesystem::exists(flags)) extend(command, splits(read_file(flags.string()), " \n"));
+    if (std::filesystem::exists(flags)) split(command, read_file(flags.string()), ' ');
   }
 
   // Do this before our auxiliary wait.
@@ -350,8 +350,11 @@ int main(int argc, char* argv[]) {
   }
 
   // Wait for any tasks in the pool to complete.
-  log({"Waiting for auxiliary tasks to complete.."});
-  pool.wait();
+  auto task_profile = []() {
+    log({"Waiting for auxiliary tasks to complete.."});
+    pool.wait();
+  };
+  profile("Auxiliary tasks", task_profile);
 
   if (!arg::at("dry")) {
     // Wait for the proxy to setup.
@@ -368,15 +371,15 @@ int main(int argc, char* argv[]) {
     if (arg::at("post")) {
 
       // Run the sandbox non-blocking
-      exec_pid(command);
+      detach(command);
 
       // Assemble the post-command; args are provided in the modifier.
       command = {arg::get("post")};
-      extend(command, split(arg::mod("post"), ' '));
+      split(command, arg::mod("post"), ' ');
     }
 
     if (arg::get("seccomp") == "strace") syscalls::update_policy(program, exec(command, STDERR));
-    else exec(command, STDOUT);
+    else wait_for(command);
   }
 
   // Cleanup FD.

@@ -16,7 +16,7 @@ fi
 
 # Build
 if [[ "${NO_COMPILE}" != "no" ]]; then
-  make
+  make generic
 fi
 
 # Export so our built version is used.

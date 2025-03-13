@@ -13,6 +13,7 @@
 #pragma once
 
 #include <string>
+#include <vector>
 
 namespace syscalls {
 
@@ -32,5 +33,5 @@ namespace syscalls {
    * will run the program with strace, capture STDERR (The channel strace logs to),
    * and then parse that output to update the file.
    */
-  void update_policy(const std::string& application, const std::string &strace);
+  void update_policy(const std::string& application, const std::vector<std::string> &straced);
 }

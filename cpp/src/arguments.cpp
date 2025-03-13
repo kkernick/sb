@@ -214,25 +214,25 @@ namespace arg {
       },
       [](const std::string& v) -> std::string {return v;},
       [](const std::string& v) -> std::string {
-        if (switches.contains("cmd") && !v.starts_with('/')) return join({data, "sb", std::filesystem::path(arg::get("cmd")).filename(), v}, '/');
-        return v;
+        if (switches.contains("cmd") && !v.starts_with('/'))
+          return std::filesystem::path(data) / "sb" / std::filesystem::path(arg::get("cmd")).filename() / v;        return v;
       }
     }},
   };
 
 
   // Parse arguments
-  void parse() {
+  void parse_args() {
 
     // Parse a .conf file. They set defaults.
-    auto c = join({shared::config, "sb", "sb.conf"}, '/');
+    auto c = std::filesystem::path(shared::config) / "sb" / "sb.conf";
     if (std::filesystem::exists(c)) {
-      for (const auto& conf : split(read_file(c), '\n')) {
+      for (const auto& conf : init<vector>(split, read_file(c), '\n', false)) {
         if (!conf.contains("=")) {
           std::cout << "Invalid configuration: " << conf << std::endl;
         }
         else {
-          auto s = split(conf, '=');
+          auto s = init<vector>(split, conf, '=', false);
           auto k = s[0], v = s[1];
           std::transform(k.begin(), k.end(), k.begin(), ::tolower);
 
