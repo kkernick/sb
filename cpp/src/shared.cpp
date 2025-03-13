@@ -175,7 +175,7 @@ namespace shared {
     return executor<std::string>(cmd, policy, [](const int& fd, const int& pid) -> std::string {
       std::string result;
       std::array<char, 256> buffer;
-      int bytes =  read(fd, buffer.data(), 255), index = result.rfind('\n');
+      int bytes =  read(fd, buffer.data(), 255), index = 0;
       while (bytes > 0 && index != std::string::npos)  {
         result.reserve(255);
         result.append(buffer.begin(), buffer.end());
