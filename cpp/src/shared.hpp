@@ -9,6 +9,7 @@
 #include <set>
 #include <sys/inotify.h>
 #include <random>
+#include <fcntl.h>
 
 #ifdef PROFILE
 #include <map>
@@ -45,13 +46,6 @@ namespace shared {
     for (const auto& val : mem) fun(accum, val, args...);
   }
 
-
-  /**
-   * @brief Read a file completely.
-   * @param path: The path to the file.
-   * @returns The file contents.
-   */
-  std::string read_file(const std::filesystem::path& path);
 
   /**
    * @brief A Temporary Directory
@@ -110,25 +104,86 @@ namespace shared {
    */
   void log(const list& msg, const std::string& level="log");
 
-  template <class T = list> int detach(const T& cmd);
-  template <class T = list> int wait_for(const T& cmd);
-  template <class C = vector, class T = list> C exec(const T& cmd, const exec_return& policy = STDOUT);
-  template <class T = list> set uexec(const T& cmd, const exec_return& policy = STDOUT);
-  template <class T = list> std::string dump(const T& cmd, const exec_return& policy = STDOUT);
-  template <class T = list> std::string one_line(const T& cmd, const exec_return& policy = STDOUT);
+  /**
+   * @brief Extend a container in place.
+   * @tparam T: The container type for both dest and source.
+   * @param dest: The container to extend.
+   * @param source: The values to pull from.
+   */
+  template <class T = list> void extend(vector& dest, const T& source);
+  template <class T = list> void extend(set& dest, const T& source);
+  void extend(set& dest, set source);
+
+  template <typename C, typename T> void splitter(C& working, const std::string_view& str, const T& delim, const bool& escape);
+  void split(vector& working, const std::string_view& str, const char& delim, const bool& escape = false);
+  void splits(vector& working, const std::string_view& str, const std::string_view& delim, const bool& escape = false);
+  void usplit(set& working, const std::string_view& str, const char& delim, const bool& escape = true);
+  void usplits(set& working, const std::string_view& str, const std::string_view& delim, const bool& escape = true);
+
+  bool contains(const char& v, const char& d);
+  bool contains(const char& v, const std::string_view& d);
+  void emplace(set& working, const std::string_view& val);
+  void emplace(vector& working, const std::string_view& val);
+
+  template <class T> std::vector<const char*> zip(const T& cmd);
+
+  void wait_for(const int& fd, const int& pid = -1);
+  int get_pid(const int& fd, const int& pid = -1);
+  vector vectorize(const int& fd, const int& pid = -1);
+  set setorize(const int& fd, const int& pid = -1);
+  std::string dump(const int& fd, const int& pid = -1);
+  std::string one_line(const int& fd, const int& pid = -1);
+
+  template <size_t count> std::string head(const int& fd, const int& pid) {
+    std::string ret; ret.reserve(count);
+    read(fd, &ret[0], count);
+    close(fd);
+    return ret;
+  }
+
+  template <class R = void, class T = list> R exec(
+      const T& cmd,
+      const std::function<R(const int&, const int&)>& parser = [](const int& fd, const int& pid) {close(fd);},
+      const exec_return& policy = NONE
+  )  {
+    int pipefd[2];
+    if (pipe(pipefd) == -1) throw std::runtime_error("Failed to setup pipe");
+
+    auto pid = fork();
+    if (pid < 0) throw std::runtime_error("Failed to fork");
+    else if (pid == 0) {
+      auto argv = zip(cmd);
+
+      close(pipefd[0]);
+      switch (policy) {
+        case STDOUT: dup2(pipefd[1], STDOUT_FILENO); break;
+        case STDERR: dup2(pipefd[1], STDERR_FILENO); break;
+        case ALL:  dup2(pipefd[1], STDOUT_FILENO); dup2(pipefd[1], STDERR_FILENO); break;
+        default: break;
+      }
+      close(pipefd[1]);
+      execvp(argv[0], const_cast<char* const*>(argv.data()));
+    }
+    close(pipefd[1]);
+    return parser(pipefd[0], pid);
+  }
+
+  template <class C, char delim> C fd_splitter(const int& fd, const int& pid) {
+    C result;
+    auto contents = dump(fd, pid);
+    splitter<C, char>(result, contents, delim, false);
+    return result;
+  }
 
 
   /**
-   * @brief Split a string on a set of delimiters.
-   * @param str: The string
-   * @param delim: The delimiters.
-   * @returns: A vector of each sub-string.
+   * @brief Read a file completely.
+   * @param path: The path to the file.
+   * @returns The file contents.
    */
-   void split(vector& working, const std::string_view& str, const char& delim, const bool& escape = false);
-   void splits(vector& working, const std::string_view& str, const std::string_view& delim, const bool& escape = false);
-   void usplit(set& working, const std::string_view& str, const char& delim, const bool& escape = true);
-   void usplits(set& working, const std::string_view& str, const std::string_view& delim, const bool& escape = true);
-
+  template <class R> R read_file(const std::filesystem::path& path, const std::function<R(const int&, const int&)>& parser) {
+    return parser(open(path.c_str(), O_RDONLY), -1);
+  }
 
   /**
    * @brief Join a vector into a string.
@@ -173,18 +228,6 @@ namespace shared {
    * @returns: The escaped string.
    */
   std::string escape(const std::string& in);
-
-
-  /**
-   * @brief Extend a container in place.
-   * @tparam T: The container type for both dest and source.
-   * @param dest: The container to extend.
-   * @param source: The values to pull from.
-   */
-  template <class T = list> void extend(vector& dest, const T& source);
-  template <class T = list> void extend(set& dest, const T& source);
-  void extend(set& dest, set source);
-
 
   /**
    * @brief Share a path with the sandbox using a mode.

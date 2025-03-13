@@ -35,7 +35,7 @@ namespace syscalls {
     }
 
     // See if the existing file is already up to date, and just use that directly.
-    auto content = init<vector>(split, read_file(syscall_file), '\n', false);
+    auto content = read_file<vector>(syscall_file, vectorize);
     if (content.size() > 1) {
       auto hash = std::string(arg::get("seccomp") == "enforcing" ? "E" : "P") + shared::hash(content[1]);
       if (hash == init<vector>(split, content[0], ' ', false)[1] && std::filesystem::exists(bpf) && arg::at("update").under("cache")) {
@@ -96,12 +96,12 @@ namespace syscalls {
 
 
   void update_policy(const std::string& application, const std::vector<std::string> &straced) {
-    vector syscalls;
+    set syscalls;
     for (const auto& line : straced) {
       auto s = init<vector>(splits, line, " \t", false);
       if (s.size() > 2 && s[2].contains('(')) {
         auto syscall = init<vector>(split, s[2], '(', false)[0];
-        if (seccomp_syscall_resolve_name(syscall.c_str()) != __NR_SCMP_ERROR) syscalls.emplace_back(syscall);
+        if (seccomp_syscall_resolve_name(syscall.c_str()) != __NR_SCMP_ERROR) syscalls.emplace(syscall);
       }
     }
 
@@ -111,10 +111,10 @@ namespace syscalls {
 
     std::string joined;
     if (std::filesystem::exists(syscall_file)) {
-      auto content = init<vector>(split, read_file(syscall_file), '\n', false);
+      auto content = read_file<vector>(syscall_file, vectorize);
       switch (content.size()) {
-        case 1:  if (!content[0].starts_with("HASH")) split(syscalls, content[0], ' ', false); break;
-        case 2: split(syscalls, content[1], ' '); break;
+        case 1:  if (!content[0].starts_with("HASH")) usplit(syscalls, content[0], ' ', false); break;
+        case 2: usplit(syscalls, content[1], ' '); break;
         default: break;
       }
     }

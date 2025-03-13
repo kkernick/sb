@@ -46,7 +46,7 @@ namespace binaries {
     local.emplace(path);
 
     // Get the file contents.
-    auto contents = read_file(path);
+    auto contents = read_file<std::string>(path, dump);
     if (contents.empty()) return;
 
     // Shell script
@@ -69,7 +69,7 @@ namespace binaries {
 
       // If the cache exists, and we don't need to update, use it.
       if (std::filesystem::exists(cache) && arg::at("update").under("cache")) {
-        local = init<bin_t>(usplit, read_file(cache), ' ', false);
+        local = read_file<bin_t>(cache, setorize);
         batch(parse, required, local, libraries);
       }
       else {
@@ -121,7 +121,7 @@ namespace binaries {
           ) return value;
 
           // Let the shell resolve the nuances.
-          return one_line({"echo", value});
+          return exec<std::string>({"echo", value}, one_line, STDOUT);
         };
 
         std::vector<std::string> tokens;
@@ -200,7 +200,7 @@ namespace binaries {
     }
 
     // Actual executables have their shared libraries parsed.
-    else libraries::get(libraries, path);
+    else if (contents.starts_with("\177ELF")) libraries::get(libraries, path);
 
     // Merge and return.
     required.merge(local);

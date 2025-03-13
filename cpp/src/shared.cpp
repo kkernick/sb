@@ -26,6 +26,8 @@ namespace shared {
   std::mt19937 TemporaryDirectory::prng(TemporaryDirectory::dev());
   std::uniform_int_distribution<uint64_t> TemporaryDirectory::rand(0);
 
+  constexpr size_t buffer_size = 1024;
+
   #ifdef PROFILE
   std::map<std::string, size_t> time_slice;
   #endif
@@ -42,21 +44,6 @@ namespace shared {
     nobody = std::to_string(getpwnam("nobody")->pw_uid),
     real = std::to_string(getuid());
 
-
-  // Read a file
-  std::string read_file(const std::filesystem::path& path) {
-    std::string contents;
-    auto file = std::ifstream(path);
-    if (file.is_open()) {
-      file.seekg(0, std::ios::end);
-      contents.resize(file.tellg());
-      file.seekg(0, std::ios::beg);
-      file.read(&contents[0], contents.size());
-      file.close();
-    }
-    return contents;
-  }
-
   // Log to output
   void log(const list& msg, const std::string& level) {
     if (arg::at("verbose").meets(level)) {
@@ -66,128 +53,62 @@ namespace shared {
     }
   }
 
-  const char* c_str(const std::string_view& str) {return str.data();}
-  inline bool contains(const char& v, const char& d) {return v == d;}
-  inline bool contains(const char& v, const std::string_view& d) {return d.contains(v);}
-  inline void emplace(set& working, const std::string_view& val) {working.emplace(val);}
-  inline void emplace(vector& working, const std::string_view& val) {working.emplace_back(val);}
+  bool contains(const char& v, const char& d) {return v == d;}
+  bool contains(const char& v, const std::string_view& d) {return d.contains(v);}
+  void emplace(set& working, const std::string_view& val) {working.emplace(val);}
+  void emplace(vector& working, const std::string_view& val) {working.emplace_back(val);}
 
   template <class T> std::vector<const char*> zip(const T& cmd) {
     // The child creates a command array for execvp
     std::vector<const char*> argv; argv.reserve(cmd.size() + 1);
     if (arg::at("verbose").meets("debug")) {
       std::cout << "EXEC: ";
-       for (const auto& v : cmd) {
+       for (const std::string_view& v : cmd) {
          std::cout << v << ' ';
-         argv.emplace_back(c_str(v));
+         argv.emplace_back(v.data());
        }
        std::cout << std::endl;
     }
-    else for (const auto& v : cmd) argv.emplace_back(c_str(v));
+    else for (const std::string_view& v : cmd) argv.emplace_back(v.data());
     argv.emplace_back(nullptr);
     return argv;
   }
   template std::vector<const char*> zip(const list&);
   template std::vector<const char*> zip(const vector&);
 
+  void wait_for(const int& fd, const int& pid) {close(fd); int state; waitpid(pid, &state, 0);}
+  int get_pid(const int& fd, const int& pid) {close(fd); return pid;}
 
-  template <class R, class T> R executor(const T& cmd, const exec_return& policy, const std::function<R(int, int)>& parser) {
-    int pipefd[2];
-    if (pipe(pipefd) == -1) throw std::runtime_error("Failed to setup pipe");
+  vector vectorize(const int& fd, const int& pid) {return fd_splitter<vector, '\n'>(fd, pid);}
+  set setorize(const int& fd, const int& pid) {return fd_splitter<set, ' '>(fd, pid);}
 
-    auto pid = fork();
-    if (pid < 0) throw std::runtime_error("Failed to fork");
-    else if (pid == 0) {
-      auto argv = zip(cmd);
-
-      close(pipefd[0]);
-      switch (policy) {
-        case STDOUT: dup2(pipefd[1], STDOUT_FILENO); break;
-        case STDERR: dup2(pipefd[1], STDERR_FILENO); break;
-        case ALL:  dup2(pipefd[1], STDOUT_FILENO); dup2(pipefd[1], STDERR_FILENO); break;
-        default: break;
-      }
-      close(pipefd[1]);
-      execvp(argv[0], const_cast<char* const*>(argv.data()));
+  std::string dump(const int& fd, const int& pid) {
+    std::string result;
+    std::array<char, buffer_size> buffer;
+    int bytes = read(fd, buffer.data(), buffer_size);
+    while (bytes > 0) {
+      result.reserve(bytes);
+      result.append(buffer.data(), bytes);
+      bytes = read(fd, buffer.data(), buffer_size);
     }
-
-    // Parent either returns immediately.
-    close(pipefd[1]);
-    R result = parser(pipefd[0], pid);
-    close(pipefd[0]);
+    close(fd);
     return result;
   }
 
 
-  template <class T> int detach(const T& cmd) {
-    return executor<int>(cmd, NONE, [](const int& fd, const int& pid) {return pid;});
+  std::string one_line(const int& fd, const int& pid) {
+    std::string result;
+    std::array<char, buffer_size> buffer = {0};
+    int bytes = read(fd, buffer.data(), buffer_size), index = 0;
+    while (bytes > 0 && index != std::string::npos)  {
+      result.reserve(buffer_size);
+      result.append(buffer.data(), bytes);
+      bytes =  read(fd, buffer.data(), buffer_size);
+      index = result.rfind('\n');
+    }
+    close(fd);
+    return result.substr(0, index);
   }
-  template int detach(const list& cmd);
-  template int detach(const vector& cmd);
-
-  template <class T> int wait_for(const T& cmd) {
-    return executor<int>(cmd, STDOUT, [](const int& fd, const int& pid) {while (read(fd, nullptr, 1) > 1) {}; return 0;});
-  }
-  template int wait_for(const list& cmd);
-  template int wait_for(const vector& cmd);
-
-
-  template <class C, class T> C exec(const T& cmd, const exec_return& policy) {
-    return executor<C>(cmd, policy, [](const int& fd, const int& pid) -> C {
-      C result;
-      std::string buffer; char current;
-      int bytes =  read(fd, &current, 1);
-      while (bytes == 1) {
-        if (current == '\n') {
-          emplace(result, std::string_view(buffer));
-          buffer.erase();
-        }
-        else buffer.append(1, current);
-        bytes = read(fd, &current, 1);
-      }
-      return result;
-    });
-  }
-  template vector exec(const vector& cmd, const exec_return& policy);
-  template vector exec(const list& cmd, const exec_return& policy);
-  template set exec(const vector& cmd, const exec_return& policy);
-  template set exec(const list& cmd, const exec_return& policy);
-
-
-  template <class T> std::string dump(const T& cmd, const exec_return& policy) {
-    return executor<std::string>(cmd, policy, [](const int& fd, const int& pid) -> std::string {
-      std::string result;
-      std::array<char, 256> buffer;
-      int bytes =  read(fd, buffer.data(), 256);
-      while (bytes > 0) {
-        result.reserve(bytes);
-        result.append(buffer.begin(), bytes);
-        bytes = read(fd, buffer.data(), 256);
-      }
-      return result;
-    });
-  }
-  template std::string dump(const vector& cmd, const exec_return& policy);
-  template std::string dump(const list& cmd, const exec_return& policy);
-
-  
-  template <class T> std::string one_line(const T& cmd, const exec_return& policy) {
-    return executor<std::string>(cmd, policy, [](const int& fd, const int& pid) -> std::string {
-      std::string result;
-      std::array<char, 256> buffer;
-      int bytes =  read(fd, buffer.data(), 255), index = 0;
-      while (bytes > 0 && index != std::string::npos)  {
-        result.reserve(255);
-        result.append(buffer.begin(), buffer.end());
-        bytes =  read(fd, buffer.data(), 255);
-        index = result.rfind('\n');
-      }
-      return result.substr(0, index);
-    });
-  }
-  template std::string one_line(const vector& cmd, const exec_return& policy);
-  template std::string one_line(const list& cmd, const exec_return& policy);
-
 
   template <typename C, typename T> void splitter(C& working, const std::string_view& str, const T& delim, const bool& escape) {
     bool wrapped = false;
@@ -268,7 +189,7 @@ namespace shared {
     command.insert(command.end(), {"find", local ? std::filesystem::path(pattern).parent_path().string() : path.data()});
     command.insert(command.end(), args.begin(), args.end());
     command.insert(command.end(), {"-name", local ? std::filesystem::path(pattern).filename().string() : pattern.data()});
-    return exec<set>(command);
+    return exec<set>(command, fd_splitter<set, '\n'>, STDOUT);
   };
 
 

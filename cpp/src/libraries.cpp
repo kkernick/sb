@@ -15,8 +15,8 @@ namespace libraries {
   // Directories, so we can mount them after discovering dependencies.
   lib_t directories = {};
 
-  inline std::filesystem::path cache_name(const std::string& library) {
-    std::string name = library;
+  inline std::filesystem::path cache_name(const std::string_view& library) {
+    auto name = std::string(library);
     std::replace(name.begin(), name.end(), '/', '.');
     name = strip(name, "*");
     auto cache = std::filesystem::path(data) / "sb" / "cache" / std::string(name + ".lib.cache");
@@ -28,9 +28,11 @@ namespace libraries {
     lib_t libraries;
 
     if (!std::filesystem::exists(library)) return libraries;
+    if (read_file<std::string>(library, head<4>) != "\0x7fELF")
+      return libraries;
 
-    auto cache = cache_name(std::string(library));
-    if (std::filesystem::exists(cache)) return init<lib_t>(usplit, read_file(cache), ' ', false);
+    auto cache = cache_name(library);
+    if (std::filesystem::exists(cache)) return read_file<set>(cache, setorize);
     std::filesystem::create_directories(cache.parent_path());
 
     // If this is a library, add it.
@@ -38,8 +40,9 @@ namespace libraries {
       libraries.emplace(library);
     }
 
+
     // LDD it!
-    auto output = dump({"ldd", library});
+    auto output = exec<std::string>({"ldd", library}, dump, STDOUT);
 
     // Parse it in a single pass, rather than splitting.
     for (size_t x = output.find('/'); x != std::string::npos; x = output.find('/', x + 1)) {
@@ -89,7 +92,7 @@ namespace libraries {
 
     // If the cache exists, and we don't need to update, use it.
     if (std::filesystem::exists(cache) && arg::at("update").under("cache")) {
-      usplit(libraries, read_file(cache), ' ', false);
+      libraries.merge(read_file<set>(cache, setorize));
       return;
     }
 
@@ -101,7 +104,7 @@ namespace libraries {
 
     // Find all shared libraries in dir.
     else if (std::filesystem::is_directory(library)) {
-      local.merge(exec<lib_t>({"find", library, "-type", "f,l", "-executable"}));
+      local.merge(exec<lib_t>({"find", library, "-type", "f,l", "-executable"}, fd_splitter<lib_t, '\n'>, STDOUT));
       sub_dir = library;
     }
 
@@ -215,10 +218,8 @@ namespace libraries {
       if (mod == "x") {
         if (lib.contains("*"))
           exclusions.merge(shared::wildcard(lib, "/usr/lib", {"-maxdepth", "1", "-mindepth", "1", "-type", "f,l", "-executable"}));
-        else if (std::filesystem::is_directory(lib)) {
-          auto iter = std::find(directories.begin(), directories.end(), lib);
-          if (iter != directories.end()) directories.erase(iter);
-        }
+        else if (std::filesystem::is_directory(lib) && directories.contains(lib))
+          directories.erase(lib);
         else exclusions.emplace(lib);
       }
     }

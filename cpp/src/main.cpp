@@ -31,8 +31,8 @@ static void cleanup(int sig) {
 
   if (arg::get("fs") == "persist") {
     auto path = arg::mod("fs");
-    detach({"find", path, "-type", "l", "-exec", "rm", "-f", "{}", ";"});
-    detach({"find", path, "-type", "f", "-empty", "-exec", "rm", "-f", "{}", ";"});
+    exec({"find", path, "-type", "l", "-exec", "rm", "-f", "{}", ";"});
+    exec({"find", path, "-type", "f", "-empty", "-exec", "rm", "-f", "{}", ";"});
   }
 
   auto sof = arg::get("sof");
@@ -57,8 +57,8 @@ int main(int argc, char* argv[]) {
   auto parse_args = []() {
     if (arg::args.size() > 0 && arg::args[0].ends_with(".sb")) {
       auto program = arg::args[0];
-      auto resolved = std::filesystem::exists(arg::args[1]) ? program : one_line({"which", program});
-      auto contents = init<vector>(split, read_file(resolved), '\n', false);
+      auto resolved = std::filesystem::exists(arg::args[1]) ? program : exec<std::string>({"which", program}, one_line, STDOUT);
+      auto contents = read_file<vector>(resolved, vectorize);
       if (contents.size() == 2) {
         auto old = arg::args;
         arg::args = init<vector>(split, contents[1], ' ', false);
@@ -338,7 +338,7 @@ int main(int argc, char* argv[]) {
 
     // Add flags
     auto flags = local_dir / "flags.conf";
-    if (std::filesystem::exists(flags)) splits(command, read_file(flags.string()), " \n");
+    if (std::filesystem::exists(flags)) splits(command, read_file<std::string>(flags.string(), dump), " \n");
   }
 
   // Do this before our auxiliary wait.
@@ -371,15 +371,17 @@ int main(int argc, char* argv[]) {
     if (arg::at("post")) {
 
       // Run the sandbox non-blocking
-      detach(command);
+      exec(command);
 
       // Assemble the post-command; args are provided in the modifier.
       command = {arg::get("post")};
       split(command, arg::mod("post"), ' ');
     }
 
-    if (arg::get("seccomp") == "strace") syscalls::update_policy(program, exec(command, STDERR));
-    else wait_for(command);
+    if (arg::get("seccomp") == "strace")
+      syscalls::update_policy(program, exec<vector>(command, vectorize, STDERR));
+
+    else exec<void>(command, wait_for, STDOUT);
   }
 
   // Cleanup FD.

@@ -84,12 +84,18 @@ namespace arg {
        */
       bool digest_keypair(const std::string& key, const std::string& val, const size_t& pos) {
 
-        // Digest modifiers.
+        // Single value modifiers are easy to split.
         if (!list && custom == custom_policy::MODIFIABLE && val.contains(':')) {
+
+          // Split on colons.
           auto s = shared::init<shared::vector>(shared::split, val, ':', false);
           if (s.size() < 2) throw std::runtime_error("Invalid modifier: " + val);
-          auto v = s[0]; auto mod = val.substr(val.find(':') + 1);
-          if (valid.size() <= 1 || std::find(valid.begin(), valid.end(), v) != valid.end()) {
+
+          // Grab the modifier keypair
+          auto v = s[0]; auto mod = s[1];
+
+          // If there are no valids, or it is valid, modify.
+          if (valid.size() <= 1 || valid.contains(v)) {
             value = parser(v);
             modifier = m_parser(mod);
             return true;
@@ -122,9 +128,6 @@ namespace arg {
             else value = parser(val);
             return true;
           }
-          else {
-            return false;
-          }
         }
         return false;
       }
@@ -148,13 +151,11 @@ namespace arg {
           std::cerr << long_name << ": Already at highest level!" << std::endl;
       }
 
-      // Get the level of the argument.
-      size_t level(const std::string& val) const {
-        if (mandatory && !set) throw std::runtime_error("Missing mandatory argument: " + long_name);
-        for (size_t x = 0; x < valid.size(); ++x)
-          if (order[x] == val) return x;
-        return std::string::npos;
-      }
+      /**
+       * @brief Return the level for a corresponding valid value.
+       * @param val: The value.
+       */
+      size_t level(const std::string& val) const {return std::find(order.begin(), order.end(), val) - order.begin();}
 
     public:
 
@@ -268,7 +269,10 @@ namespace arg {
 
 
       // Update the argument for any post-parsing.
-      void update() {value = parser(value); modifier = m_parser(modifier);}
+      void update() {
+        if (mandatory && !set) throw std::runtime_error("Missing mandatory argument: " + long_name);
+        value = parser(value); modifier = m_parser(modifier);
+      }
 
       /**
        * @brief Get the help text for the argument.
@@ -331,12 +335,6 @@ namespace arg {
         return list_val;
       }
 
-      std::vector<std::string>& get_order() {
-        if (mandatory && !set) throw std::runtime_error("Missing mandatory argument: " + long_name);
-        if (!list) throw std::runtime_error("Argument must be a list: " + long_name);
-        return order;
-      }
-
       // Get the list of each value.
       std::set<std::string>& get_valid() {return valid;}
 
@@ -383,10 +381,8 @@ namespace arg {
   inline std::string& mod(const std::string& key) {return switches.at(key).mod();}
   inline size_t level(const std::string& key) {return switches.at(key).level();}
   inline std::set<std::string>& list(const std::string& key) {return switches.at(key).get_list();}
-  inline std::vector<std::string>& order(const std::string& key) {return switches.at(key).get_order();}
   inline std::set<std::string>& valid(const std::string& key) {return switches.at(key).get_valid();}
   inline const bool& is_list(const std::string& key) {return switches.at(key).is_list();}
-
   inline std::vector<std::pair<std::string, std::string>> modlist(const std::string& key) {return switches.at(key).get_modlist();}
 
   /**

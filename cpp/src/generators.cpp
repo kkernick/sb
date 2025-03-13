@@ -31,7 +31,7 @@ namespace generate {
     out << "#!/bin/sh\n";
     out << "sb " << join(arguments, ' ') << " -- \"$@\"";
     out.close();
-    detach({"chmod", "+x", binary});
+    exec({"chmod", "+x", binary});
   }
 
   // Generate the desktop file
@@ -49,7 +49,7 @@ namespace generate {
     if (!std::filesystem::exists(binary)) script(binary);
 
     // Modify the Exec and DBus lines
-    auto contents = init<vector>(split, read_file(src), '\n', false);
+    auto contents = read_file<vector>(src, vectorize);
     for (auto& line : contents) {
       if (line.starts_with("Exec="))
         line = "Exec=" + binary + (line.contains(' ') ? line.substr(line.find(' ')) : "\n");
@@ -127,7 +127,7 @@ namespace generate {
           auto cache = std::filesystem::path(data) / "sb" / "xdg-dbus-proxy" / "lib.cache";
           if (std::filesystem::exists(cache)) {
             log({"Using Proxy Cache"});
-            libraries = init<libraries::lib_t>(usplit, read_file(cache), ' ', false);
+            libraries = read_file<set>(cache, setorize);
           }
           else {
             log({"Generating Proxy Cache"});
@@ -166,7 +166,7 @@ namespace generate {
       for (const auto& portal : arg::list("own")) command.emplace_back("--own=" + portal);
 
       lib_future.wait();
-      if (!arg::at("dry")) return detach(command);
+      if (!arg::at("dry")) return exec<int>(command, get_pid);
       return -1;
     };
 
@@ -210,13 +210,13 @@ namespace generate {
     bool update_sof = arg::at("update");
     if (lib && !update_sof) {
       if (std::filesystem::exists(lib_cache)) {
-        auto lib_file = init<vector>(split, read_file(lib_cache), '\n', false);
+        auto lib_file = read_file<vector>(lib_cache, vectorize);
         if (lib_file.size() == 2 && hash == lib_file[0]) {
 
           // We should check the command cache here since it's predicated
           // on use not needing to update anything.
           if (std::filesystem::exists(cmd_cache) && std::filesystem::is_directory(lib_dir)) {
-            auto cmd_file = init<vector>(split, read_file(cmd_cache), '\n', false);
+            auto cmd_file = read_file<vector>(cmd_cache, vectorize);
             if (cmd_file.size() == 2 && hash == cmd_file[0]) {
               log({"Reusing existing command cache"});
               return init<vector>(split, cmd_file[1], ' ', true);
@@ -256,11 +256,11 @@ namespace generate {
     if (bin) {
       log({"Resolving binaries"});
       binaries::parse(binaries, arg::get("cmd"), libraries);
-      batch(binaries::parse, binaries, arg::order("binaries"), libraries);
+      batch(binaries::parse, binaries, arg::list("binaries"), libraries);
 
       // Get libraries needed for added executables.
       if (arg::at("fs") && std::filesystem::is_directory(arg::mod("fs") + "/usr/bin")) {
-        batch(binaries::parse, binaries, exec({"find", arg::mod("fs") + "/usr/bin", "-type", "f,l", "-executable"}), libraries);
+        batch(binaries::parse, binaries, exec<vector>({"find", arg::mod("fs") + "/usr/bin", "-type", "f,l", "-executable"}, vectorize, STDOUT), libraries);
       }
     }
 

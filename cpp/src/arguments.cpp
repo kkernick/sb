@@ -4,11 +4,7 @@ using namespace shared;
 
 namespace arg {
 
-  // Unknown arguments.
-  std::vector<std::string> unknown = {};
-
-  // Args for manual parsing.
-  std::vector<std::string> args = {};
+  vector unknown = {}, args;
 
   // All switches
   std::map<std::string, arg::Arg> switches = {
@@ -20,7 +16,6 @@ namespace arg {
     // Switches that just check if they are set.
     {"help", arg::config{.l_name="--help", .s_name="-h", .help="Print this message"}},
     {"verbose", arg::config{.l_name="--verbose", .s_name="-v", .valid={"log", "debug", "error", "strace"}, .help="Print verbose information"}},
-
 
     // True/False options; these get top priority for lower cases short-switches so that they can be chained together.
     {"gui", arg::config{
@@ -54,28 +49,28 @@ namespace arg {
       .help="System locale",
     }},
     {"dry", arg::config{
-      .l_name="--dry", .s_name="",
+      .l_name="--dry", .s_name="-d",
       .valid={"false", "true"},
       .help="Generate a sandbox, but don't actually run the application.",
     }},
     {"electron", arg::config{
-      .l_name="--electron", .s_name="",
+      .l_name="--electron", .s_name="-e",
       .valid={"false", "true"},
       .custom=custom_policy::TRUE,
       .help="For electron applications. Implies --gtk --proc and --share user. Can also set to custom version.",
     }},
     {"gtk", arg::config{
-      .l_name="--gtk", .s_name="",
+      .l_name="--gtk", .s_name="-t",
       .valid={"false", "true"},
       .help="For gtk applications. Implies --gui",
     }},
     {"include", arg::config{
-      .l_name="--include", .s_name="",
+      .l_name="--include", .s_name="-i",
       .valid={"false", "true"},
       .help="/usr/include for C/C++ headers (IE for clang).",
     }},
     {"dry_startup", arg::config{
-      .l_name="--dry-startup", .s_name="",
+      .l_name="--dry-startup", .s_name="-u",
       .valid={"false", "true"},
       .help="Populate the program's SOF on startup (Enable sb.service)",
     }},
@@ -85,12 +80,12 @@ namespace arg {
       .help="If the service is running at startup (Do not use).",
     }},
     {"hostname", arg::config{
-      .l_name="--hostname", .s_name="",
+      .l_name="--hostname", .s_name="-n",
       .valid = {"false", "true"},
       .help="Pass the real hostname to the sandbox",
     }},
     {"refresh", arg::config{
-      .l_name="--refresh", .s_name="",
+      .l_name="--refresh", .s_name="-r",
       .valid={"true", "false"},
       .help="Refresh caches destructively (Removes cache and SOF)",
     }},
@@ -227,7 +222,7 @@ namespace arg {
     // Parse a .conf file. They set defaults.
     auto c = std::filesystem::path(shared::config) / "sb" / "sb.conf";
     if (std::filesystem::exists(c)) {
-      for (const auto& conf : init<vector>(split, read_file(c), '\n', false)) {
+      for (const auto& conf : read_file<vector>(c, vectorize)) {
         if (!conf.contains("=")) {
           std::cout << "Invalid configuration: " << conf << std::endl;
         }
