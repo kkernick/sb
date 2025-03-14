@@ -89,8 +89,8 @@ namespace arg {
           auto s = shared::init<shared::vector>(shared::split, val, ':', false);
           if (s.size() < 2) throw std::runtime_error("Invalid modifier: " + std::string(val));
 
-          // Grab the modifier keypair
-          auto v = s[0]; auto mod = s[1];
+          // Grab the modifier keypair.
+          auto v = s[0]; auto mod = val.substr(val.find(':') + 1);
 
           // If there are no valids, or it is valid, modify.
           if (valid.size() <= 1 || valid.contains(v)) {
@@ -232,7 +232,7 @@ namespace arg {
           // We don't return true here because with a collection of args we
           // need to parse for each match.
         }
-        
+
         if (key == "--help") throw std::runtime_error("Help!");
         if (key == "--version") throw std::runtime_error("Version");
 
