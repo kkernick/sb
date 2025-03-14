@@ -127,7 +127,7 @@ Building</h1>
 <li><code>xdg-dbus-proxy</code>: To enable Flatpak emulation and Portals supports.</li>
 <li><code>libseccomp</code>: To enable <code>--seccomp</code> to further harden the sandbox by permitting what syscalls are allowed to be run.</li>
 </ol>
-<h1><a class="anchor" id="autotoc_md3"></a>
+<h1><a class="anchor" id="autotoc_md4"></a>
 Scripts and Services</h1>
 <p>The following files are located at the root of the repo, and are shared between both implementations:</p>
 <ol type="1">
@@ -141,14 +141,14 @@ Scripts and Services</h1>
 <li><code>sb-seccomp</code>: Append new syscalls to a SECCOMP filter. Use in conjunction with <code>--seccomp=strace</code>.</li>
 <li><code>sb-startup</code>: The startup worker.</li>
 </ol>
-<h1><a class="anchor" id="autotoc_md4"></a>
+<h1><a class="anchor" id="autotoc_md5"></a>
 Licenses and Third-Party Libraries</h1>
 <ul>
 <li>SB++ uses the <a href="https://github.com/bshoshany/thread-pool">BS::ThreadPool</a> library, which is licensed under the MIT. Without a native thread pool library to compete against Python, SB++ would not be competitive in speed, and such this project would not exist without this library. </li>
 </ul>
-<h1><a class="anchor" id="autotoc_md5"></a>
+<h1><a class="anchor" id="autotoc_md6"></a>
 Why?</h1>
-<h2><a class="anchor" id="autotoc_md6"></a>
+<h2><a class="anchor" id="autotoc_md7"></a>
 Speed</h2>
 <p>Speed was the principal reason for implementing SB in C++, and the results are to be expected from moving from Python to C++ (via <code>benchmark.sh</code>):</p>
 <table class="markdownTable">
@@ -190,7 +190,7 @@ Speed</h2>
 <li>Library Updates fix a bug in the Python implementation, where <code>ldd</code> was assumed to not recursively determine dependencies. It does. This speed up allows for a far more reliable parser, mentioned below.</li>
 <li>Cache Updates no longer using a thread-mediated <code>searched</code> list, to which mutex access significantly slowed access down. Instead, we just cache <code>ldd</code> results, and return the pre-computed results immediately. You may think that returning libraries instead of just an empty list would slow things down, but the performance gain is tremendous, and come with the benefit in that it is more accurate, as the prior implementation had a bug where caches would not be complete if one of their libraries/binaries were already check prior in the sandbox construction.</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md7"></a>
+<h2><a class="anchor" id="autotoc_md8"></a>
 Functionality and Usability</h2>
 <p>New functionality and usability improvements were also a major consideration, with many improvements infeasible or impossible within the confines of Python. Such improvements include:</p><ul>
 <li>A custom, flexible argument handler:<ul>

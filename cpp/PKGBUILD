@@ -1,6 +1,6 @@
 pkgname=sb++-git
 pkgdesc="Sandbox Applications"
-pkgver=r340.c6e7341
+pkgver=r343.840b5d5
 pkgrel=1
 
 source=("git+https://github.com/kkernick/sb.git")
@@ -26,6 +26,7 @@ pkgver() {
 build() {
   cd $srcdir/sb/cpp
   make cpp
+  make doxygen
 }
 
 package() {
@@ -41,4 +42,13 @@ package() {
 
   install -Dm 644 sb.conf "$pkgdir/usr/lib/systemd/zram-generator.conf.d/sb.conf"
   install -Dm755 "$srcdir/sb/sb-open" "$pkgdir/usr/bin/sb-open"
+  
+  for page in $srcdir/sb/cpp/docs/man/man3/*; do
+    gzip $page
+    install -Dm644 "$page.gz" "$pkgdir/usr/share/man/man3/sb.$(basename $page).gz"
+  done
+  
+  for license in "$srcdir/sb/LICENSE" $srcdir/sb/cpp/src/third_party/licenses/*; do
+    install -Dm644 "$license" "$pkgdir/usr/share/licenses/sb/$(basename $license)"
+  done
 }
