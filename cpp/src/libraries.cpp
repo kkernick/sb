@@ -33,7 +33,7 @@ namespace libraries {
     if (std::filesystem::exists(cache))
       libraries = read_file<set>(cache, setorize);
     else {
-      if (read_file<std::string>(library, head<4>) != "\177ELF") return;
+      if (read_file<std::string>(library, head<5>) != "\177ELF\2") return;
       std::filesystem::create_directories(cache.parent_path());
 
       // If this is a library, add it.

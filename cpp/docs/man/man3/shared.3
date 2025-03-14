@@ -1,0 +1,826 @@
+.TH "shared" 3 "SB++" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+shared \- Shared functionality\&.  
+
+.SH SYNOPSIS
+.br
+.PP
+.SS "Data Structures"
+
+.in +1c
+.ti -1c
+.RI "class \fBTemporaryDirectory\fP"
+.br
+.RI "A Temporary Directory A directory that destroys itself upon falling out of scope\&. "
+.in -1c
+.SS "Typedefs"
+
+.in +1c
+.ti -1c
+.RI "using \fBset\fP = std::set<std::string>"
+.br
+.ti -1c
+.RI "using \fBvector\fP = std::vector<std::string>"
+.br
+.ti -1c
+.RI "using \fBlist\fP = std::initializer_list<std::string_view>"
+.br
+.in -1c
+.SS "Enumerations"
+
+.in +1c
+.ti -1c
+.RI "enum \fBexec_return\fP { \fBNONE\fP, \fBSTDOUT\fP, \fBSTDERR\fP, \fBALL\fP }"
+.br
+.RI "policy for the executor, describing what should be captured\&. "
+.in -1c
+.SS "Functions"
+
+.in +1c
+.ti -1c
+.RI "void \fBlog\fP (const list &msg, const std::string &level='log')"
+.br
+.RI "Log output to console, if verbose\&. "
+.ti -1c
+.RI "bool \fBcontains\fP (const char &v, const char &d)"
+.br
+.ti -1c
+.RI "bool \fBcontains\fP (const char &v, const std::string_view &d)"
+.br
+.ti -1c
+.RI "void \fBemplace\fP (set &working, const std::string_view &val)"
+.br
+.ti -1c
+.RI "void \fBemplace\fP (vector &working, const std::string_view &val)"
+.br
+.ti -1c
+.RI "template<class T> std::vector< const char * > \fBzip\fP (const T &cmd)"
+.br
+.RI "Zip a container for exec\&. "
+.ti -1c
+.RI "template std::vector< const char * > \fBzip\fP (const list &)"
+.br
+.ti -1c
+.RI "template std::vector< const char * > \fBzip\fP (const vector &)"
+.br
+.ti -1c
+.RI "void \fBwait_for\fP (const int &fd, const int &pid=\-1)"
+.br
+.RI "A Blocking Parser that waits for the PID to exit\&. "
+.ti -1c
+.RI "int \fBget_pid\fP (const int &fd, const int &pid=\-1)"
+.br
+.RI "A Non-Blocking Parser that returns the PID\&. "
+.ti -1c
+.RI "vector \fBvectorize\fP (const int &fd, const int &pid=\-1)"
+.br
+.RI "A Blocking Parser that splits the output into a vector\&. "
+.ti -1c
+.RI "set \fBsetorize\fP (const int &fd, const int &pid=\-1)"
+.br
+.RI "A Blocking Parser that splits the output into a set\&. "
+.ti -1c
+.RI "std::string \fBdump\fP (const int &fd, const int &pid=\-1)"
+.br
+.RI "A Blocking Parser that returns the output in a single string\&. "
+.ti -1c
+.RI "std::string \fBone_line\fP (const int &fd, const int &pid=\-1)"
+.br
+.RI "A Blocking Parser that returns the first line of output\&. "
+.ti -1c
+.RI "template<typename C, typename T> void \fBsplitter\fP (C &working, const std::string_view &str, const T &delim, const bool &\fBescape\fP)"
+.br
+.RI "Split a string\&. "
+.ti -1c
+.RI "template void \fBsplitter\fP (vector &, const std::string_view &, const char &, const bool &)"
+.br
+.ti -1c
+.RI "template void \fBsplitter\fP (vector &, const std::string_view &, const std::string_view &, const bool &)"
+.br
+.ti -1c
+.RI "template void \fBsplitter\fP (set &, const std::string_view &, const char &, const bool &)"
+.br
+.ti -1c
+.RI "template void \fBsplitter\fP (set &, const std::string_view &, const std::string_view &, const bool &)"
+.br
+.ti -1c
+.RI "void \fBsplit\fP (vector &working, const std::string_view &str, const char &delim, const bool &\fBescape\fP)"
+.br
+.ti -1c
+.RI "void \fBsplits\fP (vector &working, const std::string_view &str, const std::string_view &delim, const bool &\fBescape\fP)"
+.br
+.ti -1c
+.RI "void \fBusplit\fP (set &working, const std::string_view &str, const char &delim, const bool &\fBescape\fP)"
+.br
+.ti -1c
+.RI "void \fBusplits\fP (set &working, const std::string_view &str, const std::string_view &delim, const bool &\fBescape\fP)"
+.br
+.ti -1c
+.RI "template<class T> std::string \fBjoin\fP (const T &list, const char &joiner=' ')"
+.br
+.RI "Join a vector into a string\&. "
+.ti -1c
+.RI "template std::string \fBjoin\fP (const vector &, const char &)"
+.br
+.ti -1c
+.RI "template std::string \fBjoin\fP (const set &, const char &)"
+.br
+.ti -1c
+.RI "template<typename T> std::string \fBstrip\fP (const std::string_view &in, const T &to_strip)"
+.br
+.RI "Strip all instance of character from a string\&. "
+.ti -1c
+.RI "template std::string \fBstrip\fP (const std::string_view &, const char &)"
+.br
+.ti -1c
+.RI "template std::string \fBstrip\fP (const std::string_view &, const std::string_view &)"
+.br
+.ti -1c
+.RI "template<typename T> std::string \fBtrim\fP (const std::string &in, const T &to_strip)"
+.br
+.RI "Trim characters from the front and end of a string\&. "
+.ti -1c
+.RI "template std::string \fBtrim\fP (const std::string &, const char &)"
+.br
+.ti -1c
+.RI "template std::string \fBtrim\fP (const std::string &, const std::string_view &)"
+.br
+.ti -1c
+.RI "set \fBwildcard\fP (const std::string_view &pattern, const std::string_view &path, const list &args={})"
+.br
+.RI "Resolve wildcard patterns\&. "
+.ti -1c
+.RI "void \fBgenv\fP (vector &command, const std::string_view &env)"
+.br
+.RI "Attach an environment variable to the sandbox\&. "
+.ti -1c
+.RI "template<class T> void \fBextend\fP (vector &dest, const T &source)"
+.br
+.RI "Extend a container in place\&. "
+.ti -1c
+.RI "template void \fBextend\fP (vector &, const list &)"
+.br
+.ti -1c
+.RI "template void \fBextend\fP (vector &, const vector &)"
+.br
+.ti -1c
+.RI "template void \fBextend\fP (vector &, const set &)"
+.br
+.ti -1c
+.RI "template<class T> void \fBextend\fP (set &dest, const T &source)"
+.br
+.ti -1c
+.RI "template void \fBextend\fP (set &, const list &)"
+.br
+.ti -1c
+.RI "template void \fBextend\fP (set &, const vector &)"
+.br
+.ti -1c
+.RI "void \fBextend\fP (set &dest, set source)"
+.br
+.ti -1c
+.RI "void \fBinotify_wait\fP (const int &wd, const std::string_view &name='')"
+.br
+.RI "Wait for an inotify watcher\&. "
+.ti -1c
+.RI "void \fBshare\fP (vector &command, const std::string_view &path, const std::string &mode='ro\-bind')"
+.br
+.RI "Share a path with the sandbox using a mode\&. "
+.ti -1c
+.RI "std::string \fBhash\fP (const std::string_view &in)"
+.br
+.RI "Hash a string\&. "
+.ti -1c
+.RI "template<uint_fast8_t count> std::string \fBhead\fP (const int &fd, const int &pid)"
+.br
+.RI "A Blocking Parser that returns the first count of the output\&. "
+.ti -1c
+.RI "template<class R = void, class T = list> R \fBexec\fP (const T &cmd, const std::function< R(const int &, const int &)> &parser=[](const int &fd, const int &pid) {close(fd);}, const \fBexec_return\fP &policy=NONE)"
+.br
+.RI "Execute stuff\&. "
+.ti -1c
+.RI "template<class C, char delim> C \fBfd_splitter\fP (const int &fd, const int &pid)"
+.br
+.RI "Split the contents of an FD\&. "
+.ti -1c
+.RI "template<class R> R \fBread_file\fP (const std::filesystem::path &path, const std::function< R(const int &, const int &)> &parser)"
+.br
+.RI "Read a file\&. "
+.ti -1c
+.RI "std::string \fBescape\fP (const std::string &in)"
+.br
+.RI "Escape a string\&. "
+.ti -1c
+.RI "void \fBmerge\fP (set &command, set path)"
+.br
+.RI "Merge two sets together\&. "
+.ti -1c
+.RI "template<class T, class A, class \&.\&.\&. Args> T \fBinit\fP (const A &fun, const Args &\&.\&.\&. args)"
+.br
+.RI "Compose a return value from an accumulator function\&. "
+.ti -1c
+.RI "template<class T, class A, class \&.\&.\&. Args, class \&.\&.\&. Refs> T \fBrinit\fP (const A &fun, const Args &\&.\&.\&. args, Refs &\&.\&.\&. refs)"
+.br
+.ti -1c
+.RI "template<class T, class A, class L = list, class \&.\&.\&. Args> void \fBsingle_batch\fP (const A &fun, T &accum, const L &mem, Args\&.\&.\&. args)"
+.br
+.RI "Batch multiple iterations of an accumulator function together\&. "
+.ti -1c
+.RI "template<class T, class A, class L = list, class \&.\&.\&. Args> void \fBbatch\fP (const A &fun, T &accum, const L &mem, const Args &\&.\&.\&. args)"
+.br
+.RI "Batch multiple iterations of an accumulator function together, threaded\&. "
+.ti -1c
+.RI "void \fBextend\fP (vector &dest, const std::initializer_list< const list > &source)"
+.br
+.RI "Batch multiple extend calls into the thread pool\&. "
+.in -1c
+.SS "Variables"
+
+.in +1c
+.ti -1c
+.RI "BS::thread_pool< BS::tp::wait_deadlock_checks > \fBpool\fP = {}"
+.br
+.ti -1c
+.RI "int \fBinotify\fP = \-1"
+.br
+.ti -1c
+.RI "constexpr uint_fast16_t \fBbuffer_size\fP = 1024"
+.br
+.ti -1c
+.RI "const std::string \fBhome\fP = std::getenv('HOME')"
+.br
+.ti -1c
+.RI "const std::string \fBruntime\fP = std::getenv('XDG_RUNTIME_DIR')"
+.br
+.ti -1c
+.RI "const std::string \fBsession\fP = std::getenv('DBUS_SESSION_BUS_ADDRESS')"
+.br
+.ti -1c
+.RI "const std::string \fBconfig\fP = std::getenv('XDG_CONFIG_HOME') == nullptr ? home + '/\&.config/' : std::getenv('XDG_CONFIG_HOME')"
+.br
+.ti -1c
+.RI "const std::string \fBcache\fP = std::getenv('XDG_CACHE_HOME') == nullptr ? home + '/\&.cache/' : std::getenv('XDG_CACHE_HOME')"
+.br
+.ti -1c
+.RI "const std::string \fBdata\fP = std::getenv('XDG_DATA_HOME') == nullptr ? home + '/\&.local/\fBshare\fP/' : std::getenv('XDG_DATA_HOME')"
+.br
+.ti -1c
+.RI "const std::string \fBnobody\fP = std::to_string(getpwnam('nobody')\->pw_uid)"
+.br
+.ti -1c
+.RI "const std::string \fBreal\fP = std::to_string(getuid())"
+.br
+.in -1c
+.SH "Detailed Description"
+.PP 
+Shared functionality\&. 
+.SH "Function Documentation"
+.PP 
+.SS "template<class T, class A, class L = list, class \&.\&.\&. Args> void shared::batch (const A & fun, T & accum, const L & mem, const Args &\&.\&.\&. args)"
+
+.PP
+Batch multiple iterations of an accumulator function together, threaded\&. 
+.PP
+\fBTemplate Parameters\fP
+.RS 4
+\fIT\fP The accumulator type\&. 
+.br
+\fIA\fP The function type 
+.br
+\fIL\fP The container holding each value\&. 
+.br
+\fI\&.\&.\&.Args\fP Additional arguments\&. 
+.RE
+.PP
+\fBParameters\fP
+.RS 4
+\fIfun\fP The function to call\&. 
+.br
+\fIaccum\fP The accumulator to append to\&. 
+.br
+\fImem\fP The list of values to emplace\&. 
+.br
+\fIargs\fP Additional arguments\&. 
+.RE
+.PP
+\fBWarning\fP
+.RS 4
+All arguments must be immutable, as instances are threaded together\&. If the ordering matters, or residue arguments are accumulators, use single_batch 
+.RE
+.PP
+
+.SS "std::string shared::dump (const int & fd, const int & pid = \fR\-1\fP)"
+
+.PP
+A Blocking Parser that returns the output in a single string\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIfd\fP The FD on the attached pipe\&. 
+.br
+\fIpid\fP The PID of the process\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+: The output 
+.RE
+.PP
+
+.SS "std::string shared::escape (const std::string & in)"
+
+.PP
+Escape a string\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIin\fP The string to escape\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+: The escaped string\&. 
+.RE
+.PP
+
+.SS "template<class R = void, class T = list> R shared::exec (const T & cmd, const std::function< R(const int &, const int &)> & parser = \fR[](const int& fd, const int& pid) {close(fd);}\fP, const \fBexec_return\fP & policy = \fRNONE\fP)"
+
+.PP
+Execute stuff\&. 
+.PP
+\fBTemplate Parameters\fP
+.RS 4
+\fIR\fP What to return from the child\&. 
+.br
+\fIT\fP The container holding the command\&. 
+.RE
+.PP
+\fBParameters\fP
+.RS 4
+\fIcmd\fP The command to run\&. 
+.br
+\fIparser\fP The Parser to use on the output\&. 
+.br
+\fIpolicy\fP What to capture\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+The selected output from the parser\&. 
+.RE
+.PP
+
+.SS "void shared::extend (vector & dest, const std::initializer_list< const list > & source)"
+
+.PP
+Batch multiple extend calls into the thread pool\&. 
+.PP
+\fBTemplate Parameters\fP
+.RS 4
+\fIT\fP The list type\&. 
+.RE
+.PP
+\fBParameters\fP
+.RS 4
+\fIdest\fP The accumulator\&. 
+.br
+\fIsource\fP A list of lists that need to be extended\&. 
+.RE
+.PP
+
+.SS "template<class T> void shared::extend (vector & dest, const T & source)"
+
+.PP
+Extend a container in place\&. 
+.PP
+\fBTemplate Parameters\fP
+.RS 4
+\fIT\fP The container type for both dest and source\&. 
+.RE
+.PP
+\fBParameters\fP
+.RS 4
+\fIdest\fP The container to extend\&. 
+.br
+\fIsource\fP The values to pull from\&. 
+.RE
+.PP
+
+.SS "template<class C, char delim> C shared::fd_splitter (const int & fd, const int & pid)"
+
+.PP
+Split the contents of an FD\&. 
+.PP
+\fBTemplate Parameters\fP
+.RS 4
+\fIC\fP The container to return\&. 
+.br
+\fIdelim\fP The delimiter to use\&. 
+.RE
+.PP
+\fBParameters\fP
+.RS 4
+\fIfd\fP The FD of the file/process\&. 
+.br
+\fIpid\fP The PID of the process\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+The split output/contents\&. 
+.RE
+.PP
+
+.SS "void shared::genv (vector & command, const std::string_view & env)"
+
+.PP
+Attach an environment variable to the sandbox\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIcommand\fP The command to append to\&. 
+.br
+\fIenv\fP The environment variable to add\&. @info: The value of the variable is the actual value\&. 
+.RE
+.PP
+
+.SS "int shared::get_pid (const int & fd, const int & pid = \fR\-1\fP)"
+
+.PP
+A Non-Blocking Parser that returns the PID\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIfd\fP The FD on the attached pipe\&. 
+.br
+\fIpid\fP The PID of the process\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+: The PID 
+.RE
+.PP
+
+.SS "std::string shared::hash (const std::string_view & in)"
+
+.PP
+Hash a string\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIin\fP The input string\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+The hex digest\&. 
+.RE
+.PP
+
+.SS "template<uint_fast8_t count> std::string shared::head (const int & fd, const int & pid)"
+
+.PP
+A Blocking Parser that returns the first count of the output\&. 
+.PP
+\fBTemplate Parameters\fP
+.RS 4
+\fIcount\fP The amount of characters to return\&. 
+.RE
+.PP
+\fBParameters\fP
+.RS 4
+\fIfd\fP The FD on the attached pipe\&. 
+.br
+\fIpid\fP The PID of the process\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+: The output\&. 
+.RE
+.PP
+
+.SS "template<class T, class A, class \&.\&.\&. Args> T shared::init (const A & fun, const Args &\&.\&.\&. args)"
+
+.PP
+Compose a return value from an accumulator function\&. 
+.PP
+\fBTemplate Parameters\fP
+.RS 4
+\fIT\fP The return type (IE the accumulator type)\&. 
+.br
+\fIA\fP The function to wrap\&. 
+.br
+\fI\&.\&.\&.Args\fP Additional arguments to the function\&. 
+.RE
+.PP
+\fBParameters\fP
+.RS 4
+\fIfun\fP The function\&. 
+.br
+\fIargs\fP Additional arguments\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+The accumulated results from the function\&. 
+.RE
+.PP
+
+.SS "void shared::inotify_wait (const int & wd, const std::string_view & name = \fR''\fP)"
+
+.PP
+Wait for an inotify watcher\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIwd\fP The inotify FD for a specific watch\&. 
+.br
+\fIname\fP The optional name to look out for\&. 
+.RE
+.PP
+
+.SS "template<class T> std::string shared::join (const T & list, const char & joiner = \fR' '\fP)"
+
+.PP
+Join a vector into a string\&. 
+.PP
+\fBTemplate Parameters\fP
+.RS 4
+\fIThe\fP container\&. Defaults to vector of strings, but can also be set\&. 
+.RE
+.PP
+\fBParameters\fP
+.RS 4
+\fIlist\fP The list to join\&. 
+.br
+\fIjoiner\fP The character to join each member\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+: The joined string\&. 
+.RE
+.PP
+
+.SS "void shared::log (const list & msg, const std::string & level = \fR'log'\fP)"
+
+.PP
+Log output to console, if verbose\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fImsg\fP A list of strings to be printed\&. 
+.RE
+.PP
+
+.SS "void shared::merge (set & command, set path)"
+
+.PP
+Merge two sets together\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIcommand\fP The set to be extended\&. 
+.br
+\fIpath\fP The set to merge into the first\&. @info This function exists because C++ cannot deduce bracket initializers\&. 
+.RE
+.PP
+
+.SS "std::string shared::one_line (const int & fd, const int & pid = \fR\-1\fP)"
+
+.PP
+A Blocking Parser that returns the first line of output\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIfd\fP The FD on the attached pipe\&. 
+.br
+\fIpid\fP The PID of the process\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+: The first line\&. 
+.RE
+.PP
+
+.SS "template<class R> R shared::read_file (const std::filesystem::path & path, const std::function< R(const int &, const int &)> & parser)"
+
+.PP
+Read a file\&. 
+.PP
+\fBTemplate Parameters\fP
+.RS 4
+\fIR\fP The return type\&. 
+.RE
+.PP
+\fBParameters\fP
+.RS 4
+\fIpath\fP The path to the file\&. 
+.br
+\fIparser\fP The parser to use on the file\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+The contents\&. 
+.RE
+.PP
+
+.SS "set shared::setorize (const int & fd, const int & pid = \fR\-1\fP)"
+
+.PP
+A Blocking Parser that splits the output into a set\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIfd\fP The FD on the attached pipe\&. 
+.br
+\fIpid\fP The PID of the process\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+The output, split on spaces\&. @info If you need to split on something other than ' ', use fd_splitter 
+.RE
+.PP
+
+.SS "void shared::share (vector & command, const std::string_view & path, const std::string & mode = \fR'ro\-bind'\fP)"
+
+.PP
+Share a path with the sandbox using a mode\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIcommand\fP The command to append to\&. 
+.br
+\fIpath\fP The path to share\&. 
+.br
+\fImode\fP The mode to use to share\&. 
+.RE
+.PP
+
+.SS "template<class T, class A, class L = list, class \&.\&.\&. Args> void shared::single_batch (const A & fun, T & accum, const L & mem, Args\&.\&.\&. args)"
+
+.PP
+Batch multiple iterations of an accumulator function together\&. 
+.PP
+\fBTemplate Parameters\fP
+.RS 4
+\fIT\fP The accumulator type\&. 
+.br
+\fIA\fP The function type\&. 
+.br
+\fIL\fP The container holding each value\&. 
+.br
+\fI\&.\&.\&.Args\fP Additional arguments\&. 
+.RE
+.PP
+\fBParameters\fP
+.RS 4
+\fIfun\fP The function to call 
+.br
+\fIaccum\fP The accumulator passed to the function\&. 
+.br
+\fImem\fP The list of values to emplace\&. 
+.br
+\fIargs\fP Additional arguments\&. 
+.RE
+.PP
+
+.SS "template<typename C, typename T> void shared::splitter (C & working, const std::string_view & str, const T & delim, const bool & escape)"
+
+.PP
+Split a string\&. 
+.PP
+\fBTemplate Parameters\fP
+.RS 4
+\fIC\fP The accumulator container type\&. 
+.br
+\fIT\fP The delimiter type, can either be a single character, or a string of characters\&. 
+.RE
+.PP
+\fBParameters\fP
+.RS 4
+\fIworking\fP The accumulator\&. 
+.br
+\fIstr\fP The string to split\&. 
+.br
+\fIdelim\fP The delimiter to split on 
+.br
+\fIescape\fP Ignore delimiters bound in quotes\&. 
+.RE
+.PP
+
+.SS "template<typename T> std::string shared::strip (const std::string_view & in, const T & to_strip)"
+
+.PP
+Strip all instance of character from a string\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIin\fP The input string\&. 
+.br
+\fIto_strip\fP A list of characters to remove 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+The stripped string\&. 
+.RE
+.PP
+
+.SS "template<typename T> std::string shared::trim (const std::string & in, const T & to_strip)"
+
+.PP
+Trim characters from the front and end of a string\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIin\fP The input string\&. 
+.br
+\fIto_strip\fP The list of characters to trim\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+The trimmed string\&. @info trim only removes from the front and end, stopping after encountered a non-to_strip character, whereas strip removes all instances regardless\&. 
+.RE
+.PP
+
+.SS "vector shared::vectorize (const int & fd, const int & pid = \fR\-1\fP)"
+
+.PP
+A Blocking Parser that splits the output into a vector\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIfd\fP The FD on the attached pipe\&. 
+.br
+\fIpid\fP The PID of the process\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+The output, split on newlines\&. @info If you need to split on something other than '
+.br
+', use fd_splitter 
+.RE
+.PP
+
+.SS "void shared::wait_for (const int & fd, const int & pid = \fR\-1\fP)"
+
+.PP
+A Blocking Parser that waits for the PID to exit\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIfd\fP The FD on the attached pipe\&. 
+.br
+\fIpid\fP The PID of the process\&. 
+.RE
+.PP
+
+.SS "set shared::wildcard (const std::string_view & pattern, const std::string_view & path, const list & args = \fR{}\fP)"
+
+.PP
+Resolve wildcard patterns\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIpattern\fP The pattern to resolve 
+.br
+\fIpath\fP The path to look in 
+.br
+\fIargs\fP Any additional arguments to find\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+: All unique matches\&. 
+.RE
+.PP
+
+.SS "template<class T> std::vector< const char * > shared::zip (const T & cmd)"
+
+.PP
+Zip a container for exec\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIcmd\fP The container to zip\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+The zipped contents\&. 
+.RE
+.PP
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for SB++ from the source code\&.

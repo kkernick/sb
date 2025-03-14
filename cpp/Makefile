@@ -1,5 +1,7 @@
 SOURCES = src/main.cpp src/shared.cpp src/libraries.cpp src/arguments.cpp src/binaries.cpp src/syscalls.cpp src/generators.cpp
-REQUIRED = -std=c++23 -lseccomp -lb2 -fuse-ld=lld
+
+VERSION := $(shell git rev-parse --short HEAD)
+REQUIRED = -std=c++23 -lseccomp -lb2 -fuse-ld=lld -DVERSION="\"$(VERSION)\""
 FAST = -march=native -O3 -ffast-math -flto=thin
 
 cpp: $(SOURCES)
@@ -44,3 +46,6 @@ bolt-pgo: $(SOURCES)
 	mv sb.bolt sb
 
 	rm *.profraw *.profdata *.fdata *.data *.data.old
+
+doxygen:
+	doxygen config

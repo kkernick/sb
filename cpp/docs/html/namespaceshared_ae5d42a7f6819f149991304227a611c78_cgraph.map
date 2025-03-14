@@ -1,0 +1,11 @@
+<map id="shared::vectorize" name="shared::vectorize">
+<area shape="rect" id="Node000001" title="A Blocking Parser that splits the output into a vector." alt="" coords="5,31,127,57"/>
+<area shape="rect" id="Node000002" href="$namespaceshared.html#a3736db9aa00bd9e0a56aeaf1057066c0" title="Split the contents of an FD." alt="" coords="175,31,300,57"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="127,41,159,41,159,47,127,47"/>
+<area shape="rect" id="Node000003" href="$namespaceshared.html#a80f3b59804700742a5a0c6ea15bf24f9" title="A Blocking Parser that returns the output in a single string." alt="" coords="352,5,452,32"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="300,32,335,26,336,31,301,37"/>
+<area shape="rect" id="Node000004" href="$namespaceshared.html#a690cc836408825d804377522d9d99a07" title="Split a string." alt="" coords="348,56,455,83"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="301,51,333,56,332,61,300,56"/>
+<area shape="rect" id="Node000005" href="$namespaceshared.html#a6282d0d8d2ab3f70038d7428729c15ca" title="Escape a string." alt="" coords="503,56,614,83"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="456,67,488,67,488,72,456,72"/>
+</map>

@@ -1,0 +1,35 @@
+<map id="shared::extend" name="shared::extend">
+<area shape="rect" id="Node000001" title="Extend a container in place." alt="" coords="659,294,766,321"/>
+<area shape="rect" id="Node000002" href="$namespaceshared.html#a172747218de79644b5c263f15a0da631" title="Batch multiple iterations of an accumulator function together, threaded." alt="" coords="510,262,611,289"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="643,296,610,289,612,284,644,291"/>
+<area shape="rect" id="Node000003" href="$namespacegenerate.html#a38dcdfdf9293b8aafe77392021d65019" title="Generate the bulk of the main program command." alt="" coords="21,162,125,189"/>
+<area shape="poly" id="edge10_Node000001_Node000003" title=" " alt="" coords="698,281,664,206,639,163,609,124,574,87,543,62,509,43,462,26,385,10,352,8,322,12,261,32,190,69,158,91,129,117,87,164,83,160,125,113,154,86,187,64,259,27,321,7,352,3,385,4,463,21,511,38,546,57,577,83,613,121,643,160,669,203,703,278"/>
+<area shape="rect" id="Node000006" href="$namespacegenerate.html#a5c0026523dd30f942c55ad25f1b607b4" title="Spawn an instance of the xdg&#45;dbus&#45;proxy for the application instance." alt="" coords="5,356,141,398"/>
+<area shape="poly" id="edge22_Node000001_Node000006" title=" " alt="" coords="683,333,650,356,612,377,530,411,464,431,396,444,308,456,248,464,221,463,188,456,162,445,137,431,96,401,100,397,140,427,164,440,189,450,222,458,248,459,308,450,395,439,463,426,528,406,610,372,647,351,680,329"/>
+<area shape="rect" id="Node000007" href="$namespaceshared.html#a00b81f070735db096bbcd00c9d87188e" title="Attach an environment variable to the sandbox." alt="" coords="512,516,609,542"/>
+<area shape="poly" id="edge11_Node000001_Node000007" title=" " alt="" coords="704,337,670,414,644,458,613,499,590,517,586,513,609,495,639,455,665,412,699,335"/>
+<area shape="rect" id="Node000008" href="$namespacebinaries.html#a8c5deb9459b44c3bdf9bb6d78ee53322" title="Setup the sandbox for the used binaries." alt="" coords="356,36,462,62"/>
+<area shape="poly" id="edge12_Node000001_Node000008" title=" " alt="" coords="692,283,656,233,609,180,571,146,539,123,461,77,440,65,442,61,464,72,542,119,574,142,613,176,660,230,696,280"/>
+<area shape="rect" id="Node000009" href="$namespaceshared.html#acf7d9b7a4de8ca12d42e2132f2f4b4e7" title="Share a path with the sandbox using a mode." alt="" coords="359,86,459,113"/>
+<area shape="poly" id="edge14_Node000001_Node000009" title=" " alt="" coords="679,287,583,218,461,134,432,116,435,111,464,129,586,213,682,283"/>
+<area shape="rect" id="Node000010" href="$namespacebinaries.html#a3dceb9be58009eef337fd18d7ee738d4" title="Symlink to /usr/bin." alt="" coords="189,364,308,390"/>
+<area shape="poly" id="edge16_Node000001_Node000010" title=" " alt="" coords="643,320,309,371,308,365,643,315"/>
+<area shape="rect" id="Node000011" href="$namespacelibraries.html#aaf67d1825dab30fecb532ea92077ebe3" title="Add symlink commands." alt="" coords="189,414,308,441"/>
+<area shape="poly" id="edge19_Node000001_Node000011" title=" " alt="" coords="660,329,611,345,447,387,309,418,308,413,446,382,610,340,659,324"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="511,259,418,225,307,196,211,183,125,179,126,173,212,178,309,190,419,220,513,254"/>
+<area shape="rect" id="Node000004" href="$namespacelibraries.html#a4dfd6ab45adf8dc18ea57bc1f88eaedf" title="Recursively resolve all shared&#45;libraries needed by a library." alt="" coords="363,262,455,289"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="495,278,456,278,456,273,495,273"/>
+<area shape="poly" id="edge4_Node000004_Node000003" title=" " alt="" coords="370,257,307,229,211,202,125,186,126,180,212,197,309,224,372,252"/>
+<area shape="rect" id="Node000005" href="$namespacebinaries.html#ac1478c81b2eb2c4ecdba98e92c4e7651" title="Parse a binary to determine dependencies." alt="" coords="195,262,302,289"/>
+<area shape="poly" id="edge5_Node000004_Node000005" title=" " alt="" coords="347,278,302,278,302,273,347,273"/>
+<area shape="poly" id="edge9_Node000004_Node000006" title=" " alt="" coords="349,296,142,359,140,354,347,291"/>
+<area shape="poly" id="edge6_Node000005_Node000003" title=" " alt="" coords="209,256,97,192,99,187,211,252"/>
+<area shape="poly" id="edge7_Node000005_Node000005" title=" " alt="" coords="275,249,266,243,248,241,232,243,223,247,221,253,225,261,220,263,216,253,219,244,230,238,248,236,268,238,278,245"/>
+<area shape="poly" id="edge8_Node000005_Node000006" title=" " alt="" coords="210,299,190,310,111,357,108,353,187,305,207,294"/>
+<area shape="poly" id="edge13_Node000008_Node000003" title=" " alt="" coords="341,62,267,79,190,105,136,134,93,164,90,160,133,129,188,100,265,74,340,57"/>
+<area shape="poly" id="edge15_Node000009_Node000003" title=" " alt="" coords="344,108,269,118,189,134,145,148,106,164,104,159,143,143,188,129,268,113,343,103"/>
+<area shape="poly" id="edge17_Node000010_Node000003" title=" " alt="" coords="223,354,84,191,88,188,227,350"/>
+<area shape="poly" id="edge18_Node000010_Node000006" title=" " alt="" coords="173,380,141,380,141,374,173,374"/>
+<area shape="poly" id="edge20_Node000011_Node000003" title=" " alt="" coords="191,408,187,404,163,378,142,349,109,288,87,231,75,190,80,189,92,229,114,285,147,346,167,375,191,400,194,404"/>
+<area shape="poly" id="edge21_Node000011_Node000006" title=" " alt="" coords="184,412,140,399,142,394,186,407"/>
+</map>

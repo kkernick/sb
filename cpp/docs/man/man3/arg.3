@@ -1,0 +1,89 @@
+.TH "arg" 3 "SB++" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+arg \- A general purpose, flexible command-line argument handler\&. This file includes definitions to create a powerful command-line argument handler\&. \fR--switches\fP and \fR-s\fP formatting is supported, as is specifying multiple short-switches together a la \fR-vvu\fP\&. Additionally, lists are supported, and values can be provided either with an = key, a space, or with multiple invocations of the switch for lists\&. Support for mandatory arguments is also supported\&. Additionally, modifier tags and lambdas can extend argument functionality tremendously\&.  
+
+.SH SYNOPSIS
+.br
+.PP
+.SS "Data Structures"
+
+.in +1c
+.ti -1c
+.RI "class \fBArg\fP"
+.br
+.RI "A command-line argument\&. "
+.ti -1c
+.RI "struct \fBconfig\fP"
+.br
+.in -1c
+.SS "Typedefs"
+
+.in +1c
+.ti -1c
+.RI "typedef struct arg::config \fBconfig\fP"
+.br
+.in -1c
+.SS "Enumerations"
+
+.in +1c
+.ti -1c
+.RI "enum struct \fBcustom_policy\fP { \fBFALSE\fP, \fBTRUE\fP, \fBMODIFIABLE\fP }"
+.br
+.in -1c
+.SS "Functions"
+
+.in +1c
+.ti -1c
+.RI "void \fBparse_args\fP ()"
+.br
+.RI "Parse command line arguments\&. "
+.ti -1c
+.RI "const \fBArg\fP & \fBat\fP (const std::string &key)"
+.br
+.ti -1c
+.RI "std::string & \fBget\fP (const std::string &key)"
+.br
+.ti -1c
+.RI "std::string & \fBmod\fP (const std::string &key)"
+.br
+.ti -1c
+.RI "uint_fast8_t \fBlevel\fP (const std::string &key)"
+.br
+.ti -1c
+.RI "shared::set & \fBlist\fP (const std::string &key)"
+.br
+.ti -1c
+.RI "shared::set & \fBvalid\fP (const std::string &key)"
+.br
+.ti -1c
+.RI "const bool & \fBis_list\fP (const std::string &key)"
+.br
+.ti -1c
+.RI "std::vector< std::pair< std::string, std::string > > \fBmodlist\fP (const std::string &key)"
+.br
+.in -1c
+.SS "Variables"
+
+.in +1c
+.ti -1c
+.RI "vector \fBunknown\fP = {}"
+.br
+.ti -1c
+.RI "vector \fBargs\fP"
+.br
+.ti -1c
+.RI "std::map< std::string, \fBarg::Arg\fP > \fBswitches\fP"
+.br
+.in -1c
+.SH "Detailed Description"
+.PP 
+A general purpose, flexible command-line argument handler\&. This file includes definitions to create a powerful command-line argument handler\&. \fR--switches\fP and \fR-s\fP formatting is supported, as is specifying multiple short-switches together a la \fR-vvu\fP\&. Additionally, lists are supported, and values can be provided either with an = key, a space, or with multiple invocations of the switch for lists\&. Support for mandatory arguments is also supported\&. Additionally, modifier tags and lambdas can extend argument functionality tremendously\&. 
+.SH "Typedef Documentation"
+.PP 
+.SS "typedef struct arg::config arg::config"
+Arguments passed to Argument\&. 
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for SB++ from the source code\&.

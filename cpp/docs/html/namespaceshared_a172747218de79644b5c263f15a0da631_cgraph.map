@@ -1,0 +1,5 @@
+<map id="shared::batch" name="shared::batch">
+<area shape="rect" id="Node000001" title="Batch multiple iterations of an accumulator function together, threaded." alt="" coords="5,5,106,32"/>
+<area shape="rect" id="Node000002" href="$namespaceshared.html#ab11bf98c12a2bf0ae3adca902e57befd" title="Extend a container in place." alt="" coords="154,5,261,32"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="106,16,138,16,138,21,106,21"/>
+</map>

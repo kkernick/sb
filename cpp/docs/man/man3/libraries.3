@@ -1,0 +1,109 @@
+.TH "libraries" 3 "SB++" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+libraries \- Shared-Library Dependency Resolution This header contains all the relevant functions for resolving shared-libraries needed by ELF binaries\&. It does this through through threaded calls to LDD\&. Unlike Python-SB, SB++ computes dependencies in one shot, including both wildcards and directories\&. Therefore, there is no need for additional computation upon calling \fBsetup()\fP, it can simply copy the found files to the SOF\&. LDD is the major bottle neck for speed, and thus the two implementations are comparable on speed on library resolution\&.  
+
+.SH SYNOPSIS
+.br
+.PP
+.SS "Typedefs"
+
+.in +1c
+.ti -1c
+.RI "using \fBlib_t\fP = shared::set"
+.br
+.in -1c
+.SS "Functions"
+
+.in +1c
+.ti -1c
+.RI "std::filesystem::path \fBcache_name\fP (std::string library)"
+.br
+.ti -1c
+.RI "void \fBparse_ldd\fP (lib_t &required, const std::string &library, const std::string_view &directory)"
+.br
+.ti -1c
+.RI "void \fBget\fP (lib_t &libraries, const std::string_view &library, std::string directory='')"
+.br
+.RI "Recursively resolve all shared-libraries needed by a library\&. "
+.ti -1c
+.RI "void \fBsetup\fP (const lib_t &libraries, const std::string_view &application)"
+.br
+.RI "Setup an SOF directory\&. "
+.ti -1c
+.RI "void \fBsymlink\fP (shared::vector &command)"
+.br
+.RI "Add symlink commands\&. "
+.ti -1c
+.RI "template<class C> void \fBresolve\fP (const C &required, const std::string_view &program, const std::string &lib_cache, const std::string_view &hash)"
+.br
+.in -1c
+.SS "Variables"
+
+.in +1c
+.ti -1c
+.RI "lib_t \fBdirectories\fP = {}"
+.br
+.in -1c
+.SH "Detailed Description"
+.PP 
+Shared-Library Dependency Resolution This header contains all the relevant functions for resolving shared-libraries needed by ELF binaries\&. It does this through through threaded calls to LDD\&. Unlike Python-SB, SB++ computes dependencies in one shot, including both wildcards and directories\&. Therefore, there is no need for additional computation upon calling \fBsetup()\fP, it can simply copy the found files to the SOF\&. LDD is the major bottle neck for speed, and thus the two implementations are comparable on speed on library resolution\&. 
+.SH "Function Documentation"
+.PP 
+.SS "void libraries::get (lib_t & libraries, const std::string_view & library, std::string directory = \fR''\fP)"
+
+.PP
+Recursively resolve all shared-libraries needed by a library\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIlibrary\fP The path to the library\&. 
+.br
+\fIdirectory\fP The sub-directory within /usr/lib\&. Used internally\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+: A set of all shared libraries used by the program and its dependencies\&. 
+.RE
+.PP
+\fBNote\fP
+.RS 4
+library can be any executable file, such as binaries in /usr/bin, but only shared-libraries in /usr/lib will be included in the return\&. 
+.RE
+.PP
+
+.SS "void libraries::setup (const lib_t & libraries, const std::string_view & application)"
+
+.PP
+Setup an SOF directory\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIlibraries\fP The libraries to copy into the SOF 
+.br
+\fIsof\fP The path to the SOF directory 
+.br
+\fIapplication\fP The name of the app\&. 
+.br
+\fIcommand\fP The command vector to append the needed bwrap args to link to the SOF\&. 
+.RE
+.PP
+
+.SS "void libraries::symlink (shared::vector & command)"
+
+.PP
+Add symlink commands\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIcommand\fP The command to append to 
+.br
+\fIapplication\fP The running application\&. @info This function symlinks /lib /lib64 and /usr/lib64 to /usr/lib, where the SOF is mounted 
+.RE
+.PP
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for SB++ from the source code\&.

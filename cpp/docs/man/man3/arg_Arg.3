@@ -1,0 +1,288 @@
+.TH "arg::Arg" 3 "SB++" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+arg::Arg \- A command-line argument\&.  
+
+.SH SYNOPSIS
+.br
+.PP
+.PP
+\fR#include <arguments\&.hpp>\fP
+.SS "Public Member Functions"
+
+.in +1c
+.ti -1c
+.RI "\fBArg\fP (const \fBconfig\fP &c, const std::function< std::string(const std::string_view &)> &handler=[](const std::string_view &value){return std::string(value);}, const std::function< std::string(const std::string_view &)> &m_handler=[](const std::string_view &value){return std::string(value);})"
+.br
+.RI "Construct an argument\&. "
+.ti -1c
+.RI "bool \fBdigest\fP (const shared::vector &args, uint_fast8_t &x)"
+.br
+.RI "Digest arguments\&. "
+.ti -1c
+.RI "void \fBupdate\fP ()"
+.br
+.RI "Update configurations\&. @info This function is used for arguments that depend on the value of other arguments\&. "
+.ti -1c
+.RI "std::string \fBget_help\fP () const"
+.br
+.RI "Get the help text for the argument\&. "
+.ti -1c
+.RI "std::string & \fBget\fP ()"
+.br
+.RI "Get a mutable reference to the stored value\&. "
+.ti -1c
+.RI "const std::string & \fBget\fP () const"
+.br
+.ti -1c
+.RI "std::string & \fBmod\fP ()"
+.br
+.RI "Get a mutable reference to the stored modifier\&. "
+.ti -1c
+.RI "const std::string & \fBmod\fP () const"
+.br
+.ti -1c
+.RI "const bool & \fBis_list\fP () const"
+.br
+.RI "Return whether the argument is a list\&. "
+.ti -1c
+.RI "uint_fast8_t \fBlevel\fP () const"
+.br
+.RI "Return the current level of the argument\&. "
+.ti -1c
+.RI "shared::set & \fBget_list\fP ()"
+.br
+.RI "Return a mutable reference to each unique value passed to the argument\&. "
+.ti -1c
+.RI "const shared::set & \fBget_list\fP () const"
+.br
+.ti -1c
+.RI "shared::set & \fBget_valid\fP ()"
+.br
+.RI "Return a set of all valid values\&. "
+.ti -1c
+.RI "const shared::set & \fBget_valid\fP () const"
+.br
+.ti -1c
+.RI "std::vector< std::pair< std::string, std::string > > \fBget_modlist\fP () const"
+.br
+.RI "Return all values paired with their modifiers\&. "
+.ti -1c
+.RI "const uint_fast8_t & \fBposition\fP () const"
+.br
+.RI "Return the position of the argument\&. "
+.ti -1c
+.RI "\fBoperator bool\fP () const"
+.br
+.RI "Return whether the argument was set\&. "
+.ti -1c
+.RI "const bool \fBoperator<\fP (const std::string_view &val) const"
+.br
+.RI "Check if the current value is underneath the provided\&. "
+.ti -1c
+.RI "const bool \fBoperator>=\fP (const std::string_view &val) const"
+.br
+.RI "Check if the current value meets the provided\&. "
+.in -1c
+.SH "Detailed Description"
+.PP 
+A command-line argument\&. 
+.SH "Constructor & Destructor Documentation"
+.PP 
+.SS "arg::Arg::Arg (const \fBconfig\fP & c, const std::function< std::string(const std::string_view &)> & handler = \fR[](const std::string_view& value){return std::string(value);}\fP, const std::function< std::string(const std::string_view &)> & m_handler = \fR[](const std::string_view& value){return std::string(value);}\fP)\fR [inline]\fP"
+
+.PP
+Construct an argument\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIc\fP THe configuration structure\&. 
+.br
+\fIhandler\fP The regular lambda for parsing arguments\&. 
+.br
+\fIm_handler\fP The lambda for parsing modifier arguments\&. 
+.RE
+.PP
+
+.SH "Member Function Documentation"
+.PP 
+.SS "bool arg::Arg::digest (const shared::vector & args, uint_fast8_t & x)\fR [inline]\fP"
+
+.PP
+Digest arguments\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIargs\fP The list of command line arguments\&. 
+.br
+\fIx\fP The current position within the list\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+: Whether the current argument was consumed\&. 
+.RE
+.PP
+
+.SS "std::string & arg::Arg::get ()\fR [inline]\fP"
+
+.PP
+Get a mutable reference to the stored value\&. 
+.PP
+\fBReturns\fP
+.RS 4
+The reference\&. 
+.RE
+.PP
+\fBExceptions\fP
+.RS 4
+\fIstd::runtime_error\fP if the argument is a list, use \fBget_list()\fP instead\&. 
+.RE
+.PP
+
+.SS "std::string arg::Arg::get_help () const\fR [inline]\fP"
+
+.PP
+Get the help text for the argument\&. 
+.PP
+\fBReturns\fP
+.RS 4
+The string\&. 
+.RE
+.PP
+
+.SS "shared::set & arg::Arg::get_list ()\fR [inline]\fP"
+
+.PP
+Return a mutable reference to each unique value passed to the argument\&. 
+.PP
+\fBReturns\fP
+.RS 4
+The set\&. 
+.RE
+.PP
+\fBExceptions\fP
+.RS 4
+\fIstd::runtime_error\fP if the argument is not a list\&. 
+.RE
+.PP
+
+.SS "std::vector< std::pair< std::string, std::string > > arg::Arg::get_modlist () const\fR [inline]\fP"
+
+.PP
+Return all values paired with their modifiers\&. 
+.PP
+\fBReturns\fP
+.RS 4
+A vector of pairs\&. 
+.RE
+.PP
+\fBExceptions\fP
+.RS 4
+\fIstd::runtime_error\fP if the argument is not a list, or doesn't allow modifiers\&. 
+.RE
+.PP
+
+.SS "shared::set & arg::Arg::get_valid ()\fR [inline]\fP"
+
+.PP
+Return a set of all valid values\&. 
+.PP
+\fBReturns\fP
+.RS 4
+The set\&. 
+.RE
+.PP
+
+.SS "const bool & arg::Arg::is_list () const\fR [inline]\fP"
+
+.PP
+Return whether the argument is a list\&. 
+.PP
+\fBReturns\fP
+.RS 4
+Whether the argument accepts multiple values\&. 
+.RE
+.PP
+
+.SS "uint_fast8_t arg::Arg::level () const\fR [inline]\fP"
+
+.PP
+Return the current level of the argument\&. 
+.PP
+\fBReturns\fP
+.RS 4
+The current level\&. 
+.RE
+.PP
+
+.SS "std::string & arg::Arg::mod ()\fR [inline]\fP"
+
+.PP
+Get a mutable reference to the stored modifier\&. 
+.PP
+\fBReturns\fP
+.RS 4
+The modifier\&. @info This function returns an empty string if a modifier does not exist or is allowed\&. 
+.RE
+.PP
+
+.SS "arg::Arg::operator bool () const\fR [inline]\fP"
+
+.PP
+Return whether the argument was set\&. 
+.PP
+\fBReturns\fP
+.RS 4
+Whether the value is greater than the default (IE unset)\&. 
+.RE
+.PP
+
+.SS "const bool arg::Arg::operator< (const std::string_view & val) const\fR [inline]\fP"
+
+.PP
+Check if the current value is underneath the provided\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIval\fP The value to check\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+Whether the current value is less than the provided\&. 
+.RE
+.PP
+
+.SS "const bool arg::Arg::operator>= (const std::string_view & val) const\fR [inline]\fP"
+
+.PP
+Check if the current value meets the provided\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIval\fP The value to check\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+Whether the current value meets the provided\&. 
+.RE
+.PP
+
+.SS "const uint_fast8_t & arg::Arg::position () const\fR [inline]\fP"
+
+.PP
+Return the position of the argument\&. 
+.PP
+\fBReturns\fP
+.RS 4
+The mandatory level\&. 
+.RE
+.PP
+
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for SB++ from the source code\&.

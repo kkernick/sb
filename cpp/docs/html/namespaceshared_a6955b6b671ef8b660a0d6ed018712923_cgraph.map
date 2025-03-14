@@ -1,0 +1,13 @@
+<map id="shared::wildcard" name="shared::wildcard">
+<area shape="rect" id="Node000001" title="Resolve wildcard patterns." alt="" coords="5,31,122,57"/>
+<area shape="rect" id="Node000002" href="$namespaceshared.html#a585cdabc1b4758c65001d7dd03cb6715" title="Execute stuff." alt="" coords="184,5,280,32"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="122,33,168,26,169,31,122,38"/>
+<area shape="rect" id="Node000003" href="$namespaceshared.html#a3736db9aa00bd9e0a56aeaf1057066c0" title="Split the contents of an FD." alt="" coords="170,56,295,83"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="122,50,154,55,154,60,122,55"/>
+<area shape="rect" id="Node000004" href="$namespaceshared.html#a80f3b59804700742a5a0c6ea15bf24f9" title="A Blocking Parser that returns the output in a single string." alt="" coords="346,31,447,57"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="295,57,330,51,331,57,296,62"/>
+<area shape="rect" id="Node000005" href="$namespaceshared.html#a690cc836408825d804377522d9d99a07" title="Split a string." alt="" coords="343,81,450,108"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="296,76,328,81,327,87,295,82"/>
+<area shape="rect" id="Node000006" href="$namespaceshared.html#a6282d0d8d2ab3f70038d7428729c15ca" title="Escape a string." alt="" coords="498,81,609,108"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="451,92,483,92,483,97,451,97"/>
+</map>

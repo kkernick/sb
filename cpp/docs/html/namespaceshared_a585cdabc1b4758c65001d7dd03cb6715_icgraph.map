@@ -1,0 +1,24 @@
+<map id="shared::exec" name="shared::exec">
+<area shape="rect" id="Node000001" title="Execute stuff." alt="" coords="717,123,813,150"/>
+<area shape="rect" id="Node000002" href="$namespacegenerate.html#a38dcdfdf9293b8aafe77392021d65019" title="Generate the bulk of the main program command." alt="" coords="21,47,125,74"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="733,116,702,96,668,79,567,45,485,29,295,14,242,9,189,14,141,29,100,49,97,44,139,24,188,9,242,3,295,8,486,24,568,40,670,74,705,91,736,111"/>
+<area shape="rect" id="Node000003" href="$namespacelibraries.html#a4dfd6ab45adf8dc18ea57bc1f88eaedf" title="Recursively resolve all shared&#45;libraries needed by a library." alt="" coords="378,98,470,124"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="701,134,470,117,471,112,701,129"/>
+<area shape="rect" id="Node000004" href="$namespacebinaries.html#ac1478c81b2eb2c4ecdba98e92c4e7651" title="Parse a binary to determine dependencies." alt="" coords="189,47,295,74"/>
+<area shape="poly" id="edge9_Node000001_Node000004" title=" " alt="" coords="711,120,668,108,565,90,463,77,295,65,296,60,463,72,566,85,669,103,712,115"/>
+<area shape="rect" id="Node000005" href="$namespacegenerate.html#a5c0026523dd30f942c55ad25f1b607b4" title="Spawn an instance of the xdg&#45;dbus&#45;proxy for the application instance." alt="" coords="5,140,141,183"/>
+<area shape="poly" id="edge14_Node000001_Node000005" title=" " alt="" coords="733,161,703,177,669,190,597,204,523,211,449,213,376,211,244,197,141,179,142,174,245,192,377,205,449,208,523,206,597,198,668,185,701,172,731,156"/>
+<area shape="rect" id="Node000006" href="$namespacegenerate.html#a67b94cdd53f264ff45e467ce97cd44d4" title="Generate a script for the sandbox." alt="" coords="555,250,666,276"/>
+<area shape="poly" id="edge10_Node000001_Node000006" title=" " alt="" coords="744,163,711,198,670,233,641,252,639,247,667,229,707,194,740,159"/>
+<area shape="rect" id="Node000008" href="$namespaceshared.html#a6955b6b671ef8b660a0d6ed018712923" title="Resolve wildcard patterns." alt="" coords="552,148,669,175"/>
+<area shape="poly" id="edge12_Node000001_Node000008" title=" " alt="" coords="702,149,670,155,669,150,701,144"/>
+<area shape="poly" id="edge3_Node000003_Node000002" title=" " alt="" coords="361,109,188,88,125,76,126,70,189,83,362,104"/>
+<area shape="poly" id="edge4_Node000003_Node000004" title=" " alt="" coords="362,97,291,77,293,72,363,92"/>
+<area shape="poly" id="edge8_Node000003_Node000005" title=" " alt="" coords="362,123,142,155,141,149,362,117"/>
+<area shape="poly" id="edge5_Node000004_Node000002" title=" " alt="" coords="173,63,126,63,126,58,173,58"/>
+<area shape="poly" id="edge6_Node000004_Node000004" title=" " alt="" coords="270,34,260,28,242,26,224,28,215,32,213,38,217,45,213,48,208,38,211,29,223,23,242,20,262,23,273,30"/>
+<area shape="poly" id="edge7_Node000004_Node000005" title=" " alt="" coords="206,84,112,142,109,138,204,80"/>
+<area shape="rect" id="Node000007" href="$namespacegenerate.html#aca905bc877bc18f8cb6a2cb1eaec6988" title="Generate a desktop file for the sandbox." alt="" coords="343,250,504,276"/>
+<area shape="poly" id="edge11_Node000006_Node000007" title=" " alt="" coords="539,266,505,266,505,260,539,260"/>
+<area shape="poly" id="edge13_Node000008_Node000003" title=" " alt="" coords="543,146,469,126,471,121,544,141"/>
+</map>

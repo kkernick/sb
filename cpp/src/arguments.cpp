@@ -15,6 +15,7 @@ namespace arg {
 
     // Switches that just check if they are set.
     {"help", arg::config{.l_name="--help", .s_name="-h", .help="Print this message"}},
+    {"version", arg::config{.l_name="--version", .s_name="-V", .help="Get the version"}},
     {"verbose", arg::config{.l_name="--verbose", .s_name="-v", .valid={"log", "debug", "error", "strace"}, .help="Print verbose information"}},
 
     // True/False options; these get top priority for lower cases short-switches so that they can be chained together.
@@ -251,18 +252,22 @@ namespace arg {
         }
         catch (std::runtime_error& e) {
           std::stringstream out;
-          if (std::string(e.what()) != "Help!")
-            out << e.what() << std::endl;
-          out << "SB++\n" << "Run applications in a sandbox\n";
-
-          auto compare = [](const Arg& a, const Arg& b){return a.position() < b.position();};
-          std::multiset<Arg, decltype(compare)> ordered;
-          for (const auto& [key, value] : switches)
-            ordered.emplace(value);
-          for (const auto& value : ordered)
-            out << value.get_help();
-          std::cout << out.str() << std::endl;
+          if (std::string(e.what()) == "Help!") { 
+            out << "SB++ v" << VERSION << '\n' << "Run applications in a sandbox\n";
+  
+            auto compare = [](const Arg& a, const Arg& b){return a.position() < b.position();};
+            std::multiset<Arg, decltype(compare)> ordered;
+            for (const auto& [key, value] : switches)
+              ordered.emplace(value);
+            for (const auto& value : ordered)
+              out << value.get_help();
+          }
+          else if (std::string(e.what()) == "Version") out << VERSION << std::endl;
+          else out << e.what() << std::endl;
+          
+          std::cout << out.str();
           exit(0);
+          
         }
       }
       if (!match) unknown.emplace_back(args[x]);

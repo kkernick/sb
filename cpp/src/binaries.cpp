@@ -43,7 +43,7 @@ namespace binaries {
     local.emplace(path);
 
     // Grab the header, so we don't ready the whole library if it's an ELF.
-    auto header = read_file<std::string>(path, head<4>);
+    auto header = read_file<std::string>(path, head<5>);
     if (header.empty()) return;
 
     // Shell script
@@ -200,7 +200,7 @@ namespace binaries {
     }
 
     // Actual executables have their shared libraries parsed.
-    else if (header == "\177ELF") libraries::get(libraries, path);
+    else if (header == "\177ELF\2") libraries::get(libraries, path);
 
     // Merge and return.
     required.merge(local);

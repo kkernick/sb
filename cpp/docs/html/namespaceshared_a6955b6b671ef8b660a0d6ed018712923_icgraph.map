@@ -1,0 +1,14 @@
+<map id="shared::wildcard" name="shared::wildcard">
+<area shape="rect" id="Node000001" title="Resolve wildcard patterns." alt="" coords="483,59,600,85"/>
+<area shape="rect" id="Node000002" href="$namespacelibraries.html#a4dfd6ab45adf8dc18ea57bc1f88eaedf" title="Recursively resolve all shared&#45;libraries needed by a library." alt="" coords="343,59,435,85"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="468,75,436,75,436,69,468,69"/>
+<area shape="rect" id="Node000003" href="$namespacegenerate.html#a38dcdfdf9293b8aafe77392021d65019" title="Generate the bulk of the main program command." alt="" coords="21,5,125,32"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="354,52,326,37,294,25,251,17,206,14,126,16,126,10,206,8,251,12,296,20,328,32,357,48"/>
+<area shape="rect" id="Node000004" href="$namespacebinaries.html#ac1478c81b2eb2c4ecdba98e92c4e7651" title="Parse a binary to determine dependencies." alt="" coords="189,59,295,85"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="327,75,295,75,295,69,327,69"/>
+<area shape="rect" id="Node000005" href="$namespacegenerate.html#a5c0026523dd30f942c55ad25f1b607b4" title="Spawn an instance of the xdg&#45;dbus&#45;proxy for the application instance." alt="" coords="5,76,141,119"/>
+<area shape="poly" id="edge7_Node000002_Node000005" title=" " alt="" coords="332,93,295,100,215,106,141,105,141,99,215,100,295,95,331,87"/>
+<area shape="poly" id="edge4_Node000004_Node000003" title=" " alt="" coords="182,56,117,35,119,30,184,51"/>
+<area shape="poly" id="edge5_Node000004_Node000004" title=" " alt="" coords="266,46,258,40,242,37,227,39,219,44,217,50,221,57,216,59,212,50,215,40,225,34,242,32,260,35,269,41"/>
+<area shape="poly" id="edge6_Node000004_Node000005" title=" " alt="" coords="174,85,141,90,141,85,173,80"/>
+</map>

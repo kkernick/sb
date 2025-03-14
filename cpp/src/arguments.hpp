@@ -82,7 +82,6 @@ namespace arg {
        * @returns Whether the keypair was consumed.
        */
       bool digest_keypair(const std::string_view& key, const std::string_view& val, const uint_fast8_t& pos) {
-
         // Single value modifiers are easy to split.
         if (!list && custom == custom_policy::MODIFIABLE && val.contains(':')) {
 
@@ -142,7 +141,6 @@ namespace arg {
        * Therefore, we can do -vv and get a value of 2 through level().
        */
       void increment() {
-        if (long_name == "--help") throw std::runtime_error("Help!");
         auto i = level();
         if (i + 1 < valid.size())
           value = order[i + 1];
@@ -234,6 +232,9 @@ namespace arg {
           // We don't return true here because with a collection of args we
           // need to parse for each match.
         }
+        
+        if (key == "--help") throw std::runtime_error("Help!");
+        if (key == "--version") throw std::runtime_error("Version");
 
         // / Otherwise, if the next argument isn't a switch, we have `key value`
         else if (!key.empty() && (key == long_name || key == short_name)) {

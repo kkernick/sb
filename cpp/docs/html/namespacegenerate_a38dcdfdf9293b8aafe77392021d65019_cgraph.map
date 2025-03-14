@@ -1,0 +1,80 @@
+<map id="generate::cmd" name="generate::cmd">
+<area shape="rect" id="Node000001" title="Generate the bulk of the main program command." alt="" coords="5,746,110,773"/>
+<area shape="rect" id="Node000002" href="$namespaceshared.html#a172747218de79644b5c263f15a0da631" title="Batch multiple iterations of an accumulator function together, threaded." alt="" coords="525,873,625,900"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="70,772,104,817,130,840,159,859,203,876,250,888,345,900,435,900,510,894,510,899,435,905,345,905,249,893,202,881,156,863,126,845,101,821,65,775"/>
+<area shape="rect" id="Node000003" href="$namespaceshared.html#ab11bf98c12a2bf0ae3adca902e57befd" title="Extend a container in place." alt="" coords="691,1000,798,1026"/>
+<area shape="poly" id="edge4_Node000001_Node000003" title=" " alt="" coords="61,773,62,830,74,911,86,954,103,996,127,1033,159,1064,199,1083,254,1094,318,1097,389,1095,527,1081,633,1061,671,1048,706,1032,708,1037,673,1053,634,1066,528,1086,389,1101,318,1103,253,1099,197,1088,156,1069,123,1037,98,998,81,956,68,912,57,830,56,774"/>
+<area shape="rect" id="Node000004" href="$namespaceshared.html#a585cdabc1b4758c65001d7dd03cb6715" title="Execute stuff." alt="" coords="696,240,792,266"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="56,746,60,623,74,428,86,324,104,229,126,149,140,118,156,94,189,58,224,32,259,14,296,5,335,3,377,8,421,18,469,33,511,51,550,73,623,126,682,181,724,226,720,229,678,184,619,130,548,77,508,56,467,38,420,23,376,13,335,8,297,10,261,19,227,36,193,62,160,97,145,121,131,151,109,230,92,325,79,428,66,623,62,746"/>
+<area shape="rect" id="Node000005" href="$namespacelibraries.html#a4dfd6ab45adf8dc18ea57bc1f88eaedf" title="Recursively resolve all shared&#45;libraries needed by a library." alt="" coords="352,316,444,342"/>
+<area shape="poly" id="edge5_Node000001_Node000005" title=" " alt="" coords="56,746,57,685,69,594,81,544,99,494,123,446,156,405,196,373,243,351,291,338,335,330,336,336,292,343,245,356,199,378,160,408,128,449,104,496,86,545,74,595,63,685,61,746"/>
+<area shape="rect" id="Node000010" href="$namespaceshared.html#a2f7cb04abbe01ba7193f2d2a6d520355" title="Join a vector into a string." alt="" coords="531,214,619,241"/>
+<area shape="poly" id="edge23_Node000001_Node000010" title=" " alt="" coords="57,746,65,636,83,466,96,375,112,291,132,220,155,170,187,128,221,94,257,67,295,48,335,38,378,38,422,48,470,68,505,95,533,130,553,166,567,199,562,201,548,169,528,133,501,99,467,73,421,53,377,43,336,43,297,53,260,71,225,98,191,132,160,173,137,222,117,292,101,376,88,466,70,637,62,746"/>
+<area shape="rect" id="Node000011" href="$namespaceshared.html#a99724c73af55fa92ae29fee700152917" title="Log output to console, if verbose." alt="" coords="532,265,618,292"/>
+<area shape="poly" id="edge24_Node000001_Node000011" title=" " alt="" coords="56,746,57,668,69,544,81,472,99,398,123,326,155,257,190,200,223,158,266,127,326,99,366,84,400,76,434,80,470,99,487,116,496,134,499,173,500,213,505,232,518,251,522,255,518,258,514,255,501,234,494,213,493,173,491,136,483,119,467,103,432,85,401,81,367,89,328,104,269,131,227,162,194,203,160,260,128,328,104,400,86,473,74,544,63,668,61,746"/>
+<area shape="rect" id="Node000012" href="$namespaceshared.html#afac154f1bef460ef6f24705f6c033f37" title="Read a file." alt="" coords="516,569,634,596"/>
+<area shape="poly" id="edge40_Node000001_Node000012" title=" " alt="" coords="71,744,108,713,157,683,208,666,299,643,501,596,502,601,300,648,210,671,159,688,111,717,75,748"/>
+<area shape="rect" id="Node000015" href="$namespaceshared.html#a4a708359d4c8dbeeaa8b744eec56c0e5" title="Hash a string." alt="" coords="170,721,266,748"/>
+<area shape="poly" id="edge20_Node000001_Node000015" title=" " alt="" coords="110,749,154,742,155,747,111,754"/>
+<area shape="rect" id="Node000016" href="$namespaceshared.html#a565b1c521d1f0509c5ec0f237a727f8e" title="Compose a return value from an accumulator function." alt="" coords="355,113,440,140"/>
+<area shape="poly" id="edge22_Node000001_Node000016" title=" " alt="" coords="57,746,64,682,81,584,110,469,131,411,155,356,191,291,225,244,267,203,325,156,343,145,346,149,329,161,271,207,230,247,196,294,160,358,135,413,115,471,86,585,70,683,63,746"/>
+<area shape="rect" id="Node000017" href="$namespacebinaries.html#ac1478c81b2eb2c4ecdba98e92c4e7651" title="Parse a binary to determine dependencies." alt="" coords="165,442,272,469"/>
+<area shape="poly" id="edge25_Node000001_Node000017" title=" " alt="" coords="64,745,200,482,205,484,68,747"/>
+<area shape="rect" id="Node000020" href="$namespaceshared.html#a48db957c3256c3eb24bc748642cd1bb9" title="Batch multiple iterations of an accumulator function together." alt="" coords="327,772,468,798"/>
+<area shape="poly" id="edge45_Node000001_Node000020" title=" " alt="" coords="110,761,311,776,311,781,110,766"/>
+<area shape="rect" id="Node000023" href="$namespacebinaries.html#a8c5deb9459b44c3bdf9bb6d78ee53322" title="Setup the sandbox for the used binaries." alt="" coords="522,1025,628,1052"/>
+<area shape="poly" id="edge41_Node000001_Node000023" title=" " alt="" coords="62,773,67,820,81,886,94,921,110,955,132,986,159,1011,200,1035,244,1051,290,1061,337,1066,429,1063,506,1052,507,1057,429,1069,337,1071,289,1066,242,1056,197,1039,156,1015,128,989,106,958,89,923,76,888,62,821,57,773"/>
+<area shape="rect" id="Node000024" href="$namespaceshared.html#acf7d9b7a4de8ca12d42e2132f2f4b4e7" title="Share a path with the sandbox using a mode." alt="" coords="168,1126,268,1153"/>
+<area shape="poly" id="edge43_Node000001_Node000024" title=" " alt="" coords="62,773,66,832,79,919,92,968,109,1017,131,1063,160,1106,170,1116,166,1119,156,1109,127,1066,104,1019,87,969,74,920,60,832,56,774"/>
+<area shape="rect" id="Node000025" href="$namespacebinaries.html#a3dceb9be58009eef337fd18d7ee738d4" title="Symlink to /usr/bin." alt="" coords="159,924,278,950"/>
+<area shape="poly" id="edge46_Node000001_Node000025" title=" " alt="" coords="68,772,102,833,128,870,159,903,174,914,171,918,156,907,124,873,98,836,63,775"/>
+<area shape="rect" id="Node000026" href="$namespacelibraries.html#aaf67d1825dab30fecb532ea92077ebe3" title="Add symlink commands." alt="" coords="159,974,278,1001"/>
+<area shape="poly" id="edge48_Node000001_Node000026" title=" " alt="" coords="65,773,75,810,94,860,122,913,139,938,160,961,163,964,160,968,156,964,135,941,117,916,89,862,70,811,59,774"/>
+<area shape="rect" id="Node000027" href="$namespaceshared.html#ae5d42a7f6819f149991304227a611c78" title="A Blocking Parser that splits the output into a vector." alt="" coords="158,822,279,849"/>
+<area shape="poly" id="edge50_Node000001_Node000027" title=" " alt="" coords="89,771,176,813,173,818,87,776"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="605,898,635,916,681,952,720,987,716,991,678,956,632,921,602,903"/>
+<area shape="poly" id="edge6_Node000005_Node000002" title=" " alt="" coords="446,336,470,353,493,384,507,414,513,443,514,472,513,533,514,568,519,607,570,857,565,858,514,608,508,568,507,533,509,472,508,444,501,416,488,387,466,356,443,340"/>
+<area shape="poly" id="edge7_Node000005_Node000004" title=" " alt="" coords="444,326,533,320,583,312,633,301,670,288,705,272,707,276,672,293,634,306,584,318,533,325,445,331"/>
+<area shape="rect" id="Node000006" href="$namespaceshared.html#a3736db9aa00bd9e0a56aeaf1057066c0" title="Split the contents of an FD." alt="" coords="682,493,807,520"/>
+<area shape="poly" id="edge8_Node000005_Node000006" title=" " alt="" coords="446,340,470,352,485,365,495,378,504,390,518,403,559,429,603,451,686,485,684,490,601,456,557,434,515,407,500,394,490,381,481,369,467,357,443,345"/>
+<area shape="poly" id="edge12_Node000005_Node000010" title=" " alt="" coords="417,313,461,283,515,251,525,246,527,250,518,255,464,288,420,317"/>
+<area shape="poly" id="edge13_Node000005_Node000011" title=" " alt="" coords="444,313,517,292,518,297,445,318"/>
+<area shape="poly" id="edge14_Node000005_Node000012" title=" " alt="" coords="446,336,470,352,487,375,496,397,500,439,501,483,507,506,519,530,543,558,539,561,514,533,502,508,496,484,494,440,490,398,482,378,466,356,443,341"/>
+<area shape="rect" id="Node000013" href="$namespaceshared.html#a219683cbcfb575bb29797638cadafb7b" title="A Blocking Parser that splits the output into a set." alt="" coords="518,493,632,520"/>
+<area shape="poly" id="edge15_Node000005_Node000013" title=" " alt="" coords="446,338,470,352,490,379,497,405,503,431,518,459,541,482,538,486,514,463,498,433,492,406,485,381,467,356,443,342"/>
+<area shape="rect" id="Node000014" href="$namespaceshared.html#a6955b6b671ef8b660a0d6ed018712923" title="Resolve wildcard patterns." alt="" coords="517,366,633,393"/>
+<area shape="poly" id="edge17_Node000005_Node000014" title=" " alt="" coords="445,340,513,359,511,364,444,345"/>
+<area shape="rect" id="Node000007" href="$namespaceshared.html#a80f3b59804700742a5a0c6ea15bf24f9" title="A Blocking Parser that returns the output in a single string." alt="" coords="858,606,959,633"/>
+<area shape="poly" id="edge9_Node000006_Node000007" title=" " alt="" coords="767,518,877,595,874,600,764,523"/>
+<area shape="rect" id="Node000008" href="$namespaceshared.html#a690cc836408825d804377522d9d99a07" title="Split a string." alt="" coords="855,493,962,520"/>
+<area shape="poly" id="edge10_Node000006_Node000008" title=" " alt="" coords="807,504,839,504,839,509,807,509"/>
+<area shape="rect" id="Node000009" href="$namespaceshared.html#a6282d0d8d2ab3f70038d7428729c15ca" title="Escape a string." alt="" coords="1010,493,1121,520"/>
+<area shape="poly" id="edge11_Node000008_Node000009" title=" " alt="" coords="963,504,995,504,995,509,963,509"/>
+<area shape="poly" id="edge16_Node000013_Node000006" title=" " alt="" coords="633,504,666,504,666,509,633,509"/>
+<area shape="poly" id="edge18_Node000014_Node000004" title=" " alt="" coords="602,364,632,346,678,310,716,275,720,279,681,314,635,350,605,368"/>
+<area shape="poly" id="edge19_Node000014_Node000006" title=" " alt="" coords="596,391,714,481,711,485,593,395"/>
+<area shape="poly" id="edge21_Node000015_Node000015" title=" " alt="" coords="190,722,186,712,189,703,200,697,218,694,238,697,248,704,245,708,236,702,218,700,202,702,193,706,191,712,195,719"/>
+<area shape="poly" id="edge27_Node000017_Node000004" title=" " alt="" coords="228,440,252,405,277,361,289,322,292,288,300,257,310,241,325,226,364,198,400,181,435,172,470,169,506,172,545,179,634,200,673,213,708,229,706,234,671,218,633,205,544,184,506,177,470,174,436,177,402,186,367,203,329,230,314,244,305,259,298,289,294,323,281,363,256,408,232,443"/>
+<area shape="poly" id="edge28_Node000017_Node000005" title=" " alt="" coords="229,440,269,398,296,373,326,352,336,346,338,351,328,357,299,378,273,401,233,444"/>
+<area shape="poly" id="edge26_Node000017_Node000007" title=" " alt="" coords="227,469,240,498,262,536,291,573,309,589,328,601,394,629,463,647,535,656,606,659,675,657,739,650,843,633,844,638,739,656,675,662,606,664,535,662,462,652,392,634,326,606,305,593,287,576,257,539,236,501,222,471"/>
+<area shape="poly" id="edge31_Node000017_Node000010" title=" " alt="" coords="221,441,232,405,252,357,283,307,303,285,326,266,371,242,421,228,471,222,515,221,515,226,471,227,422,234,373,247,328,270,307,288,287,310,257,359,237,407,226,443"/>
+<area shape="poly" id="edge32_Node000017_Node000011" title=" " alt="" coords="222,441,236,411,257,372,287,333,326,301,373,281,424,271,473,268,517,269,517,274,473,273,424,276,375,286,328,306,291,337,262,375,241,413,227,443"/>
+<area shape="poly" id="edge35_Node000017_Node000012" title=" " alt="" coords="229,468,266,523,294,552,328,575,371,589,416,595,460,596,501,593,502,598,460,601,415,601,369,594,326,579,291,556,262,526,225,471"/>
+<area shape="poly" id="edge36_Node000017_Node000013" title=" " alt="" coords="231,468,269,514,297,537,328,555,366,566,396,568,428,564,468,555,505,542,538,525,541,530,507,547,469,560,429,569,397,574,365,571,326,560,294,541,265,517,227,471"/>
+<area shape="poly" id="edge30_Node000017_Node000016" title=" " alt="" coords="218,442,226,390,243,315,257,273,275,232,298,192,325,157,340,144,343,148,329,160,302,195,280,234,262,275,248,316,231,391,224,442"/>
+<area shape="poly" id="edge34_Node000017_Node000017" title=" " alt="" coords="190,443,186,434,189,424,200,418,218,416,238,418,248,425,245,429,236,423,218,421,202,423,193,428,191,433,195,441"/>
+<area shape="rect" id="Node000018" href="$namespaceshared.html#ad05481a6e28afc976d57ddcba12e8a4d" title="A Blocking Parser that returns the first count of the output." alt="" coords="350,366,446,393"/>
+<area shape="poly" id="edge29_Node000017_Node000018" title=" " alt="" coords="246,440,326,403,341,397,343,402,328,408,248,444"/>
+<area shape="rect" id="Node000019" href="$namespaceshared.html#a4ddc24b4d99e824f9b941fa905fb0a81" title="A Blocking Parser that returns the first line of output." alt="" coords="340,417,456,444"/>
+<area shape="poly" id="edge33_Node000017_Node000019" title=" " alt="" coords="271,446,324,438,324,443,272,451"/>
+<area shape="poly" id="edge37_Node000017_Node000020" title=" " alt="" coords="226,468,263,568,293,635,329,701,351,732,375,759,371,762,347,735,325,704,289,638,258,570,221,470"/>
+<area shape="rect" id="Node000021" href="$namespaceshared.html#ae0ec3e8d4de79340eda47eabfd075feb" title="Strip all instance of character from a string." alt="" coords="351,468,444,494"/>
+<area shape="poly" id="edge38_Node000017_Node000021" title=" " alt="" coords="272,461,336,470,336,475,271,466"/>
+<area shape="rect" id="Node000022" href="$namespaceshared.html#a77e45bc6735a35fbc38891b166e40a7b" title="Trim characters from the front and end of a string." alt="" coords="352,518,443,545"/>
+<area shape="poly" id="edge39_Node000017_Node000022" title=" " alt="" coords="248,467,328,504,343,510,341,515,326,509,246,472"/>
+<area shape="poly" id="edge42_Node000023_Node000003" title=" " alt="" coords="628,1028,675,1021,676,1026,629,1033"/>
+<area shape="poly" id="edge44_Node000024_Node000003" title=" " alt="" coords="269,1143,343,1147,435,1146,536,1134,585,1122,633,1105,659,1091,682,1074,721,1036,724,1040,686,1078,661,1096,635,1110,587,1127,537,1139,435,1151,342,1153,269,1148"/>
+<area shape="poly" id="edge47_Node000025_Node000003" title=" " alt="" coords="279,939,440,956,634,984,678,993,677,998,633,989,439,961,278,945"/>
+<area shape="poly" id="edge49_Node000026_Node000003" title=" " alt="" coords="278,988,675,1007,675,1012,278,993"/>
+<area shape="poly" id="edge51_Node000027_Node000006" title=" " alt="" coords="279,839,323,839,371,835,420,826,467,808,513,780,556,746,595,709,631,669,688,592,726,532,731,535,693,595,635,672,599,712,560,750,516,785,469,813,422,831,372,841,323,844,279,844"/>
+</map>

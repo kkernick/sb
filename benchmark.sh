@@ -19,6 +19,11 @@ if [[ "${NO_COMPILE}" != "no" ]]; then
   make
 fi
 
+echo "Copying existing configuration and files so they are not used in the benchmark. If the benchmark stops prematurely, be sure to restore sb-old in ~/.config and ~/.local/share"
+
+mv ~/.config/sb ~/.config/sb-bak
+mv ~/.local/share/sb ~/.local/share/sb-bak
+
 # Export so our built version is used.
 export PATH="$(pwd):$(pwd)/examples:$PATH"
 echo "Using: $(which sb)"
@@ -54,7 +59,7 @@ for PROFILE in $EXAMPLES; do
 
   # Cold Boot--there is no cache.
   mkdir /tmp/sb
-  hyperfine --command-name "Cold $PROFILE" $ARGS --prepare "rm -r /tmp/sb" "$PROFILE --dry --sof=tmp"
+  hyperfine --command-name "Cold $PROFILE" $ARGS --prepare "rm -r /tmp/sb" "$PROFILE --dry"
   sleep 1
 
   # Add warmup since we're not cold-boot anymore
@@ -70,7 +75,7 @@ for PROFILE in $EXAMPLES; do
   else
     UPDATE="--update-libraries"
   fi
-  hyperfine --command-name "Lib $PROFILE" $ARGS "$PROFILE --dry $UPDATE --sof=tmp"
+  hyperfine --command-name "Lib $PROFILE" $ARGS "$PROFILE --dry $UPDATE"
   sleep 1
 
   # Hot Boot, but we need to refresh libraries like after an update.
@@ -79,7 +84,7 @@ for PROFILE in $EXAMPLES; do
   else
     UPDATE="--update-libraries --update-cache"
   fi
-  hyperfine --command-name "Cache $PROFILE" $ARGS "$PROFILE --dry $UPDATE --sof=tmp"
+  hyperfine --command-name "Cache $PROFILE" $ARGS "$PROFILE --dry $UPDATE"
 done
 
 if [[ "$COMMIT" != "main" ]]; then
@@ -87,3 +92,8 @@ if [[ "$COMMIT" != "main" ]]; then
 	git checkout main --quiet
 	git stash pop --quiet
 fi
+
+rm -r ~/.config/sb ~/.local/share/sb
+
+mv ~/.config/sb-bak ~/.config/sb
+mv ~/.local/share/sb-bak ~/.local/share/sb

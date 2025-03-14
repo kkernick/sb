@@ -1,0 +1,22 @@
+<map id="shared::init" name="shared::init">
+<area shape="rect" id="Node000001" title="Compose a return value from an accumulator function." alt="" coords="394,164,479,190"/>
+<area shape="rect" id="Node000002" href="$namespacegenerate.html#a38dcdfdf9293b8aafe77392021d65019" title="Generate the bulk of the main program command." alt="" coords="21,84,125,110"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="425,150,414,119,398,85,375,53,345,29,305,12,270,9,234,16,190,29,161,40,134,55,92,85,89,81,131,50,159,35,188,24,232,11,270,4,306,7,347,24,379,50,402,83,419,117,430,148"/>
+<area shape="rect" id="Node000003" href="$classarg_1_1Arg.html#af2111fcb064aca3efb8642f09d9d5c2f" title="Digest arguments." alt="" coords="212,38,322,65"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="416,153,385,115,345,79,322,68,324,63,347,75,389,111,420,150"/>
+<area shape="rect" id="Node000004" href="$namespacesyscalls.html#aabdab752b02a21ab92e3af4fabba493b" title="Generate a syscall filter." alt="" coords="216,113,318,140"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="379,163,314,143,315,138,380,158"/>
+<area shape="rect" id="Node000005" href="$classarg_1_1Arg.html#a244007ab0c913b151b5a59e39149daea" title="Return all values paired with their modifiers." alt="" coords="196,164,338,190"/>
+<area shape="poly" id="edge5_Node000001_Node000005" title=" " alt="" coords="379,180,339,180,339,174,379,174"/>
+<area shape="rect" id="Node000006" href="$namespacebinaries.html#ac1478c81b2eb2c4ecdba98e92c4e7651" title="Parse a binary to determine dependencies." alt="" coords="214,238,320,265"/>
+<area shape="poly" id="edge6_Node000001_Node000006" title=" " alt="" coords="392,200,301,240,298,236,389,195"/>
+<area shape="rect" id="Node000008" href="$namespacearg.html#a9da86862acc776f92533ebac921afc40" title="Parse command line arguments." alt="" coords="212,289,323,316"/>
+<area shape="poly" id="edge10_Node000001_Node000008" title=" " alt="" coords="420,205,389,243,347,279,325,291,322,286,345,275,385,239,416,201"/>
+<area shape="rect" id="Node000009" href="$namespacesyscalls.html#a501461c3842033cfab85ba4b8f328ed8" title="Append an existing policy with newly discovered syscalls." alt="" coords="189,340,346,366"/>
+<area shape="poly" id="edge11_Node000001_Node000009" title=" " alt="" coords="428,206,399,268,376,301,348,330,328,342,325,337,344,326,372,298,394,266,423,204"/>
+<area shape="poly" id="edge4_Node000004_Node000004" title=" " alt="" coords="296,100,286,94,267,92,250,94,241,98,238,104,243,111,238,114,233,104,237,95,248,89,267,86,288,89,299,96"/>
+<area shape="poly" id="edge7_Node000006_Node000002" title=" " alt="" coords="227,232,187,205,130,155,86,113,90,109,133,151,190,200,230,228"/>
+<area shape="poly" id="edge8_Node000006_Node000006" title=" " alt="" coords="296,225,286,219,267,217,250,219,241,224,238,229,243,237,238,239,233,230,237,220,248,214,267,212,288,214,299,221"/>
+<area shape="rect" id="Node000007" href="$namespacegenerate.html#a5c0026523dd30f942c55ad25f1b607b4" title="Spawn an instance of the xdg&#45;dbus&#45;proxy for the application instance." alt="" coords="5,230,141,273"/>
+<area shape="poly" id="edge9_Node000006_Node000007" title=" " alt="" coords="198,254,141,254,141,249,198,249"/>
+</map>

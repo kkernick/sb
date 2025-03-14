@@ -1,0 +1,91 @@
+.TH "binaries" 3 "SB++" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+binaries \- Binary Dependency Resolution This header contains the functions needed to determine the dependencies needed for binary files\&. It does this both against traditional ELF binaries, leveraging LDD in \fBlibraries\&.hpp\fP, but also supports tokenizing and parsing shell scripts to extract shebangs and commands used for dynamic dependency resolution\&. This support is far more nuanced than in Python-SB, as we incorporate variables and using the shell interpreter itself to uncover libraries and binaries inaccessible to the old tokenizer\&.  
+
+.SH SYNOPSIS
+.br
+.PP
+.SS "Typedefs"
+
+.in +1c
+.ti -1c
+.RI "using \fBbin_t\fP = shared::set"
+.br
+.in -1c
+.SS "Functions"
+
+.in +1c
+.ti -1c
+.RI "void \fBparse\fP (bin_t &required, std::string path, libraries::lib_t &libraries)"
+.br
+.RI "Parse a binary to determine dependencies\&. "
+.ti -1c
+.RI "void \fBsetup\fP (const bin_t &binaries, shared::vector &command)"
+.br
+.RI "Setup the sandbox for the used binaries\&. "
+.ti -1c
+.RI "void \fBsymlink\fP (shared::vector &command)"
+.br
+.RI "Symlink to /usr/bin\&. "
+.in -1c
+.SS "Variables"
+
+.in +1c
+.ti -1c
+.RI "set \fBsearched\fP = {}"
+.br
+.ti -1c
+.RI "set \fBbuiltins\fP = {'printf', 'echo'}"
+.br
+.in -1c
+.SH "Detailed Description"
+.PP 
+Binary Dependency Resolution This header contains the functions needed to determine the dependencies needed for binary files\&. It does this both against traditional ELF binaries, leveraging LDD in \fBlibraries\&.hpp\fP, but also supports tokenizing and parsing shell scripts to extract shebangs and commands used for dynamic dependency resolution\&. This support is far more nuanced than in Python-SB, as we incorporate variables and using the shell interpreter itself to uncover libraries and binaries inaccessible to the old tokenizer\&. 
+.SH "Function Documentation"
+.PP 
+.SS "void binaries::parse (bin_t & required, std::string path, libraries::lib_t & libraries)"
+
+.PP
+Parse a binary to determine dependencies\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIrequired\fP The binary accumulator\&. 
+.br
+\fIpath\fP The path to the binary\&. 
+.br
+\fIlibraries\fP The current list of libraries\&. @info libraries are updated\&. 
+.RE
+.PP
+
+.SS "void binaries::setup (const bin_t & binaries, shared::vector & command)"
+
+.PP
+Setup the sandbox for the used binaries\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIbinaries\fP The binaries to link into the sandbox\&. 
+.br
+\fIapplication\fP The application to link to this SOF\&. 
+.br
+\fIcommand\fP The sandbox command 
+.RE
+.PP
+
+.SS "void binaries::symlink (shared::vector & command)"
+
+.PP
+Symlink to /usr/bin\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIcommand\fP The command to append to\&. 
+.RE
+.PP
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for SB++ from the source code\&.

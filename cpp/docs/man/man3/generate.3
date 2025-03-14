@@ -1,0 +1,112 @@
+.TH "generate" 3 "SB++" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+generate \- Generator functions\&. This header contains generator functions, either used to assemble the bwrap command, or auxiliary functions\&.  
+
+.SH SYNOPSIS
+.br
+.PP
+.SS "Functions"
+
+.in +1c
+.ti -1c
+.RI "void \fBscript\fP (const std::string &binary)"
+.br
+.RI "Generate a script for the sandbox\&. "
+.ti -1c
+.RI "void \fBdesktop_entry\fP (const std::string &name)"
+.br
+.RI "Generate a desktop file for the sandbox\&. "
+.ti -1c
+.RI "void \fBflatpak_info\fP (const std::string_view &program, const std::string_view &instance, const \fBshared::TemporaryDirectory\fP &work_dir)"
+.br
+.RI "Create a \&.flatpak-info file for the program\&. "
+.ti -1c
+.RI "std::pair< int, std::future< int > > \fBxdg_dbus_proxy\fP (const std::string &program, const \fBshared::TemporaryDirectory\fP &work_dir)"
+.br
+.RI "Spawn an instance of the xdg-dbus-proxy for the application instance\&. "
+.ti -1c
+.RI "vector \fBcmd\fP (const std::string &program)"
+.br
+.RI "Generate the bulk of the main program command\&. "
+.in -1c
+.SH "Detailed Description"
+.PP 
+Generator functions\&. This header contains generator functions, either used to assemble the bwrap command, or auxiliary functions\&. 
+.SH "Function Documentation"
+.PP 
+.SS "shared::vector generate::cmd (const std::string & program)"
+
+.PP
+Generate the bulk of the main program command\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIprogram\fP The name of the program\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+The generated command\&. @info Parts of the command that should be computed at runtime, like environment variables, should be done outside this function\&. 
+.RE
+.PP
+
+.SS "void generate::desktop_entry (const std::string & name)"
+
+.PP
+Generate a desktop file for the sandbox\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIpath\fP The desktop name\&. 
+.RE
+.PP
+
+.SS "void generate::flatpak_info (const std::string_view & program, const std::string_view & instance, const \fBshared::TemporaryDirectory\fP & work_dir)"
+
+.PP
+Create a \&.flatpak-info file for the program\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIprogram\fP The name of the program\&. 
+.br
+\fIinstance\fP The instance name, located in $XDG_RUNTIME_DIR/\&.flatpak\&. 
+.br
+\fIwork_dir\fP The working dir for the program instance\&. 
+.RE
+.PP
+
+.SS "void generate::script (const std::string & binary)"
+
+.PP
+Generate a script for the sandbox\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIbinary\fP Where to write the script to\&. 
+.RE
+.PP
+
+.SS "std::pair< int, std::future< int > > generate::xdg_dbus_proxy (const std::string & program, const \fBshared::TemporaryDirectory\fP & work_dir)"
+
+.PP
+Spawn an instance of the xdg-dbus-proxy for the application instance\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIprogram\fP The name of the program attached to this proxy\&. 
+.br
+\fIwork_dir\fP The application's instance work dir\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+A pair, including the wd to wait for the bus, and a future to return the pid of the proxy\&. 
+.RE
+.PP
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for SB++ from the source code\&.

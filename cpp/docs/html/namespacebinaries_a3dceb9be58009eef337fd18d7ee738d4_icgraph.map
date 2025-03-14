@@ -1,0 +1,7 @@
+<map id="binaries::symlink" name="binaries::symlink">
+<area shape="rect" id="Node000001" title="Symlink to /usr/bin." alt="" coords="189,35,308,61"/>
+<area shape="rect" id="Node000002" href="$namespacegenerate.html#a38dcdfdf9293b8aafe77392021d65019" title="Generate the bulk of the main program command." alt="" coords="21,5,125,32"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="173,38,125,30,126,25,173,33"/>
+<area shape="rect" id="Node000003" href="$namespacegenerate.html#a5c0026523dd30f942c55ad25f1b607b4" title="Spawn an instance of the xdg&#45;dbus&#45;proxy for the application instance." alt="" coords="5,56,141,99"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="174,63,142,69,141,63,173,58"/>
+</map>

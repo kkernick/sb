@@ -1,0 +1,23 @@
+<map id="shared::join" name="shared::join">
+<area shape="rect" id="Node000001" title="Join a vector into a string." alt="" coords="603,126,692,153"/>
+<area shape="rect" id="Node000002" href="$namespacegenerate.html#a38dcdfdf9293b8aafe77392021d65019" title="Generate the bulk of the main program command." alt="" coords="21,50,125,77"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="623,116,592,87,554,60,500,37,456,26,350,17,269,8,234,10,189,17,141,32,100,52,97,47,139,27,188,11,233,4,269,3,350,11,457,21,502,32,557,56,596,82,627,112"/>
+<area shape="rect" id="Node000003" href="$namespacegenerate.html#aca905bc877bc18f8cb6a2cb1eaec6988" title="Generate a desktop file for the sandbox." alt="" coords="189,202,350,229"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="588,154,340,204,339,199,587,149"/>
+<area shape="rect" id="Node000004" href="$namespacelibraries.html#a4dfd6ab45adf8dc18ea57bc1f88eaedf" title="Recursively resolve all shared&#45;libraries needed by a library." alt="" coords="430,101,523,127"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="587,133,523,123,523,118,588,128"/>
+<area shape="rect" id="Node000005" href="$namespacebinaries.html#ac1478c81b2eb2c4ecdba98e92c4e7651" title="Parse a binary to determine dependencies." alt="" coords="216,50,322,77"/>
+<area shape="poly" id="edge10_Node000001_Node000005" title=" " alt="" coords="613,120,585,104,555,91,494,77,431,69,323,64,323,59,432,63,495,72,556,86,588,99,616,115"/>
+<area shape="rect" id="Node000007" href="$namespacegenerate.html#a67b94cdd53f264ff45e467ce97cd44d4" title="Generate a script for the sandbox." alt="" coords="421,202,532,229"/>
+<area shape="poly" id="edge11_Node000001_Node000007" title=" " alt="" coords="606,162,556,186,514,204,512,199,554,181,604,157"/>
+<area shape="rect" id="Node000008" href="$namespacesyscalls.html#a501461c3842033cfab85ba4b8f328ed8" title="Append an existing policy with newly discovered syscalls." alt="" coords="398,253,555,279"/>
+<area shape="poly" id="edge13_Node000001_Node000008" title=" " alt="" coords="631,167,599,206,557,243,534,254,532,250,554,238,595,202,627,164"/>
+<area shape="poly" id="edge4_Node000004_Node000002" title=" " alt="" coords="415,114,309,106,188,91,125,79,126,74,189,86,309,100,415,108"/>
+<area shape="poly" id="edge5_Node000004_Node000005" title=" " alt="" coords="415,102,322,79,323,74,416,97"/>
+<area shape="rect" id="Node000006" href="$namespacegenerate.html#a5c0026523dd30f942c55ad25f1b607b4" title="Spawn an instance of the xdg&#45;dbus&#45;proxy for the application instance." alt="" coords="5,122,141,165"/>
+<area shape="poly" id="edge9_Node000004_Node000006" title=" " alt="" coords="415,127,350,135,240,143,141,145,141,140,240,137,350,130,415,122"/>
+<area shape="poly" id="edge6_Node000005_Node000002" title=" " alt="" coords="200,66,125,66,125,61,200,61"/>
+<area shape="poly" id="edge7_Node000005_Node000005" title=" " alt="" coords="303,37,291,31,269,29,249,31,238,35,235,41,240,48,236,51,230,41,234,32,248,26,269,23,293,26,305,32"/>
+<area shape="poly" id="edge8_Node000005_Node000006" title=" " alt="" coords="221,86,128,124,126,119,219,81"/>
+<area shape="poly" id="edge12_Node000007_Node000003" title=" " alt="" coords="405,218,350,218,350,213,405,213"/>
+</map>

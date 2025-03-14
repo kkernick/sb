@@ -1,0 +1,37 @@
+<map id="shared::dump" name="shared::dump">
+<area shape="rect" id="Node000001" title="A Blocking Parser that returns the output in a single string." alt="" coords="895,14,995,40"/>
+<area shape="rect" id="Node000002" href="$namespaceshared.html#a3736db9aa00bd9e0a56aeaf1057066c0" title="Split the contents of an FD." alt="" coords="722,102,847,128"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="907,51,812,104,809,99,904,46"/>
+<area shape="rect" id="Node000005" href="$namespacebinaries.html#ac1478c81b2eb2c4ecdba98e92c4e7651" title="Parse a binary to determine dependencies." alt="" coords="189,51,295,78"/>
+<area shape="poly" id="edge22_Node000001_Node000005" title=" " alt="" coords="880,29,643,30,494,36,343,48,296,56,295,51,343,43,493,31,643,25,880,23"/>
+<area shape="rect" id="Node000003" href="$namespacelibraries.html#a4dfd6ab45adf8dc18ea57bc1f88eaedf" title="Recursively resolve all shared&#45;libraries needed by a library." alt="" coords="378,102,470,128"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="720,135,674,143,613,147,552,143,470,129,471,124,553,138,613,142,673,138,719,130"/>
+<area shape="rect" id="Node000007" href="$namespaceshared.html#a219683cbcfb575bb29797638cadafb7b" title="A Blocking Parser that splits the output into a set." alt="" coords="556,51,670,78"/>
+<area shape="poly" id="edge9_Node000002_Node000007" title=" " alt="" coords="721,99,660,81,661,76,723,94"/>
+<area shape="rect" id="Node000008" href="$namespaceshared.html#ae5d42a7f6819f149991304227a611c78" title="A Blocking Parser that splits the output into a vector." alt="" coords="552,303,674,330"/>
+<area shape="poly" id="edge13_Node000002_Node000008" title=" " alt="" coords="764,142,628,304,624,301,760,139"/>
+<area shape="rect" id="Node000013" href="$namespaceshared.html#a6955b6b671ef8b660a0d6ed018712923" title="Resolve wildcard patterns." alt="" coords="555,102,671,128"/>
+<area shape="poly" id="edge20_Node000002_Node000013" title=" " alt="" coords="706,118,672,118,672,112,706,112"/>
+<area shape="rect" id="Node000004" href="$namespacegenerate.html#a38dcdfdf9293b8aafe77392021d65019" title="Generate the bulk of the main program command." alt="" coords="21,152,125,179"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="362,127,295,136,126,161,125,156,295,131,362,121"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="362,101,291,81,293,76,363,96"/>
+<area shape="rect" id="Node000006" href="$namespacegenerate.html#a5c0026523dd30f942c55ad25f1b607b4" title="Spawn an instance of the xdg&#45;dbus&#45;proxy for the application instance." alt="" coords="5,43,141,86"/>
+<area shape="poly" id="edge8_Node000003_Node000006" title=" " alt="" coords="361,113,188,92,141,83,142,78,189,87,362,108"/>
+<area shape="poly" id="edge5_Node000005_Node000004" title=" " alt="" coords="206,89,98,154,95,150,203,84"/>
+<area shape="poly" id="edge6_Node000005_Node000005" title=" " alt="" coords="270,38,260,32,242,30,224,32,215,36,213,42,217,49,213,52,208,42,211,33,223,27,242,24,262,27,273,34"/>
+<area shape="poly" id="edge7_Node000005_Node000006" title=" " alt="" coords="173,67,141,67,141,62,173,62"/>
+<area shape="poly" id="edge10_Node000007_Node000003" title=" " alt="" coords="546,85,471,106,469,100,545,80"/>
+<area shape="poly" id="edge11_Node000007_Node000005" title=" " alt="" coords="540,67,295,67,295,62,540,62"/>
+<area shape="poly" id="edge12_Node000007_Node000006" title=" " alt="" coords="554,49,480,30,389,15,289,8,238,11,189,18,150,29,115,45,113,40,149,24,188,13,238,5,289,3,390,9,481,25,555,44"/>
+<area shape="poly" id="edge14_Node000008_Node000004" title=" " alt="" coords="583,295,547,268,503,244,401,211,297,189,201,176,125,170,126,165,202,171,298,184,403,206,505,239,550,264,587,291"/>
+<area shape="rect" id="Node000009" href="$namespacegenerate.html#aca905bc877bc18f8cb6a2cb1eaec6988" title="Generate a desktop file for the sandbox." alt="" coords="343,430,504,456"/>
+<area shape="poly" id="edge15_Node000008_Node000009" title=" " alt="" coords="593,344,555,383,506,420,481,432,479,427,503,416,551,379,589,340"/>
+<area shape="rect" id="Node000010" href="$namespacesyscalls.html#aabdab752b02a21ab92e3af4fabba493b" title="Generate a syscall filter." alt="" coords="372,278,475,304"/>
+<area shape="poly" id="edge16_Node000008_Node000010" title=" " alt="" coords="537,309,475,301,476,295,538,304"/>
+<area shape="rect" id="Node000011" href="$namespacearg.html#a9da86862acc776f92533ebac921afc40" title="Parse command line arguments." alt="" coords="368,328,479,355"/>
+<area shape="poly" id="edge18_Node000008_Node000011" title=" " alt="" coords="537,329,480,337,479,332,537,324"/>
+<area shape="rect" id="Node000012" href="$namespacesyscalls.html#a501461c3842033cfab85ba4b8f328ed8" title="Append an existing policy with newly discovered syscalls." alt="" coords="345,379,502,406"/>
+<area shape="poly" id="edge19_Node000008_Node000012" title=" " alt="" coords="572,340,505,370,473,381,471,376,503,365,570,335"/>
+<area shape="poly" id="edge17_Node000010_Node000010" title=" " alt="" coords="454,265,444,259,424,256,405,258,395,263,392,269,397,276,392,279,387,269,391,259,403,253,424,251,445,254,457,260"/>
+<area shape="poly" id="edge21_Node000013_Node000003" title=" " alt="" coords="540,118,470,118,470,112,540,112"/>
+</map>

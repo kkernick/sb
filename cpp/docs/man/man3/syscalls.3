@@ -1,0 +1,58 @@
+.TH "syscalls" 3 "SB++" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+syscalls \- Syscall Filter Generation This header includes the \fBfilter()\fP command for generating a SECCOMP-BPF filter to restrict syscall within the sandbox\&. Moving to C/C++ allows us to use the libseccomp library directory, which is already installed on any systemd system, allowing us to avoid a dependency where the python bindings are packaged separately\&. Implementation wise, the groups have been removed, as have numerical syscall numbers\&. Groups were a bad idea from the start; any system that combines syscalls will introduce more attack surface, especially for a grouping to be broad enough that a filter can be made by hand--the original goal\&. This also means that offering syscalls on the command line are not supported\&. Secondly, while portability of the application folders isn't a must, numerical syscalls make the files nebulous and system-specific\&.  
+
+.SH SYNOPSIS
+.br
+.PP
+.SS "Functions"
+
+.in +1c
+.ti -1c
+.RI "std::string \fBfilter\fP (const std::string &application)"
+.br
+.RI "Generate a syscall filter\&. "
+.ti -1c
+.RI "void \fBupdate_policy\fP (const std::string &application, const shared::vector &straced)"
+.br
+.RI "Append an existing policy with newly discovered syscalls\&. "
+.in -1c
+.SH "Detailed Description"
+.PP 
+Syscall Filter Generation This header includes the \fBfilter()\fP command for generating a SECCOMP-BPF filter to restrict syscall within the sandbox\&. Moving to C/C++ allows us to use the libseccomp library directory, which is already installed on any systemd system, allowing us to avoid a dependency where the python bindings are packaged separately\&. Implementation wise, the groups have been removed, as have numerical syscall numbers\&. Groups were a bad idea from the start; any system that combines syscalls will introduce more attack surface, especially for a grouping to be broad enough that a filter can be made by hand--the original goal\&. This also means that offering syscalls on the command line are not supported\&. Secondly, while portability of the application folders isn't a must, numerical syscalls make the files nebulous and system-specific\&. 
+.SH "Function Documentation"
+.PP 
+.SS "std::string syscalls::filter (const std::string & application)"
+
+.PP
+Generate a syscall filter\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIapplication\fP The application\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+The path to the BPF Filter\&. 
+.RE
+.PP
+
+.SS "void syscalls::update_policy (const std::string & application, const shared::vector & straced)"
+
+.PP
+Append an existing policy with newly discovered syscalls\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIapplication\fP The name of the application, to locate the syscalls\&.txt 
+.br
+\fIstrace\fP The output of an straced-run\&. @info This function subsumes sb-seccomp in a far better way\&. Rather than parsing the Audit logs (Requiring root permission), we just call --seccomp=strace which will run the program with strace, capture STDERR (The channel strace logs to), and then parse that output to update the file\&. 
+.RE
+.PP
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for SB++ from the source code\&.

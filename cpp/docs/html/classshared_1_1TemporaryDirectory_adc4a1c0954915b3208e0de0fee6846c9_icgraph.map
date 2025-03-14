@@ -1,0 +1,7 @@
+<map id="shared::TemporaryDirectory::sub" name="shared::TemporaryDirectory::sub">
+<area shape="rect" id="Node000001" title="Create a subdirectory/file in the temp dir." alt="" coords="200,35,411,61"/>
+<area shape="rect" id="Node000002" href="$namespacegenerate.html#a06d09480d1b42592ffc0654698d15b6d" title="Create a .flatpak&#45;info file for the program." alt="" coords="5,5,152,32"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="184,35,152,31,152,25,185,30"/>
+<area shape="rect" id="Node000003" href="$namespacegenerate.html#a5c0026523dd30f942c55ad25f1b607b4" title="Spawn an instance of the xdg&#45;dbus&#45;proxy for the application instance." alt="" coords="11,56,146,99"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="184,66,147,71,146,66,184,61"/>
+</map>

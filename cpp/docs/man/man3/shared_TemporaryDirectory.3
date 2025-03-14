@@ -1,0 +1,92 @@
+.TH "shared::TemporaryDirectory" 3 "SB++" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+shared::TemporaryDirectory \- A Temporary Directory A directory that destroys itself upon falling out of scope\&.  
+
+.SH SYNOPSIS
+.br
+.PP
+.PP
+\fR#include <shared\&.hpp>\fP
+.SS "Public Member Functions"
+
+.in +1c
+.ti -1c
+.RI "\fBTemporaryDirectory\fP (const std::string &parent=std::filesystem::temp_directory_path(), const std::string_view &prefix='', const std::string_view &suffix='', const bool &defer=false)"
+.br
+.RI "Construct a Temporary Directory\&. "
+.ti -1c
+.RI "const std::string & \fBget_path\fP () const"
+.br
+.RI "Return the path to the directory\&. "
+.ti -1c
+.RI "void \fBcreate\fP () const"
+.br
+.RI "Create the directory\&. "
+.ti -1c
+.RI "std::string \fBsub\fP (const std::string &name, const bool &dir=false) const"
+.br
+.RI "Create a subdirectory/file in the temp dir\&. "
+.ti -1c
+.RI "const std::string & \fBget_name\fP () const"
+.br
+.RI "Return the name of the directory, excluding the path\&. "
+.in -1c
+.SH "Detailed Description"
+.PP 
+A Temporary Directory A directory that destroys itself upon falling out of scope\&. 
+.SH "Constructor & Destructor Documentation"
+.PP 
+.SS "shared::TemporaryDirectory::TemporaryDirectory (const std::string & parent = \fRstd::filesystem::temp_directory_path()\fP, const std::string_view & prefix = \fR''\fP, const std::string_view & suffix = \fR''\fP, const bool & defer = \fRfalse\fP)\fR [inline]\fP"
+
+.PP
+Construct a Temporary Directory\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIparent\fP The path to create the directory at\&. 
+.br
+\fIprefix\fP A prefix for the name\&. 
+.br
+\fIsuffix\fP A suffix for the name\&. 
+.br
+\fIdefer\fP Defer creation\&. Call \fBcreate()\fP\&. @info The directory deletes itself after falling out of scope\&. 
+.RE
+.PP
+
+.SH "Member Function Documentation"
+.PP 
+.SS "const std::string & shared::TemporaryDirectory::get_path () const\fR [inline]\fP"
+
+.PP
+Return the path to the directory\&. 
+.PP
+\fBReturns\fP
+.RS 4
+The path 
+.RE
+.PP
+
+.SS "std::string shared::TemporaryDirectory::sub (const std::string & name, const bool & dir = \fRfalse\fP) const\fR [inline]\fP"
+
+.PP
+Create a subdirectory/file in the temp dir\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIname\fP The name of the new entity\&. 
+.br
+\fIdir\fP Whether the entity is a directory, and thus should be created\&. 
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+The path to the new entity\&. 
+.RE
+.PP
+
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for SB++ from the source code\&.

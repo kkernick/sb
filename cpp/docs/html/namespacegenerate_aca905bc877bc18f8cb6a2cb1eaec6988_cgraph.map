@@ -1,0 +1,22 @@
+<map id="generate::desktop_entry" name="generate::desktop_entry">
+<area shape="rect" id="Node000001" title="Generate a desktop file for the sandbox." alt="" coords="5,56,167,83"/>
+<area shape="rect" id="Node000002" href="$namespaceshared.html#a2f7cb04abbe01ba7193f2d2a6d520355" title="Join a vector into a string." alt="" coords="402,5,491,32"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="113,53,159,32,214,16,259,10,305,8,387,10,387,15,305,13,260,15,215,21,161,37,115,58"/>
+<area shape="rect" id="Node000003" href="$namespaceshared.html#afac154f1bef460ef6f24705f6c033f37" title="Read a file." alt="" coords="217,31,334,57"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="167,56,201,51,201,57,167,61"/>
+<area shape="rect" id="Node000004" href="$namespacegenerate.html#a67b94cdd53f264ff45e467ce97cd44d4" title="Generate a script for the sandbox." alt="" coords="220,81,331,108"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="167,78,205,83,204,88,167,83"/>
+<area shape="rect" id="Node000006" href="$namespaceshared.html#ae5d42a7f6819f149991304227a611c78" title="A Blocking Parser that splits the output into a vector." alt="" coords="215,132,336,159"/>
+<area shape="poly" id="edge6_Node000001_Node000006" title=" " alt="" coords="123,81,227,123,225,128,121,86"/>
+<area shape="poly" id="edge5_Node000004_Node000002" title=" " alt="" coords="308,78,335,67,401,37,404,41,337,72,310,83"/>
+<area shape="rect" id="Node000005" href="$namespaceshared.html#a585cdabc1b4758c65001d7dd03cb6715" title="Execute stuff." alt="" coords="398,81,495,108"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="331,92,383,92,383,97,331,97"/>
+<area shape="rect" id="Node000007" href="$namespaceshared.html#a3736db9aa00bd9e0a56aeaf1057066c0" title="Split the contents of an FD." alt="" coords="384,132,509,159"/>
+<area shape="poly" id="edge7_Node000006_Node000007" title=" " alt="" coords="337,143,369,143,369,148,337,148"/>
+<area shape="rect" id="Node000008" href="$namespaceshared.html#a80f3b59804700742a5a0c6ea15bf24f9" title="A Blocking Parser that returns the output in a single string." alt="" coords="561,107,661,133"/>
+<area shape="poly" id="edge8_Node000007_Node000008" title=" " alt="" coords="509,133,545,127,546,133,510,138"/>
+<area shape="rect" id="Node000009" href="$namespaceshared.html#a690cc836408825d804377522d9d99a07" title="Split a string." alt="" coords="557,157,665,184"/>
+<area shape="poly" id="edge9_Node000007_Node000009" title=" " alt="" coords="510,152,542,157,541,163,509,158"/>
+<area shape="rect" id="Node000010" href="$namespaceshared.html#a6282d0d8d2ab3f70038d7428729c15ca" title="Escape a string." alt="" coords="713,157,823,184"/>
+<area shape="poly" id="edge10_Node000009_Node000010" title=" " alt="" coords="665,168,697,168,697,173,665,173"/>
+</map>

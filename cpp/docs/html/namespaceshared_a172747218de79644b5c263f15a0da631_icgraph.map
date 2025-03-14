@@ -1,0 +1,15 @@
+<map id="shared::batch" name="shared::batch">
+<area shape="rect" id="Node000001" title="Batch multiple iterations of an accumulator function together, threaded." alt="" coords="483,17,584,44"/>
+<area shape="rect" id="Node000002" href="$namespacegenerate.html#a38dcdfdf9293b8aafe77392021d65019" title="Generate the bulk of the main program command." alt="" coords="21,5,125,32"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="468,29,295,21,126,21,126,15,295,16,468,24"/>
+<area shape="rect" id="Node000003" href="$namespacelibraries.html#a4dfd6ab45adf8dc18ea57bc1f88eaedf" title="Recursively resolve all shared&#45;libraries needed by a library." alt="" coords="343,43,435,69"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="468,45,436,51,435,45,467,40"/>
+<area shape="poly" id="edge3_Node000003_Node000002" title=" " alt="" coords="327,51,295,47,125,27,126,22,295,41,328,45"/>
+<area shape="rect" id="Node000004" href="$namespacebinaries.html#ac1478c81b2eb2c4ecdba98e92c4e7651" title="Parse a binary to determine dependencies." alt="" coords="189,80,295,107"/>
+<area shape="poly" id="edge4_Node000003_Node000004" title=" " alt="" coords="328,74,296,82,295,77,327,69"/>
+<area shape="rect" id="Node000005" href="$namespacegenerate.html#a5c0026523dd30f942c55ad25f1b607b4" title="Spawn an instance of the xdg&#45;dbus&#45;proxy for the application instance." alt="" coords="5,97,141,140"/>
+<area shape="poly" id="edge8_Node000003_Node000005" title=" " alt="" coords="364,82,333,104,296,121,257,130,216,134,141,131,141,126,216,128,256,125,294,116,330,99,361,77"/>
+<area shape="poly" id="edge5_Node000004_Node000002" title=" " alt="" coords="195,76,104,35,106,30,197,71"/>
+<area shape="poly" id="edge6_Node000004_Node000004" title=" " alt="" coords="266,67,258,61,242,59,227,61,219,65,217,71,221,78,216,81,212,71,215,62,225,56,242,53,260,56,269,63"/>
+<area shape="poly" id="edge7_Node000004_Node000005" title=" " alt="" coords="174,106,141,111,141,106,173,101"/>
+</map>
