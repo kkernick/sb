@@ -4,7 +4,7 @@ ROOT=$(pwd)
 subdir="${1}"
 COMMIT="${2}"
 EXAMPLE="${3}"
-NO_COMPILE="${4}"
+RECIPE="${4}"
 
 cd "$ROOT/$subdir"
 
@@ -15,8 +15,8 @@ if [[ "${COMMIT}" != "main" ]]; then
 fi
 
 # Build
-if [[ "${NO_COMPILE}" != "no" ]]; then
-  make
+if [[ "${RECIPE}" != "no" ]]; then
+  make $RECIPE
 fi
 
 echo "Copying existing configuration and files so they are not used in the benchmark. If the benchmark stops prematurely, be sure to restore sb-old in ~/.config and ~/.local/share"
@@ -31,7 +31,7 @@ echo "Using: $(which sb)"
 # Run the examples
 cd examples
 
-if [[ -n $EXAMPLE ]]; then
+if [[ -n $EXAMPLE && "$EXAMPLE" != "all" ]]; then
   EXAMPLES="${EXAMPLE}"
 else
   EXAMPLES=$(ls)
