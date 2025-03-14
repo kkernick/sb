@@ -1,6 +1,6 @@
 pkgname=sb++-git
 pkgdesc="Sandbox Applications"
-pkgver=r349.944be8f
+pkgver=r350.c1ab49d
 pkgrel=1
 
 source=("git+https://github.com/kkernick/sb.git")
@@ -35,11 +35,11 @@ package() {
     install -Dm755 "$binary" "$pkgdir/usr/bin/$binary"
   done
 
-  cd $srcdir/sb
   for service in sb.service; do
     install -Dm644 "$service" "$pkgdir/usr/lib/systemd/user/$service"
   done
 
+  cd $srcdir/sb
   install -Dm 644 sb.conf "$pkgdir/usr/lib/systemd/zram-generator.conf.d/sb.conf"
   install -Dm755 "$srcdir/sb/sb-open" "$pkgdir/usr/bin/sb-open"
   
