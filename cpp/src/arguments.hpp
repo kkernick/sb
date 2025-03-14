@@ -1,3 +1,4 @@
+#pragma once
 /**
  * @brief A general purpose, flexible command-line argument handler.
  * This file includes definitions to create a powerful command-line argument handler. `--switches` and `-s`
@@ -7,10 +8,7 @@
  * Additionally, modifier tags and lambdas can extend argument functionality tremendously.
  */
 
-#pragma once
-
 #include <map>
-
 #include "shared.hpp"
 
 
@@ -31,11 +29,11 @@ namespace arg {
     const std::string& s_name;
     const std::string& def = "false";
     const std::string& mod = "";
-    const std::vector<std::string> valid = {};
+    const shared::vector valid = {};
     const bool& must_set = false;
     const custom_policy& custom = custom_policy::FALSE;
     const bool& list = false;
-    const size_t& position = -1;
+    const uint_fast8_t& position = -1;
     const std::string& help;
   } config;
 
@@ -60,8 +58,8 @@ namespace arg {
 
       // The set of valid values. Empty means any value is acceptable.
       // list_val is only used when list=true.
-      std::set<std::string> valid = {}, list_val = {};
-      std::vector<std::string> order = {};
+      shared::set valid = {}, list_val = {};
+      shared::vector order = {};
 
       // If the flag is mandatory, it must be set.
       bool mandatory = false, set = false;
@@ -70,10 +68,11 @@ namespace arg {
       custom_policy custom = custom_policy::FALSE;
 
       // Set a mandatory position for the argument.
-      size_t positional = -1;
+      uint_fast8_t positional = -1;
 
       // Special logic to parse command lines!
-      std::function<std::string(const std::string&)> parser, m_parser;
+      std::function<std::string(const std::string_view&)> parser, m_parser;
+
 
       /**
        * @brief Digest a key and value.
@@ -82,14 +81,14 @@ namespace arg {
        * @param pos: The current position, for positional arguments.
        * @returns Whether the keypair was consumed.
        */
-      bool digest_keypair(const std::string& key, const std::string& val, const size_t& pos) {
+      bool digest_keypair(const std::string_view& key, const std::string_view& val, const uint_fast8_t& pos) {
 
         // Single value modifiers are easy to split.
         if (!list && custom == custom_policy::MODIFIABLE && val.contains(':')) {
 
           // Split on colons.
           auto s = shared::init<shared::vector>(shared::split, val, ':', false);
-          if (s.size() < 2) throw std::runtime_error("Invalid modifier: " + val);
+          if (s.size() < 2) throw std::runtime_error("Invalid modifier: " + std::string(val));
 
           // Grab the modifier keypair
           auto v = s[0]; auto mod = s[1];
@@ -151,13 +150,16 @@ namespace arg {
           std::cerr << long_name << ": Already at highest level!" << std::endl;
       }
 
-      /**
+
+      /**s
        * @brief Return the level for a corresponding valid value.
        * @param val: The value.
        */
-      size_t level(const std::string& val) const {return std::find(order.begin(), order.end(), val) - order.begin();}
+      uint_fast8_t level(const std::string_view& val) const {return std::find(order.begin(), order.end(), val) - order.begin();}
+
 
     public:
+
 
       /**
       * @brief Construct an argument.
@@ -167,8 +169,8 @@ namespace arg {
       */
       Arg(
         const config& c,
-        const std::function<std::string(const std::string&)>& handler = [](const std::string& value){return value;},
-        const std::function<std::string(const std::string&)>& m_handler = [](const std::string& value){return value;}
+        const std::function<std::string(const std::string_view&)>& handler = [](const std::string_view& value){return std::string(value);},
+        const std::function<std::string(const std::string_view&)>& m_handler = [](const std::string_view& value){return std::string(value);}
       ) {
 
         long_name = c.l_name;
@@ -195,13 +197,14 @@ namespace arg {
         positional = c.position;
       }
 
+
       /**
        * @brief Digest arguments.
        * @param args: The list of command line arguments.
        * @param x: The current position within the list.
        * @returns: Whether the current argument was consumed.
        */
-      bool digest(const std::vector<std::string>& args, size_t& x) {
+      bool digest(const shared::vector& args, uint_fast8_t& x) {
 
         // Get the value
         const auto& key = args[x];
@@ -223,7 +226,7 @@ namespace arg {
         // If we have a short name, digest each character.
         // There is no support for values for short names.
         else if (key[0] == '-' && key[1] != '-' && key.length() > 2) {
-          for (size_t x = 1; x < key.length(); ++x) {
+          for (uint_fast8_t x = 1; x < key.length(); ++x) {
             if (key[x] == short_name[1]) {
               increment();
             }
@@ -268,11 +271,15 @@ namespace arg {
       }
 
 
-      // Update the argument for any post-parsing.
+      /**
+       * @brief Update configurations.
+       * @info This function is used for arguments that depend on the value of other arguments.
+       */
       void update() {
         if (mandatory && !set) throw std::runtime_error("Missing mandatory argument: " + long_name);
         value = parser(value); modifier = m_parser(modifier);
       }
+
 
       /**
        * @brief Get the help text for the argument.
@@ -304,42 +311,71 @@ namespace arg {
         return help_text.str();
       }
 
-      // Check if the current level is underneath the provided key.
-      const bool under(const std::string& val) const {return level(value) < level(val);}
 
-      // Check if the current level is at the val, or above it.
-      const bool meets(const std::string& val) const {return level(value) >= level(val);}
-
-      // Get the value.
+      /**
+       * @brief Get a mutable reference to the stored value.
+       * @returns The reference.
+       * @throws std::runtime_error if the argument is a list, use get_list() instead.
+       */
       std::string& get() {
-        if (mandatory && !set) throw std::runtime_error("Missing mandatory argument: " + long_name);
-        if (list)
-          throw std::runtime_error("Not a discrete value: " + long_name);
+        if (list) throw std::runtime_error("Not a discrete value: " + long_name);
+        return value;
+      }
+      const std::string& get() const {
+        if (list) throw std::runtime_error("Not a discrete value: " + long_name);
         return value;
       }
 
-      std::string& mod() {
-        if (mandatory && !set) throw std::runtime_error("Missing mandatory argument: " + long_name);
-        return modifier;
-      }
+      /**
+       * @brief Get a mutable reference to the stored modifier.
+       * @returns The modifier.
+       * @info This function returns an empty string if a modifier does not exist or is allowed.
+       */
+      std::string& mod() {return modifier;}
+      const std::string& mod() const {return modifier;}
 
+
+      /**
+       * @brief Return whether the argument is a list.
+       * @returns Whether the argument accepts multiple values.
+       */
       const bool& is_list() const {return list;}
 
-      // Get the level of the argument.
-      size_t level() const {return level(value);}
 
-      // Get the list of each value.
-      std::set<std::string>& get_list() {
-        if (mandatory && !set) throw std::runtime_error("Missing mandatory argument: " + long_name);
+      /**
+       * @brief Return the current level of the argument.
+       * @returns The current level.
+       */
+      uint_fast8_t level() const {return level(value);}
+
+
+      /**
+       * @brief Return a mutable reference to each unique value passed to the argument.
+       * @returns The set.
+       * @throws std::runtime_error if the argument is not a list.
+       */
+      shared::set& get_list() {
+        if (!list) throw std::runtime_error("Argument must be a list: " + long_name);
+        return list_val;
+      }
+      const shared::set& get_list() const {
         if (!list) throw std::runtime_error("Argument must be a list: " + long_name);
         return list_val;
       }
 
-      // Get the list of each value.
-      std::set<std::string>& get_valid() {return valid;}
+      /**
+       * @brief Return a set of all valid values.
+       * @returns The set.
+       */
+      shared::set& get_valid() {return valid;}
+      const shared::set& get_valid() const {return valid;}
 
+      /**
+       * @brief Return all values paired with their modifiers.
+       * @returns A vector of pairs.
+       * @throws std::runtime_error if the argument is not a list, or doesn't allow modifiers.
+       */
       std::vector<std::pair<std::string, std::string>> get_modlist() const {
-        if (mandatory && !set) throw std::runtime_error("Missing mandatory argument: " + long_name);
         if (!list) throw std::runtime_error("Argument is not a list: " + long_name);
         if (custom != custom_policy::MODIFIABLE) throw std::runtime_error("List must allowed modifiers!");
 
@@ -354,14 +390,32 @@ namespace arg {
         return ret;
       }
 
-      // Get the position of the argument.
-      const size_t& position() const {return positional;}
+      /**
+       * @brief Return the position of the argument.
+       * @returns The mandatory level.
+       */
+      const uint_fast8_t& position() const {return positional;}
 
-      // For booleans.
-      operator bool() const {
-        if (mandatory && !set) throw std::runtime_error("Missing mandatory argument: " + long_name);
-        return level() != 0;
-      }
+      /**
+       * @brief Return whether the argument was set.
+       * @returns Whether the value is greater than the default (IE unset).
+       */
+      operator bool() const {return level() != 0;}
+
+      /**
+       * @brief Check if the current value is underneath the provided.
+       * @param val: The value to check.
+       * @returns Whether the current value is less than the provided.
+       */
+      const bool operator < (const std::string_view& val) const {return level(value) < level(val);}
+
+
+      /**
+       * @brief Check if the current value meets the provided.
+       * @param val: The value to check.
+       * @returns Whether the current value meets the provided.
+       */
+      const bool operator >= (const std::string_view& val) const {return level(value) >= level(val);}
   };
 
 
@@ -369,19 +423,18 @@ namespace arg {
   extern std::map<std::string, arg::Arg> switches;
 
   // Unknown arguments.
-  extern std::vector<std::string> unknown;
+  extern shared::vector unknown;
 
   // The arguments.
-  extern std::vector<std::string> args;
-
+  extern shared::vector args;
 
   // Helper functions.
   inline const Arg& at(const std::string& key) {return switches.at(key);}
   inline std::string& get(const std::string& key) {return switches.at(key).get();}
   inline std::string& mod(const std::string& key) {return switches.at(key).mod();}
-  inline size_t level(const std::string& key) {return switches.at(key).level();}
-  inline std::set<std::string>& list(const std::string& key) {return switches.at(key).get_list();}
-  inline std::set<std::string>& valid(const std::string& key) {return switches.at(key).get_valid();}
+  inline uint_fast8_t level(const std::string& key) {return switches.at(key).level();}
+  inline shared::set& list(const std::string& key) {return switches.at(key).get_list();}
+  inline shared::set& valid(const std::string& key) {return switches.at(key).get_valid();}
   inline const bool& is_list(const std::string& key) {return switches.at(key).is_list();}
   inline std::vector<std::pair<std::string, std::string>> modlist(const std::string& key) {return switches.at(key).get_modlist();}
 

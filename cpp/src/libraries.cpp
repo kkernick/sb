@@ -15,83 +15,82 @@ namespace libraries {
   // Directories, so we can mount them after discovering dependencies.
   lib_t directories = {};
 
-  inline std::filesystem::path cache_name(const std::string_view& library) {
-    auto name = std::string(library);
-    std::replace(name.begin(), name.end(), '/', '.');
-    name = strip(name, "*");
-    auto cache = std::filesystem::path(data) / "sb" / "cache" / std::string(name + ".lib.cache");
+  // Get the name for a cache.
+  inline std::filesystem::path cache_name(std::string library) {
+    std::replace(library.begin(), library.end(), '/', '.');
+    library = strip<char>(library, '*');
+    auto cache = std::filesystem::path(data) / "sb" / "cache" / std::string(library + ".lib.cache");
     return cache;
   }
 
 
-  lib_t parse_ldd(const std::string_view& library, const std::string_view& directory) {
+  void parse_ldd(lib_t& required, const std::string& library, const std::string_view& directory) {
     lib_t libraries;
 
-    if (!std::filesystem::exists(library)) return libraries;
-    if (read_file<std::string>(library, head<4>) != "\0x7fELF")
-      return libraries;
+    if (!std::filesystem::exists(library)) return;
 
-    auto cache = cache_name(library);
-    if (std::filesystem::exists(cache)) return read_file<set>(cache, setorize);
-    std::filesystem::create_directories(cache.parent_path());
+    auto cache = cache_name(std::string(library));
+    if (std::filesystem::exists(cache))
+      libraries = read_file<set>(cache, setorize);
+    else {
+      if (read_file<std::string>(library, head<4>) != "\177ELF") return;
+      std::filesystem::create_directories(cache.parent_path());
 
-    // If this is a library, add it.
-    if (std::filesystem::exists(library) && library.contains("/lib/") && directory == "") {
-      libraries.emplace(library);
-    }
+      // If this is a library, add it.
+      if (std::filesystem::exists(library) && library.contains("/lib/") && directory == "") {
+        libraries.emplace(library);
+      }
 
+      // LDD it!
+      auto output = exec<std::string>({"ldd", library}, dump, STDOUT);
 
-    // LDD it!
-    auto output = exec<std::string>({"ldd", library}, dump, STDOUT);
+      // Parse it in a single pass, rather than splitting.
+      for (size_t x = output.find('/'); x != std::string::npos; x = output.find('/', x + 1)) {
+        auto end = output.find(' ', x);
+        if (end < output.size()) {
+          auto shared_lib = output.substr(x, end - x);
 
-    // Parse it in a single pass, rather than splitting.
-    for (size_t x = output.find('/'); x != std::string::npos; x = output.find('/', x + 1)) {
-      auto end = output.find(' ', x);
-      if (end < output.size()) {
-        auto shared_lib = output.substr(x, end - x);
+          // Normalize.
+          shared_lib = std::regex_replace(shared_lib, std::regex("lib64"), "lib");
+          if (!shared_lib.starts_with("/usr/lib/")) {
+            if (shared_lib.starts_with("/lib/")) shared_lib.insert(0, "/usr");
+            else if (shared_lib.starts_with("/")) shared_lib.insert(0, "/usr/lib");
+          }
 
-        // Normalize.
-        shared_lib = std::regex_replace(shared_lib, std::regex("lib64"), "lib");
-        if (!shared_lib.starts_with("/usr/lib/")) {
-          if (shared_lib.starts_with("/lib/")) shared_lib.insert(0, "/usr");
-          else if (shared_lib.starts_with("/")) shared_lib.insert(0, "/usr/lib");
+          // Avoid resolving libraries in the directory itself.
+          if (!directory.empty()) {
+            if (shared_lib.starts_with(directory)) continue;
+          }
+
+          if (shared_lib.contains("..")) shared_lib = "/usr/lib/" + shared_lib.substr(shared_lib.rfind('/') + 1);
+
+          // Ensure it's actually here.
+          if (std::filesystem::exists(shared_lib)) libraries.emplace(shared_lib);
         }
+      }
 
-        // Avoid resolving libraries in the directory itself.
-        if (!directory.empty()) {
-          if (shared_lib.starts_with(directory)) continue;
+      if (!libraries.empty()) {
+        auto file = std::ofstream(cache);
+        if (file.is_open()) {
+          file << join(libraries, ' ');
+          file.close();
         }
-
-        if (shared_lib.contains("..")) shared_lib = "/usr/lib/" + shared_lib.substr(shared_lib.rfind('/') + 1);
-
-        // Ensure it's actually here.
-        if (std::filesystem::exists(shared_lib)) libraries.emplace(shared_lib);
+        else log({"Failed to write cache file:", cache.string()});
       }
     }
-
-    if (!libraries.empty()) {
-      auto file = std::ofstream(cache);
-      if (file.is_open()) {
-        file << join(libraries, ' ');
-        file.close();
-      }
-      else log({"Failed to write cache file:", cache.string()});
-    }
-
-    return libraries;
+    required.merge(libraries);
   }
 
 
   // Get all dependencies for a library/binary.
-  void get(lib_t& libraries, const std::string_view& library, const std::string& directory) {
-    std::string sub_dir = directory;
+  void get(lib_t& libraries, const std::string_view& library, std::string directory) {
     lib_t local = {};
 
     // Our cached definitions
     auto cache = cache_name(std::string(library));
 
     // If the cache exists, and we don't need to update, use it.
-    if (std::filesystem::exists(cache) && arg::at("update").under("cache")) {
+    if (std::filesystem::exists(cache)) {
       libraries.merge(read_file<set>(cache, setorize));
       return;
     }
@@ -105,24 +104,13 @@ namespace libraries {
     // Find all shared libraries in dir.
     else if (std::filesystem::is_directory(library)) {
       local.merge(exec<lib_t>({"find", library, "-type", "f,l", "-executable"}, fd_splitter<lib_t, '\n'>, STDOUT));
-      sub_dir = library;
+      directory = library;
     }
 
     // Just use the direct dependencies of the library
     else local.emplace(library);
 
-    std::vector<std::future<lib_t>> futures;
-    futures.reserve(local.size());
-    for (const auto& lib : local) {
-      if (arg::at("update").meets("cache")) {
-        cache = cache_name(lib);
-        if (std::filesystem::exists(cache)) std::filesystem::remove(cache);
-      }
-      futures.emplace_back(pool.submit_task([lib, sub_dir]{return parse_ldd(lib, sub_dir);}));
-    }
-
-    for (auto& future : futures)
-      local.merge(future.get());
+    batch(parse_ldd, local, local, directory);
 
     if (!local.empty()) {
       auto file = std::ofstream(cache);
@@ -141,14 +129,14 @@ namespace libraries {
     std::filesystem::create_directory(share_dir);
 
     const auto app_dir = std::filesystem::path(arg::get("sof")) / application / "lib";
-    if (std::filesystem::is_directory(app_dir) && arg::at("update").under("libraries")) return;
+    if (std::filesystem::is_directory(app_dir) && arg::at("update") < "libraries") return;
     std::filesystem::create_directories(app_dir);
 
     vector vec; vec.reserve(libraries.size());
     vec.insert(vec.end(), std::make_move_iterator(libraries.begin()), std::make_move_iterator(libraries.end()));
 
     // Write Lambda. We batch writes to tremendously speed up initial SOF generation.
-    auto write_library = [&share_dir, &app_dir, &vec](const size_t& x) {
+    auto write_library = [&share_dir, &app_dir, &vec](const uint_fast32_t& x) {
       const std::string& lib = vec[x];
 
       // We only write normalized library files, directories are mounted
@@ -197,44 +185,12 @@ namespace libraries {
     futures.wait();
   }
 
+  // Symlink libraries
   void symlink(vector& command) {
-
-    // Mount the SOF and link it to the other locations.
     extend(command, {
       "--symlink", "/usr/lib", "/lib64",
       "--symlink", "/usr/lib", "/lib",
       "--symlink", "/usr/lib", "/usr/lib64",
     });
-  }
-
-  void resolve(const lib_t& required, const std::string_view& program, const std::string& lib_cache, const std::string_view& hash) {
-    log({"Resolving SOF"});
-
-    // Generate the list of invalid entries. Because
-    // we only read to the set, there is no risk in sharing it between
-    // the threads, so no mutex required.
-    set exclusions = {};
-    for (const auto& [lib, mod] : arg::modlist("libraries")) {
-      if (mod == "x") {
-        if (lib.contains("*"))
-          exclusions.merge(shared::wildcard(lib, "/usr/lib", {"-maxdepth", "1", "-mindepth", "1", "-type", "f,l", "-executable"}));
-        else if (std::filesystem::is_directory(lib) && directories.contains(lib))
-          directories.erase(lib);
-        else exclusions.emplace(lib);
-      }
-    }
-
-    lib_t trimmed = {};
-    for (const auto& lib : required) {
-      if (!exclusions.contains(lib)) trimmed.emplace(lib);
-    }
-
-    libraries::setup(trimmed, program);
-    auto lib_out = std::ofstream(lib_cache);
-    lib_out << hash << '\n';
-    for (const auto& arg : trimmed) {
-      lib_out << arg << ' ';
-    }
-    lib_out.close();
   }
 }

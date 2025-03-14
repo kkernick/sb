@@ -1,3 +1,4 @@
+#pragma once
 /**
  * @brief Binary Dependency Resolution
  * This header contains the functions needed to determine the dependencies needed for
@@ -17,12 +18,12 @@ namespace binaries {
 
   /**
    * @brief Parse a binary to determine dependencies.
+   * @param required: The binary accumulator.
    * @param path: The path to the binary.
    * @param libraries: The current list of libraries.
-   * @returns A set of all binaries used by the program, including itself.
-   * @info libraries is updated.
+   * @info libraries are updated.
    */
-  void parse(bin_t& required, const std::string_view& p, libraries::lib_t& libraries);
+  void parse(bin_t& required, std::string path, libraries::lib_t& libraries);
 
   /**
    * @brief Setup the sandbox for the used binaries.
@@ -32,5 +33,9 @@ namespace binaries {
    */
    void setup(const bin_t& binaries, shared::vector& command);
 
+   /**
+    * @brief Symlink to /usr/bin
+    * @param command: The command to append to.
+    */
    void symlink(shared::vector& command);
 }

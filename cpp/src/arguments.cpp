@@ -194,11 +194,11 @@ namespace arg {
       .help="Create a script file for the application",
       },
 
-      [](const std::string& v) -> std::string {
+      [](const std::string_view& v) -> std::string {
         if (v == "tmp") return "/tmp/sb";
         else if (v == "data") return data + "/sb";
         else if (v == "zram") return "/run/sb";
-        return v;
+        return std::string(v);
       }
     }},
     {"fs", {arg::config{
@@ -207,10 +207,11 @@ namespace arg {
       .custom = custom_policy::MODIFIABLE,
       .help="Create a script file for the application",
       },
-      [](const std::string& v) -> std::string {return v;},
-      [](const std::string& v) -> std::string {
+      [](const std::string_view& v) -> std::string {return std::string(v);},
+      [](const std::string_view& v) -> std::string {
         if (switches.contains("cmd") && !v.starts_with('/'))
-          return std::filesystem::path(data) / "sb" / std::filesystem::path(arg::get("cmd")).filename() / v;        return v;
+          return std::filesystem::path(data) / "sb" / std::filesystem::path(arg::get("cmd")).filename() / v;
+        return std::string(v);
       }
     }},
   };
@@ -239,7 +240,7 @@ namespace arg {
     }
 
     // Digest the arguments.
-    for (size_t x = 0; x < args.size(); ++x) {
+    for (uint_fast8_t x = 0; x < args.size(); ++x) {
       bool match = false;
       for (auto& [key, value] : switches) {
         try {

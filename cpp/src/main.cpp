@@ -1,31 +1,30 @@
 #include "arguments.hpp"
 #include "generators.hpp"
-#include "shared.hpp"
 #include "syscalls.hpp"
 
-#include <csignal>
 #include <cstring>
-#include <filesystem>
 #include <fstream>
-#include <fcntl.h>
-#include <sys/inotify.h>
 #include <sys/wait.h>
-#include <filesystem>
 
 using namespace shared;
 
-int proxy_resolved_wd = -1;
+// The WD of the proxy
+int proxy_pid = -1;
 
+
+// Cleanup children.
 static void child_handler(int sig) {
     pid_t pid;
     int status;
     while((pid = waitpid(-1, &status, WNOHANG)) > 0);
 }
 
+
+// Cleanup the sandbox.
 static void cleanup(int sig) {
   // Please die.
-  if (proxy_resolved_wd != -1) {
-    kill(proxy_resolved_wd, SIGTERM);
+  if (proxy_pid != -1) {
+    kill(proxy_pid, SIGTERM);
     while (wait(NULL) != -1 || errno == EINTR);
   }
 
@@ -40,6 +39,8 @@ static void cleanup(int sig) {
     std::filesystem::remove(sof + "/sb.lock");
 }
 
+
+// Main
 int main(int argc, char* argv[]) {
   struct sigaction sa;
   sigemptyset(&sa.sa_mask);
@@ -53,7 +54,7 @@ int main(int argc, char* argv[]) {
   sigaction(SIGABRT, &sa, NULL);
 
   // Parse those args.
-  arg::args = std::vector<std::string>(argv + 1, argv + argc);
+  arg::args = vector(argv + 1, argv + argc);
   auto parse_args = []() {
     if (arg::args.size() > 0 && arg::args[0].ends_with(".sb")) {
       auto program = arg::args[0];
@@ -66,15 +67,15 @@ int main(int argc, char* argv[]) {
         // Remove the sb
         arg::args.erase(arg::args.begin());
 
-        for (auto& arg : arg::args) arg = trim(arg, "'\"");
+        for (auto& arg : arg::args) arg = trim<std::string_view>(arg, "'\"");
 
         auto arg_spot = std::find(arg::args.begin(), arg::args.end(), "$@");
         if (arg_spot != arg::args.end()) arg::args.erase(arg_spot);
 
-        std::set<std::string> ignore = {"sb", program, "--command", "-C"};
+        set ignore = {"sb", program, "--command", "-C"};
         for (const auto& arg : old) {
           if (!ignore.contains(arg))
-            arg::args.emplace_back(trim(arg, "'\""));
+            arg::args.emplace_back(trim<std::string_view>(arg, "'\""));
         }
       }
     }
@@ -84,7 +85,7 @@ int main(int argc, char* argv[]) {
 
   auto program = std::filesystem::path(arg::get("cmd")).filename().string();
 
-
+  // If we refresh, we delete libraries and caches.
   if (arg::at("refresh") && arg::at("sof")) {
     auto sof = std::filesystem::path(arg::get("sof")) / program / "lib";
 
@@ -95,6 +96,10 @@ int main(int argc, char* argv[]) {
     if (std::filesystem::is_directory(proxy)) std::filesystem::remove_all(proxy);
     else log({"Proxy SOF doesn't exist at:", proxy.string()});
     arg::get("update") = "libraries";
+  }
+
+  if (arg::get("update") == "cache") {
+    std::filesystem::remove_all(std::filesystem::path(data) / "sb" / "cache");
   }
 
   // Create a script file and exit.
@@ -153,14 +158,13 @@ int main(int argc, char* argv[]) {
   else {
     instance_dir.create();
     log({"Initializing xdg-dbus-proxy..."});
-    generate::flatpak_info(program, std::filesystem::path(instance_dir.get_path()).filename(), work_dir);
+    generate::flatpak_info(program, instance_dir.get_name(), work_dir);
     proxy_pair = generate::xdg_dbus_proxy(program, work_dir);
   }
 
   // The main program command.
-  std::vector<std::string> command;
+  vector command;
   command.reserve(300);
-
   extend(command, {"bwrap", "--new-session", "--die-with-parent", "--clearenv", "--unshare-uts"});
 
   if (!arg::at("hostname")) {
@@ -189,9 +193,8 @@ int main(int argc, char* argv[]) {
     });
   }
 
-  genv(command, "XDG_RUNTIME_DIR");
-  genv(command, "XDG_CURRENT_DESKTOP");
-  genv(command, "DESKTOP_SESSION");
+  // Add environment variables.
+  batch(genv, command, {"XDG_RUNTIME_DIR", "XDG_CURRENT_DESKTOP", "DESKTOP_SESSION"});
 
   // If we are using a shell, create a dummy passwd file.
   if (arg::at("shell")) {
@@ -201,7 +204,7 @@ int main(int argc, char* argv[]) {
     out.close();
     extend(command, {
       "--ro-bind", passwd, "/etc/passwd",
-      "--setenv", "SHELL", "/usr/bin/sh"
+      "--setenv", "SHELL", "/usr/bin/sh",
     });
   }
 
@@ -209,9 +212,9 @@ int main(int argc, char* argv[]) {
   if (arg::at("hardened_malloc")) extend(command, {"--ro-bind", work_dir.sub("ld.so.preload"), "/etc/ld.so.preload"});
 
   // Various environment variables; we don't want to cache these.
-  if (arg::get("qt") == "kf6") genvs(command, {"KDE_FULL_SESSION", "KDE_SESSION_VERSION"});;
-  if (arg::at("gui")) genvs(command, {"XDG_SESSION_DESKTOP", "WAYLAND_DISPLAY"});
-  if (arg::at("locale")) genvs(command, {"LANG", "LANGUAGE", "LC_ALL"});
+  if (arg::get("qt") == "kf6") batch(genv, command, {"KDE_FULL_SESSION", "KDE_SESSION_VERSION"});
+  if (arg::at("gui")) batch(genv, command, {"XDG_SESSION_DESKTOP", "WAYLAND_DISPLAY"});
+  if (arg::at("locale")) batch(genv, command, {"LANG", "LANGUAGE", "LC_ALL"});
 
   // Setup the bwrap json output, and mount for portals.
   int bwrap_fd = -1;
@@ -241,7 +244,7 @@ int main(int argc, char* argv[]) {
   }
 
   // Add strace if we need to.
-  if (arg::get("seccomp") == "strace" && arg::at("verbose").under("errors")) arg::get("verbose") = "errors";
+  if (arg::get("seccomp") == "strace" && arg::at("verbose") < "errors") arg::get("verbose") = "errors";
 
   // Lock and Generate
   auto generate_command = [&lock_file, &program, &command]() {
@@ -261,7 +264,7 @@ int main(int argc, char* argv[]) {
 
 
   //Passthrough any and all files.
-  std::vector<std::string> post = {};
+  vector post = {};
   auto passthrough = [&command](const std::string& path, const std::string& policy) {
     if (arg::at("file_passthrough") || !arg::list("files").empty()) {
 
@@ -328,9 +331,9 @@ int main(int argc, char* argv[]) {
     // Strace just prepends itself before running the command.
     // --shell=debug --strace will just debug shell; why would you
     // need to strace the debug shell?
-    if (arg::at("verbose").meets("error")) {
+    if (arg::at("verbose") >= "error") {
       extend(command, {"strace", "-ffy"});
-      if (arg::at("verbose").under("strace")) command.emplace_back("-Z");
+      if (arg::at("verbose") < "strace") command.emplace_back("-Z");
 
     }
     command.emplace_back(arg::get("cmd"));
@@ -344,7 +347,7 @@ int main(int argc, char* argv[]) {
   // Do this before our auxiliary wait.
   if (std::get<0>(proxy_pair) != -1) {
     try {
-      proxy_resolved_wd = std::get<1>(proxy_pair).get();
+      proxy_pid = std::get<1>(proxy_pair).get();
     }
     catch (std::future_error&) {}
   }

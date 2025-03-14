@@ -1,19 +1,19 @@
 #include "syscalls.hpp"
-#include "shared.hpp"
 #include "arguments.hpp"
 
-#include <fstream>
 #include <seccomp.h>
+#include <fstream>
 #include <cassert>
 
 using namespace shared;
 
 namespace syscalls {
 
+  // Create a filter.
   std::string filter(const std::string& application) {
 
     // Don't make a filter if we aren't supposed to.
-    if (arg::at("seccomp").under("permissive")) return "";
+    if (arg::at("seccomp") < "permissive") return "";
 
     // Get our files.
     auto local_dir = std::filesystem::path(data) / "sb" / application;
@@ -38,7 +38,7 @@ namespace syscalls {
     auto content = read_file<vector>(syscall_file, vectorize);
     if (content.size() > 1) {
       auto hash = std::string(arg::get("seccomp") == "enforcing" ? "E" : "P") + shared::hash(content[1]);
-      if (hash == init<vector>(split, content[0], ' ', false)[1] && std::filesystem::exists(bpf) && arg::at("update").under("cache")) {
+      if (hash == init<vector>(split, content[0], ' ', false)[1] && std::filesystem::exists(bpf) && arg::at("update") < "cache") {
         log({"Using cached SECCOMP filter"});
         return bpf;
       }
@@ -95,7 +95,10 @@ namespace syscalls {
   }
 
 
-  void update_policy(const std::string& application, const std::vector<std::string> &straced) {
+  // Update the policy based on strace output.
+  void update_policy(const std::string& application, const vector &straced) {
+
+    // Get the syscalls from the output.
     set syscalls;
     for (const auto& line : straced) {
       auto s = init<vector>(splits, line, " \t", false);

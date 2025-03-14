@@ -1,11 +1,7 @@
 #include "binaries.hpp"
-#include "shared.hpp"
-#include "libraries.hpp"
 #include "arguments.hpp"
 
-#include <filesystem>
 #include <regex>
-#include <map>
 #include <fstream>
 
 using namespace shared;
@@ -17,17 +13,18 @@ namespace binaries {
   set builtins = {"printf", "echo"};
 
   // Parse the commands used in a binary.
-  void parse(bin_t& required, const std::string_view& p, libraries::lib_t& libraries) {
+  void parse(bin_t& required, std::string path, libraries::lib_t& libraries) {
 
     // Required binaries
     bin_t local = {};
-    auto path = std::string(p);
 
     // Don't do work more than once
     if (path.empty() || searched.contains(path)) return;
     searched.emplace(path);
 
     // Get libraries dependencies for libraries.
+    // We don't check the ELF header since libraries already does that,
+    // we only do it later because we already have the file opened.
     if (path.contains("/lib/")) {
       libraries::get(libraries, path);
       return;
@@ -45,9 +42,9 @@ namespace binaries {
     if (path.starts_with("/bin/")) path = path.insert(0, "/usr");
     local.emplace(path);
 
-    // Get the file contents.
-    auto contents = read_file<std::string>(path, dump);
-    if (contents.empty()) return;
+    // Grab the header, so we don't ready the whole library if it's an ELF.
+    auto header = read_file<std::string>(path, head<4>);
+    if (header.empty()) return;
 
     // Shell script
     // Shell scripts are parsed line-by-line, tokenizing the string and extracting
@@ -59,7 +56,10 @@ namespace binaries {
     // resolve /usr/lib/{name}/electron, and get all the dependencies involved,
     // which means that the --electron-version flag is entirely unnecessary since
     // we can parse the required files straight from the shell script.
-    if (contents.starts_with("#!")) {
+    if (header.starts_with("#!")) {
+
+      // Now dump the entire file.
+      auto contents = read_file<std::string>(path, dump);
 
       // Check whether we've cached it.
       std::string name = path;
@@ -68,9 +68,9 @@ namespace binaries {
       auto cache = std::filesystem::path(data) / "sb" / "cache" / std::string(name + ".bin.cache");
 
       // If the cache exists, and we don't need to update, use it.
-      if (std::filesystem::exists(cache) && arg::at("update").under("cache")) {
+      if (std::filesystem::exists(cache) && arg::at("update") < "cache") {
         local = read_file<bin_t>(cache, setorize);
-        batch(parse, required, local, libraries);
+        single_batch(parse, required, local, libraries);
       }
       else {
         std::filesystem::create_directories(cache.parent_path());
@@ -124,10 +124,10 @@ namespace binaries {
           return exec<std::string>({"echo", value}, one_line, STDOUT);
         };
 
-        std::vector<std::string> tokens;
-        std::set<std::string> discovered;
+        vector tokens;
+        set discovered;
 
-        auto tokenize = [&variables, &resolve_environment, &local, &required, &libraries, &tokens, &discovered](const size_t& x) {
+        auto tokenize = [&variables, &resolve_environment, &local, &required, &libraries, &tokens, &discovered](const uint_fast8_t& x) {
           auto token = tokens[x];
 
           // If we already know it's garbage, don't bother trying again.
@@ -141,7 +141,7 @@ namespace binaries {
           if (token.empty() || token[0] == '-') return;
 
           // Ask which if it knows what this token is.
-          auto binary = trim(std::filesystem::exists(token) ? token : token.insert(0, "/usr/bin/"), "\n\t ");
+          auto binary = trim<std::string_view>(std::filesystem::exists(token) ? token : token.insert(0, "/usr/bin/"), "\n\t ");
 
           // If it does, add it and resolve it
           if (std::filesystem::exists(binary) && binary.contains("/bin/")) {
@@ -149,7 +149,7 @@ namespace binaries {
             auto base = std::filesystem::path(binary).filename();
             if (discovered.contains(base)) return;
             discovered.emplace(base);
-            auto parsed = init<binaries::bin_t>(parse, binary, libraries);
+            auto parsed = rinit<binaries::bin_t>(parse, binary, libraries);
 
             local.emplace(binary);
             required.merge(parsed);
@@ -160,17 +160,17 @@ namespace binaries {
 
         // Get the shebang from the top.
         auto lines = init<vector>(split, contents, '\n', false);
-        auto shebang = strip(lines[0], "#! \t\n");
+        auto shebang = strip<std::string_view>(lines[0], "#! \t\n");
         local.emplace(shebang);
 
         if (shebang.starts_with("/bin/")) shebang = shebang.insert(0, "/usr");
         parse(required, shebang, libraries);
 
         // Go through the other lines.
-        for (size_t x = 0; x < lines.size(); ++x) {
+        for (uint_fast16_t x = 0; x < lines.size(); ++x) {
 
           // Trim whitespace
-          const auto& line = trim(lines[x], " \t");
+          const auto& line = trim<std::string_view>(lines[x], " \t");
 
           // Remove blanks or empties.
           if (line.empty() || line[0] == '#') continue;
@@ -200,7 +200,7 @@ namespace binaries {
     }
 
     // Actual executables have their shared libraries parsed.
-    else if (contents.starts_with("\177ELF")) libraries::get(libraries, path);
+    else if (header == "\177ELF") libraries::get(libraries, path);
 
     // Merge and return.
     required.merge(local);
@@ -210,21 +210,20 @@ namespace binaries {
   // Setup the binaries.
   void setup(const bin_t& binaries, vector& command) {
     extend(command, {"--dir", "/usr/bin"});
-    for (auto binary : binaries) {
+    for (const auto& binary : binaries) {
       if (std::filesystem::is_symlink(binary)) {
         auto dest = std::filesystem::read_symlink(binary).string();
 
         if (!dest.contains('/')) dest.insert(0, "/usr/bin/");
         else if (dest.starts_with("/bin")) dest.insert(0, "/usr");
 
-        if (binary.starts_with("/bin")) binary.insert(0, "/usr");
         extend(command, {
           "--ro-bind", dest, dest,
-          "--symlink", dest, binary
+          "--symlink", dest, binary.starts_with("/bin") ? "/usr" + binary : binary
         });
       }
       else {
-        if (binary.contains("bin")) extend(command, {"--ro-bind", binary, "/usr/bin/" + std::filesystem::path(binary).filename().string()});
+        if (binary.contains("bin")) extend(command, {"--ro-bind", binary, "/usr/bin/" + binary.substr(binary.rfind('/'))});
         else extend(command, {"--ro-bind", binary, binary});
       }
     }

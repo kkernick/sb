@@ -16,7 +16,7 @@ fi
 
 # Build
 if [[ "${NO_COMPILE}" != "no" ]]; then
-  make generic
+  make
 fi
 
 # Export so our built version is used.
@@ -46,7 +46,7 @@ for PROFILE in $EXAMPLES; do
 
   sleep 1
 
-  ARGS="--time-unit microsecond --min-runs 20 --shell=none"
+  ARGS="--time-unit microsecond --min-runs 10 --shell=none"
   program=$(sed '2q;d' "$ROOT/$subdir/examples/$PROFILE" | awk '{print $2}')
 
 

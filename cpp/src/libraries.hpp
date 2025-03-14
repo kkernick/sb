@@ -1,3 +1,4 @@
+#pragma once
 /**
  * @brief Shared-Library Dependency Resolution
  * This header contains all the relevant functions for resolving shared-libraries needed
@@ -8,9 +9,10 @@
  * the two implementations are comparable on speed on library resolution.
  */
 
-#pragma once
-
 #include "shared.hpp"
+#include "arguments.hpp"
+
+#include <fstream>
 
 namespace libraries {
 
@@ -25,7 +27,7 @@ namespace libraries {
    * @note library can be any executable file, such as binaries in /usr/bin, but only
    * shared-libraries in /usr/lib will be included in the return.
    */
-   void get(lib_t& libraries, const std::string_view& library, const std::string& directory = "");
+   void get(lib_t& libraries, const std::string_view& library, std::string directory = "");
 
   /**
    * @brief Setup an SOF directory
@@ -43,7 +45,36 @@ namespace libraries {
     * @info This function symlinks /lib /lib64 and /usr/lib64 to /usr/lib, where
     * the SOF is mounted
     */
-   void symlink(shared::vector& command);
+  void symlink(shared::vector& command);
 
-   void resolve(const lib_t& required, const std::string_view& program, const std::string& lib_cache, const std::string_view& hash);
+  template <class C> void resolve(const C& required, const std::string_view& program, const std::string& lib_cache, const std::string_view& hash) {
+    shared::log({"Resolving SOF"});
+
+    // Generate the list of invalid entries. Because
+   // we only read to the set, there is no risk in sharing it between
+   // the threads, so no mutex required.
+    shared::set exclusions = {};
+    for (const auto& [lib, mod] : arg::modlist("libraries")) {
+      if (mod == "x") {
+        if (lib.contains("*"))
+          exclusions.merge(shared::wildcard(lib, "/usr/lib", {"-maxdepth", "1", "-mindepth", "1", "-type", "f,l", "-executable"}));
+        else if (std::filesystem::is_directory(lib) && directories.contains(lib))
+          directories.erase(lib);
+        else exclusions.emplace(lib);
+      }
+    }
+
+    lib_t trimmed = {};
+    for (const auto& lib : required) {
+      if (!exclusions.contains(lib)) trimmed.emplace(lib);
+    }
+
+    libraries::setup(trimmed, program);
+    auto lib_out = std::ofstream(lib_cache);
+    lib_out << hash << '\n';
+    for (const auto& arg : trimmed) {
+      lib_out << arg << ' ';
+    }
+    lib_out.close();
+  }
 }

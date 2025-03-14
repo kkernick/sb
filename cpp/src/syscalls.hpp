@@ -1,3 +1,4 @@
+#pragma once
 /**
  * @brief Syscall Filter Generation
  * This header includes the filter() command for generating a SECCOMP-BPF filter to restrict syscall
@@ -10,10 +11,8 @@
  * that offering syscalls on the command line are not supported. Secondly, while portability
  * of the application folders isn't a must, numerical syscalls make the files nebulous and system-specific.
  */
-#pragma once
 
-#include <string>
-#include <vector>
+#include "shared.hpp"
 
 namespace syscalls {
 
@@ -33,5 +32,5 @@ namespace syscalls {
    * will run the program with strace, capture STDERR (The channel strace logs to),
    * and then parse that output to update the file.
    */
-  void update_policy(const std::string& application, const std::vector<std::string> &straced);
+  void update_policy(const std::string& application, const shared::vector &straced);
 }

@@ -1,13 +1,9 @@
 #include "generators.hpp"
-#include "shared.hpp"
 #include "arguments.hpp"
-#include "libraries.hpp"
 #include "binaries.hpp"
 
 #include <cstring>
-#include <filesystem>
 #include <fstream>
-#include <stdexcept>
 
 using namespace shared;
 
@@ -33,6 +29,7 @@ namespace generate {
     out.close();
     exec({"chmod", "+x", binary});
   }
+
 
   // Generate the desktop file
   void desktop_entry(const std::string& name) {
@@ -66,13 +63,14 @@ namespace generate {
     local_file.close();
   }
 
+
   // Generate the .flatpak-info file
-  void flatpak_info(const std::string& program, const std::string& instance, const TemporaryDirectory& work_dir) {
+  void flatpak_info(const std::string_view& program, const std::string_view& instance, const TemporaryDirectory& work_dir) {
     auto info = std::ofstream(work_dir.sub(".flatpak-info"));
     info  << "[Application]\n"
-          << "name=app.application." << program << '\n';
+          << "name=app.application." << program << '\n'
 
-    info  << "[Context]\n"
+          << "[Context]\n"
           << "sockets=session-bus;system-bus;";
 
     if (arg::at("gui")) info << "wayland;";
@@ -83,8 +81,10 @@ namespace generate {
           << "session-bus-proxy=True\n"
           << "system-bus-proxy=True\n";
 
-    if (!arg::list("env").empty()) info << "[Environment]\n";
-    for (const auto& variables : arg::list("env")) info << variables << '\n';
+    if (!arg::list("env").empty()) {
+      info << "[Environment]\n";
+      for (const auto& variables : arg::list("env")) info << variables << '\n';
+    }
 
     info.flush();
     info.close();
@@ -98,7 +98,7 @@ namespace generate {
 
     auto proxy = [&work_dir, &program]() {
       const auto app_dir = std::filesystem::path(arg::get("sof")) / "xdg-dbus-proxy" / "lib";
-      std::vector<std::string> command = {
+      vector command = {
         "bwrap",
         "--new-session",
         "--clearenv",
@@ -132,7 +132,7 @@ namespace generate {
           else {
             log({"Generating Proxy Cache"});
             if (arg::at("hardened_malloc")) libraries::get(libraries, "/usr/lib/libhardened_malloc.so");
-            init<binaries::bin_t>(binaries::parse, "/usr/bin/xdg-dbus-proxy", libraries);
+            rinit<binaries::bin_t>(binaries::parse, "/usr/bin/xdg-dbus-proxy", libraries);
             std::filesystem::create_directories(cache.parent_path());
             auto cache_out = std::ofstream(cache);
             for (const auto& lib : libraries)
@@ -174,15 +174,17 @@ namespace generate {
   }
 
 
+  // Generate the main command.
   vector cmd(const std::string& program) {
-    auto sof_dir = std::filesystem::path(arg::get("sof")) / program;
-    auto local_dir = std::filesystem::path(data) / "sb" / program;
+
+    const auto sof_dir = std::filesystem::path(arg::get("sof")) / program;
+    const auto local_dir = std::filesystem::path(data) / "sb" / program;
     std::filesystem::create_directories(sof_dir);
     std::filesystem::create_directories(local_dir);
 
-    auto lib_dir = sof_dir / "lib";
-    auto lib_cache = local_dir / "lib.cache";
-    auto cmd_cache = local_dir / "cmd.cache";
+    const auto lib_dir = sof_dir / "lib";
+    const auto lib_cache = local_dir / "lib.cache";
+    const auto cmd_cache = local_dir / "cmd.cache";
 
     vector command;
     command.reserve(200);
@@ -191,20 +193,21 @@ namespace generate {
 
     // So that we can easily query as unique, and to emplace.
     auto sys_dirs = arg::list("sys_dirs");
-    auto app_dirs = arg::list("app_dirs");
     auto shared = arg::list("share");
 
-    bool lib = !sys_dirs.contains("lib"), bin = !sys_dirs.contains("bin");
+    const auto& app_dirs = arg::list("app_dirs");
+
+    const bool lib = !sys_dirs.contains("lib"), bin = !sys_dirs.contains("bin");
 
     std::string arguments;
-    const std::set<std::string> omitted = {"startup", "dry", "update", "dry_startup", "verbose"};
-    for (auto& [key, value] : arg::switches) {
+    const set omitted = {"startup", "dry", "update", "dry_startup", "verbose"};
+    for (const auto& [key, value] : arg::switches) {
       if (!omitted.contains(key)) {
         if (value.is_list()) arguments += join(value.get_list(), ' ');
         else arguments += value.get();
       }
     }
-    arguments += arg::at("verbose").under("error");
+    arguments += arg::at("verbose") < "error";
     auto hash = shared::hash(arguments);
 
     bool update_sof = arg::at("update");
@@ -223,8 +226,9 @@ namespace generate {
             }
           }
           log({"Reusing existing library cache"});
-          libraries = init<libraries::lib_t>(usplit, lib_file[1], ' ', false);
-
+          pool.detach_task([&program, &lib_cache, &hash, lib_file = std::move(lib_file)]() {
+            libraries::resolve(init<vector>(split, lib_file[1], ' ', false), program, lib_cache.string(), hash);
+          });
         }
         else {
           log({"Library cache out of date!"});
@@ -238,29 +242,18 @@ namespace generate {
     }
     if (update_sof) log({"Updating SOF"});
 
-    if (!lib) extend(command, {
-      "--overlay-src", "/usr/lib", "--tmp-overlay", "/usr/lib",
-      "--symlink", "/usr/lib", "/lib64",
-      "--symlink", "/usr/lib", "/lib",
-      "--symlink", "/usr/lib", "/usr/lib64",
-    });
-
-    if (!bin) extend(command, {
-      "--overlay-src", "/usr/bin", "--tmp-overlay", "/usr/bin",
-      "--symlink", "/usr/bin", "/bin",
-      "--symlink", "/usr/bin", "/sbin",
-      "--symlink", "/usr/bin", "/usr/sbin"
-    });
+    if (!lib) extend(command, {"--overlay-src", "/usr/lib", "--tmp-overlay", "/usr/lib"});
+    if (!bin) extend(command, {"--overlay-src", "/usr/bin", "--tmp-overlay", "/usr/bin"});
 
     // Initial command and environment.
     if (bin) {
       log({"Resolving binaries"});
       binaries::parse(binaries, arg::get("cmd"), libraries);
-      batch(binaries::parse, binaries, arg::list("binaries"), libraries);
+      single_batch(binaries::parse, binaries, arg::list("binaries"), libraries);
 
       // Get libraries needed for added executables.
       if (arg::at("fs") && std::filesystem::is_directory(arg::mod("fs") + "/usr/bin")) {
-        batch(binaries::parse, binaries, exec<vector>({"find", arg::mod("fs") + "/usr/bin", "-type", "f,l", "-executable"}, vectorize, STDOUT), libraries);
+        single_batch(binaries::parse, binaries, exec<vector>({"find", arg::mod("fs") + "/usr/bin", "-type", "f,l", "-executable"}, vectorize, STDOUT), libraries);
       }
     }
 
@@ -272,16 +265,17 @@ namespace generate {
       }
     }
 
-    if (arg::at("verbose").meets("error") && bin) binaries::parse(binaries, "strace", libraries);
+    // Add strace if we need to.
+    if (arg::at("verbose") >= "error" && bin) binaries::parse(binaries, "strace", libraries);
+
+    // Add our new home and path.
     extend(command, {"--setenv", "HOME", "/home/sb", "--setenv", "PATH", "/usr/bin"});
 
     // XDG Open
     if (arg::at("xdg_open")) {
       log({"Adding XDG-Open"});
       if (bin) binaries::parse(binaries, "/usr/bin/sb-open", libraries);
-      extend(command, {
-        "--symlink", "/usr/bin/sb-open", "/usr/bin/xdg-open",
-      });
+      extend(command, {"--symlink", "/usr/bin/sb-open", "/usr/bin/xdg-open"});
     }
 
     // Hardened Malloc
@@ -294,23 +288,23 @@ namespace generate {
     if (arg::at("shell")) {
       log({"Adding Shell"});
       if (bin) binaries::parse(binaries, "/usr/bin/sh", libraries);
-      share(command, {
+      batch(share, command, {
         "/etc/shells",
         "/etc/profile", "/usr/share/terminfo", "/var/run/utmp",
         "/etc/group", config + "/environment.d",
-      });
+      }, "ro-bind");
     }
 
     if (arg::at("include")) {
       log({"Adding C/C++ Headers"});
-      share(command, {"/usr/include", "/usr/local/include"});
+      batch(share, command, {"/usr/include", "/usr/local/include"}, "ro-bind");
       extend(libraries::directories, {"/usr/lib/clang", "/usr/lib/gcc"});
     }
 
     if (arg::at("electron")) {
       log({"Adding Electron"});
-      share(command, {"/sys/block", "/sys/dev"});
-      share(command, {"/dev/null", "/dev/urandom", "/dev/shm"}, "dev-bind");
+      batch(share, command, {"/sys/block", "/sys/dev"}, "ro-bind");
+      batch(share, command, {"/dev/null", "/dev/urandom", "/dev/shm"}, "dev-bind");
 
       if (update_sof) batch(libraries::get, libraries, {"libsoftokn3*", "libfreeblpriv3*", "libsensors*", "libnssckbi*", "libsmime3*"}, "");
 
@@ -327,7 +321,7 @@ namespace generate {
 
     if (arg::at("gtk")) {
       log({"Adding GTK"});
-      share(command, {
+      batch(share, command, {
         home + "/.gtkrc-2.0", config + "/gtkrc", config + "/gtkrc-2.0",
         config + "/gtk-2.0", config + "/gtk-3.0", config + "/gtk-4.0",
         config + "/dconf",
@@ -335,9 +329,8 @@ namespace generate {
         "/usr/share/glib-2.0",
         "/etc/xdg/gtk-3.0/",
         "/usr/share/gir-1.0/",
-      });
+      }, "ro-bind");
       extend(command, {"--setenv", "GTK_USE_PORTAL", "1", "--setenv", "GTK_A11Y", "none"});
-
       extend(libraries::directories, {
         "/usr/lib/gdk-pixbuf-2.0/", "/usr/lib/gtk-3.0", "/usr/lib/tinysparql-3.0/",
         "/usr/lib/gtk-4.0", "/usr/lib/gio", "/usr/lib/gvfs",
@@ -357,15 +350,15 @@ namespace generate {
         version = "6";
       }
 
-      share(command, {
+      batch(share, command, {
         config + "/kdedefaults",
         config + "/breezerc",
         config + "/kdeglobals",
         config + "/Trolltech.conf",
         config + "/kde.org",
-      });
+      }, "ro-bind");
 
-      share(command, {"/usr/share/qt" + version});
+      share(command, "/usr/share/qt" + version);
       libraries::directories.emplace("/usr/lib/qt" + version);
       if (update_sof) {
         libraries::get(libraries, "libQt" + version + "*");
@@ -376,8 +369,8 @@ namespace generate {
 
     if (arg::at("gui")) {
       log({"Adding GUI"});
-      share(command, {"/dev/dri", "/dev/udmabuf"}, "dev-bind");
-      share(command, {
+      batch(share, command, {"/dev/dri", "/dev/udmabuf"}, "dev-bind");
+      batch(share, command, {
         "/sys/devices",
         "/sys/dev",
         "/etc/vulkan",
@@ -391,10 +384,10 @@ namespace generate {
         "/usr/share/mime", data + "/mime",
         runtime +"/wayland-0",
         "/usr/share/X11/xkb", "/etc/xkb"
-      });
+      }, "ro-bind");
       extend(command, {"--setenv", "XDG_SESSION_TYPE", "wayland"});
 
-      share(command, {"/usr/share/fonts", home + "/.fonts"});
+      batch(share, command, {"/usr/share/fonts", home + "/.fonts"}, "ro-bind");
 
       extend(libraries::directories, {"/usr/lib/dri", "/usr/lib/gbm"});
       if (update_sof) {
@@ -407,10 +400,10 @@ namespace generate {
 
     if (arg::at("pipewire")) {
       log({"Adding Pipewire"});
-      share(command, {
+      batch(share, command, {
         runtime + "/pipewire-0", runtime + "/pulse",
         config + "/pulse", "/etc/pipewire", "/usr/share/pipewire"
-      });
+      }, "ro-bind");
       if (update_sof) libraries::get(libraries, "libpipewire*");
       extend(libraries::directories, {"/usr/lib/pipewire-0.3", "/usr/lib/spa-0.2", "/usr/lib/pulseaudio"});
 
@@ -418,37 +411,39 @@ namespace generate {
 
     if (arg::at("locale")) {
       log({"Adding System Locale"});
-      share(command, {
+      batch(share, command, {
         "/etc/locale.conf", "/etc/localtime",
         "/usr/share/zoneinfo", "/usr/share/X11/locale", "/usr/share/locale",
         config + "/plasma-localerc"
-      });
+      }, "ro-bind");
       libraries::directories.emplace("/usr/lib/locale");
       if (bin) binaries::parse(binaries, "locale", libraries);
     }
 
     if (shared.contains("none")) command.emplace_back("--unshare-all");
-    else for (const auto& ns : arg::valid("share")) {
-      if (ns == "all" || ns == "none") continue;
-      if (!shared.contains(ns)) command.emplace_back("--unshare-" + ns);
+    else if (!shared.contains("all")) {
+      for (const auto& ns : arg::valid("share")) {
+        if (ns == "all" || ns == "none") continue;
+        if (!shared.contains(ns)) command.emplace_back("--unshare-" + ns);
+      }
     }
     if (shared.contains("net")) {
       log({"Adding Networking"});
-      share(command, {
+      batch(share, command, {
         "/etc/gai.conf", "/etc/hosts.conf", "/etc/hosts", "/etc/nsswitch.conf", "/etc/resolv.conf",
         "/etc/gnutls", "/etc/ca-certificates", "/usr/share/ca-certificates",
         "/etc/pki", "/usr/share/pki",
         "/etc/ssl", "/usr/share/ssl",
         "/usr/share/p11-kit"
-      });
-      if (update_sof) batch<libraries::lib_t>(libraries::get, libraries, {"libnss*", "libgnutls*"}, "");
+      }, "ro-bind");
+      if (update_sof) batch(libraries::get, libraries, {"libnss*", "libgnutls*"}, "");
       libraries::directories.emplace("/usr/lib/pkcs11");
     }
     if (!shared.contains("user")) extend(command, {"--disable-userns", "--assert-userns-disabled"});
 
     // Parse system directories.
     if (sys_dirs.contains("dev")) extend(command, {"--dev", "/dev"});
-    else share(command, arg::list("devices"), "dev-bind");
+    else batch(share, command, arg::list("devices"), "dev-bind");
 
     if (sys_dirs.contains("proc")) extend(command, {"--proc", "/proc"});
     if (sys_dirs.contains("etc")) extend(command, {"--overlay-src", "/etc", "--tmp-overlay", "/etc"});
@@ -457,27 +452,31 @@ namespace generate {
 
     // Application directories.
     if (app_dirs.contains("lib") && lib) libraries::directories.emplace("/usr/lib/" + program);
-    if (app_dirs.contains("share")) share(command, {"/usr/share/" + program});
-    if (app_dirs.contains("etc")) share(command, {"/etc" + program});
+    if (app_dirs.contains("share")) share(command, "/usr/share/" + program);
+    if (app_dirs.contains("etc")) share(command, "/etc" + program);
     if (app_dirs.contains("opt")) libraries::directories.emplace("/opt/" + program);
 
+    // Setup binaries and symlinks.
     if (bin) binaries::setup(binaries, command);
     binaries::symlink(command);
 
     if (update_sof || !std::filesystem::is_directory(lib_dir)) {
-
       for (const auto& dir : libraries::directories)
         libraries::get(libraries, dir);
 
       // Because updating the SOF merely writes to the SOF directory, we can freely detach it
       // into another thread, and then call pool.wait() just before running the program.
-      pool.detach_task([program, lib_cache, hash, libraries]() {libraries::resolve(libraries, program, lib_cache.string(), hash);});
+      pool.detach_task([program = std::move(program), cache = std::move(lib_cache), hash, libraries = std::move(libraries)]() {
+          libraries::resolve(libraries, program, cache.string(), hash);
+        });
       extend(command, {"--overlay-src", lib_dir.string(), "--tmp-overlay", "/usr/lib"});
     }
 
+    // Symlink and share.
     libraries::symlink(command);
-    share(command, libraries::directories);
+    batch(share, command, libraries::directories, "ro-bind");
 
+    // Write out the cache.
     auto out = std::ofstream(cmd_cache);
     out << hash << '\n';
     for (const auto& arg : command) {
