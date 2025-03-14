@@ -71,7 +71,7 @@ for PROFILE in $EXAMPLES; do
 
   # Hot Boot, but we need to refresh libraries like after an update.
   if [[ "${subdir}" == "cpp" ]]; then
-    UPDATE="--update libraries"
+    UPDATE="--update libraries:dirty"
   else
     UPDATE="--update-libraries"
   fi
@@ -80,7 +80,7 @@ for PROFILE in $EXAMPLES; do
 
   # Hot Boot, but we need to refresh libraries like after an update.
   if [[ "${subdir}" == "cpp" ]]; then
-    UPDATE="--update cache"
+    UPDATE="--update cache:dirty"
   else
     UPDATE="--update-libraries --update-cache"
   fi
