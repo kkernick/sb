@@ -65,15 +65,15 @@ Speed was the principal reason for implementing SB in C++, and the results are t
 
 | Profile (ms)                                                         | Cold (P) | **Cold (C)** | Hot (P) | Hot (C)   | Libraries (P) | Libraries (C) | Caches (P) | Caches (C) |
 | -------------------------------------------------------------------- | -------- | ------------ | ------- | --------- | ------------- | ------------- | ---------- | ---------- |
-| [Chromium](https://github.com/ungoogled-software/ungoogled-chromium) | 1032.0   | **217.1**    | 64.0    | 3.0       | 249.2         | 15.3          | 411.6      | 222.3      |
-| [Zed](https://github.com/zed-industries/zed)                         | 750.9    | **309.7**    | 63.4    | 3.2       | 194.8         | 7.1           | 224.6      | 89.7       |
-| [Obsidian](https://obsidian.md/)                                     | 1014.3   | **229.3**    | 63.6    | 3.6       | 239.7         | 12.1          | 380.0      | 184.8      |
-| [Fooyin](https://github.com/fooyin/fooyin)                           | 4192.4   | **628.4**    | 62.9    | 3.2       | 1151.1        | 10.1          | 2015.7     | 884.9      |
-| [Okular](https://invent.kde.org/graphics/okular)                     | 4011.5   | **666.7**    | 62.7    | 3.7       | 976.7         | 13.1          | 1818.8     | 849.6      |
-| [KeePassXC](https://github.com/keepassxreboot/keepassxc)             | 3871.0   | **674.2**    | 62.9    | 3.5       | 899.4         | 13.1          | 1738.1     | 843.0      |
-| [Syncthing](https://github.com/syncthing/syncthing)                  | 129.0    | **21.5**     | 59.9    | 3.4       | 93.4          | 3.7           | 98.8       | 26.2       |
-| [Yarr](https://github.com/nkanaev/yarr)                              | 133.5    | **19.0**     | 60.4    | 3.2       | 97.8          | 3.7           | 101.3      | 26.5       |
-| Average                                                              | 1891.8   | **345.7**    | 62.5    | 3.4       | 487.8         | 9.8           | 848.6      | 285.6      |
+| [Chromium](https://github.com/ungoogled-software/ungoogled-chromium) | 1032.0   | **217.1**    | 64.0    | **3.0**   | 249.2         | **15.3**      | 411.6      | **222.3**      |
+| [Zed](https://github.com/zed-industries/zed)                         | 750.9    | **309.7**    | 63.4    | **3.2**   | 194.8         | **7.1**       | 224.6      | **89.7**       |
+| [Obsidian](https://obsidian.md/)                                     | 1014.3   | **229.3**    | 63.6    | **3.6**   | 239.7         | **12.1**      | 380.0      | **184.8**      |
+| [Fooyin](https://github.com/fooyin/fooyin)                           | 4192.4   | **628.4**    | 62.9    | **3.2**   | 1151.1        | **10.1**      | 2015.7     | **884.9**      |
+| [Okular](https://invent.kde.org/graphics/okular)                     | 4011.5   | **666.7**    | 62.7    | **3.7**   | 976.7         | **13.1**      | 1818.8     | **849.6**      |
+| [KeePassXC](https://github.com/keepassxreboot/keepassxc)             | 3871.0   | **674.2**    | 62.9    | **3.5**   | 899.4         | **13.1**      | 1738.1     | **843.0**      |
+| [Syncthing](https://github.com/syncthing/syncthing)                  | 129.0    | **21.5**     | 59.9    | **3.4**   | 93.4          | **3.7**       | 98.8       | **26.2**       |
+| [Yarr](https://github.com/nkanaev/yarr)                              | 133.5    | **19.0**     | 60.4    | **3.2**   | 97.8          | **3.7**       | 101.3      | **26.5**       |
+| Average                                                              | 1891.8   | **345.7**    | 62.5    | **3.4**   | 487.8         | **9.8**       | 848.6      | **285.6**      |
 | Speedup                                                              |          | **547%**     |         | **1838%** |               | **4978%**     |            | **297%**   |
 
 * Cold Launch is an important metric if the startup service isn't be used, as it determines how long a program will take to launch for the first time after booting.  Applications can benefit from the loading of other applications (One Qt application will populate the shared SOF for other Qt applications, letting it launch "warm").
