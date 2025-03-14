@@ -1,6 +1,6 @@
 pkgname=sb++-git
 pkgdesc="Sandbox Applications"
-pkgver=r346.be4d149
+pkgver=r347.121ce09
 pkgrel=1
 
 source=("git+https://github.com/kkernick/sb.git")
@@ -31,23 +31,21 @@ build() {
 
 package() {
   cd $srcdir/sb/cpp
-  for binary in sb sb-startup sb-refresh sb-seccomp; do
+  for binary in sb sb-refresh sb-seccomp; do
     install -Dm755 "$binary" "$pkgdir/usr/bin/$binary"
   done
 
-  cd $srcdir/sb
-  for service in sb.service; do
-    install -Dm644 "$service" "$pkgdir/usr/lib/systemd/user/$service"
-  done
+  install -Dm644 "sb.service" "$pkgdir/usr/lib/systemd/user/sb.service"
 
+  cd $srcdir/sb
   install -Dm 644 sb.conf "$pkgdir/usr/lib/systemd/zram-generator.conf.d/sb.conf"
   install -Dm755 "$srcdir/sb/sb-open" "$pkgdir/usr/bin/sb-open"
-  
+
   for page in $srcdir/sb/cpp/docs/man/man3/*; do
     gzip $page
     install -Dm644 "$page.gz" "$pkgdir/usr/share/man/man3/sb.$(basename $page).gz"
   done
-  
+
   for license in "$srcdir/sb/LICENSE" $srcdir/sb/cpp/src/third_party/licenses/*; do
     install -Dm644 "$license" "$pkgdir/usr/share/licenses/sb/$(basename $license)"
   done
