@@ -1,5 +1,10 @@
 #include "arguments.hpp"
 
+
+#ifndef VERSION
+#define VERSION "Unknown"
+#endif
+
 using namespace shared;
 
 namespace arg {
@@ -95,7 +100,8 @@ namespace arg {
     {"update", arg::config{
       .l_name="--update", .s_name="",
       .valid={"libraries", "cache", "all"},
-      .help="Update caches, even if they exist",
+      .custom = custom_policy::MODIFIABLE,
+      .help="Update caches, even if they exist. Use the dirty modifier to preserve existing SOFs.",
     }},
     {"seccomp", arg::config{
       .l_name="--seccomp", .s_name="",
@@ -252,9 +258,9 @@ namespace arg {
         }
         catch (std::runtime_error& e) {
           std::stringstream out;
-          if (std::string(e.what()) == "Help!") { 
+          if (std::string(e.what()) == "Help!") {
             out << "SB++ v" << VERSION << '\n' << "Run applications in a sandbox\n";
-  
+
             auto compare = [](const Arg& a, const Arg& b){return a.position() < b.position();};
             std::multiset<Arg, decltype(compare)> ordered;
             for (const auto& [key, value] : switches)
@@ -264,10 +270,10 @@ namespace arg {
           }
           else if (std::string(e.what()) == "Version") out << VERSION << std::endl;
           else out << e.what() << std::endl;
-          
+
           std::cout << out.str();
           exit(0);
-          
+
         }
       }
       if (!match) unknown.emplace_back(args[x]);

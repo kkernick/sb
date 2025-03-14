@@ -47,7 +47,11 @@ namespace libraries {
     */
   void symlink(shared::vector& command);
 
-  template <class C> void resolve(const C& required, const std::string_view& program, const std::string& lib_cache, const std::string_view& hash) {
+  template <class C> void resolve(
+    const C& required,
+    const std::string_view& program,
+    const std::string& lib_cache,
+    const std::string_view& hash) {
     shared::log({"Resolving SOF"});
 
     // Generate the list of invalid entries. Because
@@ -66,7 +70,16 @@ namespace libraries {
 
     lib_t trimmed = {};
     for (const auto& lib : required) {
-      if (!exclusions.contains(lib)) trimmed.emplace(lib);
+      if (exclusions.contains(lib)) continue;
+
+      bool valid = true;
+      for (const auto& dir : directories) {
+        if (lib.starts_with(dir)) {
+          valid = false;
+          break;
+        }
+      }
+      if (valid) trimmed.emplace(lib);
     }
 
     libraries::setup(trimmed, program);

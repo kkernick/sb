@@ -438,8 +438,8 @@ namespace shared {
    * @param args: Additional arguments.
    *
    */
-  template <class T, class A, class L = list, class ...Args> void single_batch(const A& fun, T& accum, const L& mem, Args... args) {
-    for (const auto& val : mem) fun(accum, val, args...);
+  template <class T, class A, class L = list, class ...Args, class ...Refs> void single_batch(const A& fun, T& accum, const L& mem, Args... args, Refs&... refs) {
+    for (const auto& val : mem) fun(accum, val, args..., refs...);
   }
 
   /**

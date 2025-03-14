@@ -71,6 +71,7 @@ namespace binaries {
       if (std::filesystem::exists(cache) && arg::at("update") < "cache") {
         local = read_file<bin_t>(cache, setorize);
         single_batch(parse, required, local, libraries);
+        return;
       }
       else {
         std::filesystem::create_directories(cache.parent_path());
@@ -127,7 +128,7 @@ namespace binaries {
         vector tokens;
         set discovered;
 
-        auto tokenize = [&variables, &resolve_environment, &local, &required, &libraries, &tokens, &discovered](const uint_fast8_t& x) {
+        auto tokenize = [&variables, &resolve_environment, &local, &required, &libraries, &tokens, &discovered](const uint_fast8_t x) {
           auto token = tokens[x];
 
           // If we already know it's garbage, don't bother trying again.

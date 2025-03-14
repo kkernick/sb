@@ -236,29 +236,20 @@ int main(int argc, char* argv[]) {
   else extend(command, {"--uid", nobody, "--gid", nobody});
 
   // Only one instance has control off the SOF to prevent races.
-  auto lock_file = app_sof / "sb.lock";
-  while (std::filesystem::exists(lock_file)) {
-    log({"Another instance of the application is writing to the SOF. Waiting..."});
-    auto wd = inotify_add_watch(inotify, lock_file.c_str(), IN_DELETE_SELF);
-    inotify_wait(wd);
-  }
 
   // Add strace if we need to.
   if (arg::get("seccomp") == "strace" && arg::at("verbose") < "errors") arg::get("verbose") = "errors";
 
   // Lock and Generate
-  auto generate_command = [&lock_file, &program, &command]() {
-    std::ofstream lock(lock_file);
+  auto generate_command = [&program, &command]() {
     try {
       auto next = generate::cmd(program);
       command.insert(command.end(), next.begin(), next.end());
     }
     catch (std::exception& e) {
       std::cerr << "Failed to generate command: " << e.what() << std::endl;
-      std::filesystem::remove(lock_file);
-      exit(1);
+      cleanup(0);
     }
-    std::filesystem::remove(lock_file);
   };
   profile("Command Generation", generate_command);
 

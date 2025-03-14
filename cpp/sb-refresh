@@ -2,6 +2,10 @@
 
 ARGS="$@"
 
+if [[ -z $ARGS ]]; then
+  ARGS="--refresh"
+fi
+
 find $XDG_DATA_HOME/sb/cache/ -type f -delete
 
 if [[ -d $XDG_DATA_HOME/sb/shared ]]; then
@@ -16,5 +20,5 @@ fi
 
 for profile in $(ls $HOME/.local/bin/*.sb); do
   echo "Refreshing: ${profile}"
-  $profile --dry --refresh "$@"
+  $profile --dry "$@"
 done

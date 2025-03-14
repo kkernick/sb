@@ -16,10 +16,10 @@ namespace libraries {
   lib_t directories = {};
 
   // Get the name for a cache.
-  inline std::filesystem::path cache_name(std::string library) {
+  inline std::filesystem::path cache_name(std::string library, const std::string& function) {
     std::replace(library.begin(), library.end(), '/', '.');
     library = strip<char>(library, '*');
-    auto cache = std::filesystem::path(data) / "sb" / "cache" / std::string(library + ".lib.cache");
+    auto cache = std::filesystem::path(data) / "sb" / "cache" / std::string(library + '.' + function + ".lib.cache");
     return cache;
   }
 
@@ -29,7 +29,7 @@ namespace libraries {
 
     if (!std::filesystem::exists(library)) return;
 
-    auto cache = cache_name(std::string(library));
+    auto cache = cache_name(std::string(library), "ldd");
     if (std::filesystem::exists(cache))
       libraries = read_file<set>(cache, setorize);
     else {
@@ -87,7 +87,7 @@ namespace libraries {
     lib_t local = {};
 
     // Our cached definitions
-    auto cache = cache_name(std::string(library));
+    auto cache = cache_name(std::string(library), "get");
 
     // If the cache exists, and we don't need to update, use it.
     if (std::filesystem::exists(cache)) {
@@ -128,27 +128,24 @@ namespace libraries {
     const auto share_dir = std::filesystem::path(arg::get("sof")) / "shared";
     std::filesystem::create_directory(share_dir);
 
-    const auto app_dir = std::filesystem::path(arg::get("sof")) / application / "lib";
-    if (std::filesystem::is_directory(app_dir) && arg::at("update") < "libraries") return;
-    std::filesystem::create_directories(app_dir);
+    const auto app_dir = std::filesystem::path(arg::get("sof")) / application;
+    const auto app_sof = app_dir / "lib";
+    if (std::filesystem::is_directory(app_sof) && arg::at("update") < "libraries") return;
+    std::filesystem::create_directories(app_sof);
 
     vector vec; vec.reserve(libraries.size());
     vec.insert(vec.end(), std::make_move_iterator(libraries.begin()), std::make_move_iterator(libraries.end()));
 
     // Write Lambda. We batch writes to tremendously speed up initial SOF generation.
-    auto write_library = [&share_dir, &app_dir, &vec](const uint_fast32_t& x) {
+    auto write_library = [&share_dir, &app_sof, &vec](const uint_fast32_t x) {
       const std::string& lib = vec[x];
 
       // We only write normalized library files, directories are mounted
       if (!lib.starts_with("/usr/lib/") || std::filesystem::is_directory(lib)) return;
-      for (const auto& dir : directories) {
-        if (lib.starts_with(dir))
-          return;
-      }
 
       const auto base = lib.substr(lib.find("/lib/") + 5);
       auto shared_path = share_dir / base;
-      auto local_path = app_dir / base;
+      auto local_path = app_sof / base;
 
       // Files are actually written to the shared directory,
       // and then hard-linked into the respective directories.
@@ -157,7 +154,7 @@ namespace libraries {
 
       if (std::filesystem::is_symlink(lib)) {
         auto resolved = std::filesystem::read_symlink(lib);
-        auto local_resolved = app_dir / resolved;
+        auto local_resolved = app_sof / resolved;
 
         if (!std::filesystem::exists(local_resolved)) {
           auto shared_resolved = share_dir / resolved;
@@ -175,14 +172,25 @@ namespace libraries {
           std::filesystem::create_directories(share_dir / dir);
           std::filesystem::copy_file(lib, shared_path);
         }
-        std::filesystem::create_directories(app_dir / dir);
+        std::filesystem::create_directories(app_sof / dir);
         std::filesystem::create_hard_link(shared_path, local_path);
       }
     };
 
+    auto lock_file = share_dir / "sb.lock";
+    while (std::filesystem::exists(lock_file)) {
+      log({"Another instance of the application is writing to the SOF. Waiting..."});
+      auto wd = inotify_add_watch(inotify, lock_file.c_str(), IN_DELETE_SELF);
+      inotify_wait(wd);
+    }
+    std::ofstream lock(lock_file);
+
     // Zoom.
-    auto futures = pool.submit_loop(0, libraries.size(), write_library);
+    //for (size_t x = 0; x < vec.size(); ++x) write_library(x);
+    auto futures = pool.submit_loop(0, vec.size(), write_library);
     futures.wait();
+
+    std::filesystem::remove(lock_file);
   }
 
   // Symlink libraries

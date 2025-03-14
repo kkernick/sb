@@ -3,6 +3,7 @@
 #include "binaries.hpp"
 
 #include <cstring>
+#include <filesystem>
 #include <fstream>
 
 using namespace shared;
@@ -216,19 +217,22 @@ namespace generate {
         auto lib_file = read_file<vector>(lib_cache, vectorize);
         if (lib_file.size() == 2 && hash == lib_file[0]) {
 
+          if (!std::filesystem::is_directory(lib_dir)) {
+            log({"Reusing existing library cache"});
+            pool.detach_task([program, lib_cache, hash, lib_file = std::move(lib_file)]() {
+              libraries::resolve(init<vector>(split, lib_file[1], ' ', false), program, lib_cache.string(), hash);
+            });
+          }
+
           // We should check the command cache here since it's predicated
           // on use not needing to update anything.
-          if (std::filesystem::exists(cmd_cache) && std::filesystem::is_directory(lib_dir)) {
+          if (std::filesystem::exists(cmd_cache)) {
             auto cmd_file = read_file<vector>(cmd_cache, vectorize);
             if (cmd_file.size() == 2 && hash == cmd_file[0]) {
               log({"Reusing existing command cache"});
               return init<vector>(split, cmd_file[1], ' ', true);
             }
           }
-          log({"Reusing existing library cache"});
-          pool.detach_task([&program, &lib_cache, &hash, lib_file = std::move(lib_file)]() {
-            libraries::resolve(init<vector>(split, lib_file[1], ' ', false), program, lib_cache.string(), hash);
-          });
         }
         else {
           log({"Library cache out of date!"});
@@ -240,7 +244,12 @@ namespace generate {
         update_sof = true;
       }
     }
-    if (update_sof) log({"Updating SOF"});
+    if (update_sof) {
+      log({"Updating SOF"});
+      if (arg::mod("update") == "dirty")
+        log({"Keeping existing SOF. Libraries no longer required may be in the sandbox!"});
+      else std::filesystem::remove_all(lib_dir);
+    }
 
     if (!lib) extend(command, {"--overlay-src", "/usr/lib", "--tmp-overlay", "/usr/lib"});
     if (!bin) extend(command, {"--overlay-src", "/usr/bin", "--tmp-overlay", "/usr/bin"});
@@ -266,7 +275,10 @@ namespace generate {
     }
 
     // Add strace if we need to.
-    if (arg::at("verbose") >= "error" && bin) binaries::parse(binaries, "strace", libraries);
+    if (arg::at("verbose") >= "error" && bin) {
+      log({"Adding strace"});
+      binaries::parse(binaries, "strace", libraries);
+    }
 
     // Add our new home and path.
     extend(command, {"--setenv", "HOME", "/home/sb", "--setenv", "PATH", "/usr/bin"});
@@ -461,16 +473,22 @@ namespace generate {
     binaries::symlink(command);
 
     if (update_sof || !std::filesystem::is_directory(lib_dir)) {
+      log({"Constructing SOF"});
       for (const auto& dir : libraries::directories)
         libraries::get(libraries, dir);
 
       // Because updating the SOF merely writes to the SOF directory, we can freely detach it
       // into another thread, and then call pool.wait() just before running the program.
-      pool.detach_task([program = std::move(program), cache = std::move(lib_cache), hash, libraries = std::move(libraries)]() {
-          libraries::resolve(libraries, program, cache.string(), hash);
+      pool.detach_task([
+        program = std::move(program),
+        cache = std::move(lib_cache),
+        hash,
+        libraries = std::move(libraries)]() {
+            libraries::resolve(libraries, program, cache.string(), hash);
         });
       extend(command, {"--overlay-src", lib_dir.string(), "--tmp-overlay", "/usr/lib"});
     }
+    else log({"SOF Satisfied"});
 
     // Symlink and share.
     libraries::symlink(command);
