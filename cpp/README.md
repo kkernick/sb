@@ -14,11 +14,12 @@ Run `make` in this directory (`cpp`) to build a native-optimized binary of SB, c
 
 For reference, here is a example in performance between all four binaries (From `benchmark.sh`, in milliseconds):
 
-| Profile         | `generic` | `cpp` | `pgo` | `bolt` | `bolt-pgo` |
-| --------------- | --------- | ----- | ----- | ------ | ---------- |
-| Chromium Cold   | 261.8     | 256.5 | 268.4 | 264.5  | 267.6      |
-| Chromium Hot    | 3.4       | 2.9   | 3.0   | 3.4    | 3.3        |
-| Chromium Update | 169.3     | 162.1 | 164.4 | 164.3  | 164.7      |
+| Profile          | `debug` | `generic` | `cpp`     | `pgo`     | `bolt` | `bolt-pgo` |
+| ---------------- | ------- | --------- | --------- | --------- | ------ | ---------- |
+| Chromium Cold    | 227.0   | 224.3     | **217.1** | 246.2     | 220.0  | 240.0      |
+| Chromium Hot     | 4.0     | 3.9       | **3.0**   | 3.1       | 3.1    | 3.5        |
+| Chromium Library | 18.1    | 18.5      | 15.3      | **15.2**  | 15.6   | 15.7       |
+| Chromium Update  | 258.1   | 258.6     | 222.3     | **222.0** | 224.0  | 224.1      |
 
 Everything after a Generic binary fell within the standard error of each profile, which means that the differences can largely be chalked up to chance. While you probably won't gain *too* much off of just using an optimized, `-03 -march=native` binary in the `cpp` recipe, the `PKGBUILD` defaults to `Optimized+BOLT`. PGO may be faster if you have a more specialized profiling suite.
 
@@ -64,16 +65,16 @@ Speed was the principal reason for implementing SB in C++, and the results are t
 
 | Profile (ms)                                                         | Cold (P) | **Cold (C)** | Hot (P) | Hot (C)   | Libraries (P) | Libraries (C) | Caches (P) | Caches (C) |
 | -------------------------------------------------------------------- | -------- | ------------ | ------- | --------- | ------------- | ------------- | ---------- | ---------- |
-| [Chromium](https://github.com/ungoogled-software/ungoogled-chromium) | 1165.5   | **252.1**    | 64.5    | **2.8**   | 252.6         | **15.8**      | 418.5      | **161.1**  |
-| [Zed](https://github.com/zed-industries/zed)                         | 857.6    | **324.1**    | 64.5    | **3.0**   | 197.6         | **12.9**      | 230.3      | **56.8**   |
-| [Obsidian](https://obsidian.md/)                                     | 1125.3   | **238.9**    | 64.4    | **3.4**   | 241.8         | **13.5**      | 382.4      | **191.3**  |
-| [Fooyin](https://github.com/fooyin/fooyin)                           | 4544.2   | **962.4**    | 64.2    | **3.1**   | 1179.9        | **10.2**      | 2058.2     | **89.1**   |
-| [Okular](https://invent.kde.org/graphics/okular)                     | 4296.4   | **950.7**    | 63.9    | **3.4**   | 994.7         | **12.6**      | 1829.1     | **86.6**   |
-| [KeePassXC](https://github.com/keepassxreboot/keepassxc)             | 4176.1   | **948.4**    | 63.6    | **3.1**   | 910.1         | **14.9**      | 1745.0     | **88.1**   |
-| [Syncthing](https://github.com/syncthing/syncthing)                  | 154.4    | **30.3**     | 63.6    | **3.5**   | 96.2          | **12.1**      | 100.0      | **19.3**   |
-| [Yarr](https://github.com/nkanaev/yarr)                              | 154.8    | **27.6**     | 63.6    | **3.4**   | 99.7          | **8.1**       | 103.7      | **15.5**   |
-| Average                                                              | 2059.3   | **466.8**    | 64.0    | **3.2**   | 496.5         | **12.5**      | 858.4      | **88.5**   |
-| Speedup                                                              |          | **441%**     |         | **2000%** |               | **3972%**     |            | **970%**   |
+| [Chromium](https://github.com/ungoogled-software/ungoogled-chromium) | 1032.0   | **217.1**    | 64.0    | 3.0       | 249.2         | 15.3          | 411.6      | 222.3      |
+| [Zed](https://github.com/zed-industries/zed)                         | 750.9    | **309.7**    | 63.4    | 3.2       | 194.8         | 7.1           | 224.6      | 89.7       |
+| [Obsidian](https://obsidian.md/)                                     | 1014.3   | **229.3**    | 63.6    | 3.6       | 239.7         | 12.1          | 380.0      | 184.8      |
+| [Fooyin](https://github.com/fooyin/fooyin)                           | 4192.4   | **628.4**    | 62.9    | 3.2       | 1151.1        | 10.1          | 2015.7     | 884.9      |
+| [Okular](https://invent.kde.org/graphics/okular)                     | 4011.5   | **666.7**    | 62.7    | 3.7       | 976.7         | 13.1          | 1818.8     | 849.6      |
+| [KeePassXC](https://github.com/keepassxreboot/keepassxc)             | 3871.0   | **674.2**    | 62.9    | 3.5       | 899.4         | 13.1          | 1738.1     | 843.0      |
+| [Syncthing](https://github.com/syncthing/syncthing)                  | 129.0    | **21.5**     | 59.9    | 3.4       | 93.4          | 3.7           | 98.8       | 26.2       |
+| [Yarr](https://github.com/nkanaev/yarr)                              | 133.5    | **19.0**     | 60.4    | 3.2       | 97.8          | 3.7           | 101.3      | 26.5       |
+| Average                                                              | 1891.8   | **345.7**    | 62.5    | 3.4       | 487.8         | 9.8           | 848.6      | 285.6      |
+| Speedup                                                              |          | **547%**     |         | **1838%** |               | **4978%**     |            | **297%**   |
 
 * Cold Launch is an important metric if the startup service isn't be used, as it determines how long a program will take to launch for the first time after booting.  Applications can benefit from the loading of other applications (One Qt application will populate the shared SOF for other Qt applications, letting it launch "warm").
 * Hot Launch is the most important metric for SB. It defines how fast the program can launch with a warm SOF and both a `lib.cache` and `cmd.cache`. It effectively measures how quickly SB can read the `cmd.cache` and launch `bwrap`. The ideal is for this value to be zero, which would be equivalent to launching the application directly.
