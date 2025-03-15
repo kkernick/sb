@@ -116,7 +116,7 @@ namespace shared {
      */
     std::string sub(const std::string& name, const bool& dir = false) const {
       const auto new_path = path + "/" + name;
-      if (dir) std::filesystem::create_directory(new_path);
+      if (dir) std::filesystem::create_directories(new_path);
       return new_path;
     }
 

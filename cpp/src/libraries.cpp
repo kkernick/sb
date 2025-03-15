@@ -128,7 +128,7 @@ namespace libraries {
   // Setup the SOF
   void setup(const vector& libraries, const std::string_view& application, const std::filesystem::path& app_sof) {
     const auto share_dir = std::filesystem::path(arg::get("sof")) / "shared";
-    std::filesystem::create_directory(share_dir);
+    std::filesystem::create_directories(share_dir);
     if (std::filesystem::is_directory(app_sof) && arg::at("update") < "libraries" && !std::filesystem::is_empty(app_sof)) return;
     std::filesystem::create_directories(app_sof);
 

@@ -51,7 +51,7 @@ for PROFILE in $EXAMPLES; do
 
   sleep 1
 
-  ARGS="--time-unit microsecond --min-runs 10 --shell=none"
+  ARGS="--time-unit microsecond --min-runs 10 --shell=none --show-output"
   program=$(sed '2q;d' "$ROOT/$subdir/examples/$PROFILE" | awk '{print $2}')
 
 
