@@ -107,6 +107,7 @@ namespace arg {
     {"update", arg::config{
       .l_name="--update", .s_name="",
       .valid={"libraries", "cache", "all"},
+      .custom = custom_policy::MODIFIABLE,
       .help="Update caches, even if they exist.",
     }},
     {"seccomp", arg::config{

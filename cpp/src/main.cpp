@@ -125,7 +125,12 @@ int main(int argc, char* argv[]) {
   }
 
   if (arg::at("update") >= "cache") {
-    std::filesystem::remove_all(std::filesystem::path(data) / "sb" / "cache");
+
+    // So sb-refresh can reuse caches populated by other sandboxes.
+    // We don't need to repeat the work.
+    if (arg::mod("update") != "batch")
+      std::filesystem::remove_all(std::filesystem::path(data) / "sb" / "cache");
+
     std::filesystem::remove_all(std::filesystem::path(data) / "sb" / program / "cache");
     std::filesystem::remove_all(std::filesystem::path(libraries::hash_sof(program, arg::hash)));
   }

@@ -3,12 +3,12 @@
 ARGS="$@"
 
 if [[ -z $ARGS ]]; then
-  ARGS="--update all"
+  ARGS="--update all:batch"
 fi
 
 find $XDG_DATA_HOME/sb/cache/ -type f -delete
 
 for profile in $(ls $HOME/.local/bin/*.sb); do
-  echo "Refreshing: ${profile}"
-  $profile --dry "$@"
+  echo "Refreshing: ${profile} with $ARGS"
+  $profile --dry $ARGS
 done
