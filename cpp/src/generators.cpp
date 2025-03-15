@@ -192,8 +192,6 @@ namespace generate {
     std::filesystem::create_directories(cache_dir);
 
     const auto lib_dir = libraries::hash_sof(program, arg::hash);
-    const auto l_cache = libraries::hash_cache(program, arg::hash);
-
     const auto c_cache = cache_dir / (arg::hash + ".cmd.cache");
 
     vector command;
@@ -209,21 +207,10 @@ namespace generate {
     const bool lib = !sys_dirs.contains("lib"), bin = !sys_dirs.contains("bin");
 
     bool update_sof = arg::at("update");
-    if (lib && !update_sof) {
-      if (std::filesystem::exists(l_cache) && !std::filesystem::is_empty(l_cache)) {
-        if (!std::filesystem::is_directory(lib_dir)) {
-          log({"Reusing existing library cache"});
-          pool.detach_task([program, l_cache]() {libraries::resolve(read_file<vector>(l_cache, fd_splitter<vector, ' '>), program, arg::hash);});
-        }
-
-        if (std::filesystem::exists(c_cache)  && !std::filesystem::is_empty(c_cache)) {
-          log({"Reusing existing command cache"});
-          return read_file<vector>(c_cache, fd_splitter<vector, ' '>);
-        }
-      }
-      else {
-        log({"Library cache missing!"});
-        update_sof = true;
+    if (lib && !update_sof && std::filesystem::is_directory(lib_dir)) {
+      if (std::filesystem::exists(c_cache)  && !std::filesystem::is_empty(c_cache)) {
+        log({"Reusing existing command cache"});
+        return read_file<vector>(c_cache, fd_splitter<vector, ' '>);
       }
     }
     if (update_sof) log({"Updating SOF"});
@@ -477,9 +464,10 @@ namespace generate {
       pool.detach_task([program = std::move(program), libraries = std::move(libraries)]() {
             libraries::resolve(libraries, program, arg::hash);
         });
-      extend(command, {"--overlay-src", lib_dir.string(), "--tmp-overlay", "/usr/lib"});
     }
     else log({"SOF Satisfied"});
+    if (lib) extend(command, {"--overlay-src", lib_dir.string(), "--tmp-overlay", "/usr/lib"});
+
 
     // Symlink and share.
     libraries::symlink(command);

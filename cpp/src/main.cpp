@@ -90,18 +90,18 @@ int main(int argc, char* argv[]) {
 
   auto program = std::filesystem::path(arg::get("cmd")).filename().string();
 
-  if (arg::at("startup") && arg::at("dry_startup")) {
-    arg::get("dry") = "true";
-    auto lib_cache = libraries::hash_cache(program, arg::hash);
-    if (std::filesystem::exists(lib_cache) && !std::filesystem::is_empty(lib_cache)) {
-      log({"Cache found!"});
-      libraries::resolve(read_file<vector>(lib_cache, fd_splitter<vector, ' '>), program, arg::hash);
-      auto [dir, future] = generate::proxy_lib();
-      future.wait();
-      cleanup(0);
-      return 0;
-    }
-    log({"Cache doesn't exist. Dry startup cannot continue as the runtime may not be fully initialized."});
+  auto lib_cache = libraries::hash_cache(program, arg::hash);
+  bool startup = arg::at("startup") && arg::at("dry_startup");
+
+  if (std::filesystem::exists(lib_cache) && !std::filesystem::is_empty(lib_cache) && !arg::at("update")) {
+    log({"Using cached SOF"});
+    libraries::resolve(read_file<vector>(lib_cache, fd_splitter<vector, ' '>), program, arg::hash);
+    auto [dir, future] = generate::proxy_lib();
+    if (startup) future.wait();
+  }
+
+  // Just populate the cache and exit.
+  if (startup) {
     cleanup(0);
     return 0;
   }
