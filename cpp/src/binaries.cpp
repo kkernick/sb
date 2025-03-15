@@ -68,7 +68,7 @@ namespace binaries {
       auto cache = std::filesystem::path(data) / "sb" / "cache" / std::string(name + ".bin.cache");
 
       // If the cache exists, and we don't need to update, use it.
-      if (std::filesystem::exists(cache) && arg::at("update") < "cache") {
+      if (std::filesystem::exists(cache) && arg::at("update") < "cache" &&  !std::filesystem::is_empty(cache)) {
         local = read_file<bin_t>(cache, setorize);
         single_batch(parse, local, local, libraries);
       }
@@ -154,7 +154,7 @@ namespace binaries {
             local.emplace(binary);
             required.merge(parsed);
           }
-          if (binary.contains("/lib/")) libraries::get(libraries, binary);
+          if (binary.starts_with("/usr/lib/")) libraries::get(libraries, binary);
         };
 
 
@@ -210,22 +210,22 @@ namespace binaries {
   // Setup the binaries.
   void setup(const bin_t& binaries, vector& command) {
     extend(command, {"--dir", "/usr/bin"});
-    for (const auto& binary : binaries) {
+    for (auto binary : binaries) {
+      if (!binary.contains('/')) binary = binary.insert(0, "/usr/bin/");
+      else if (binary.starts_with("/bin")) binary = binary.insert(0, "/usr");
+
       if (std::filesystem::is_symlink(binary)) {
         auto dest = std::filesystem::read_symlink(binary).string();
 
-        if (!dest.contains('/')) dest.insert(0, "/usr/bin/");
-        else if (dest.starts_with("/bin")) dest.insert(0, "/usr");
+        if (!dest.contains('/')) dest = dest.insert(0, "/usr/bin/");
+        else if (dest.starts_with("/bin")) dest = dest.insert(0, "/usr");
 
         extend(command, {
           "--ro-bind", dest, dest,
           "--symlink", dest, binary.starts_with("/bin") ? "/usr" + binary : binary
         });
       }
-      else {
-        if (binary.contains("bin")) extend(command, {"--ro-bind", binary, "/usr/bin/" + binary.substr(binary.rfind('/'))});
-        else extend(command, {"--ro-bind", binary, binary});
-      }
+      else extend(command, {"--ro-bind", binary, binary});
     }
   }
 

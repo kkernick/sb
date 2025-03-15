@@ -23,21 +23,20 @@ namespace libraries {
     return cache;
   }
 
-
   void parse_ldd(lib_t& required, const std::string& library, const std::string_view& directory) {
     lib_t libraries;
 
     if (!std::filesystem::exists(library)) return;
 
     auto cache = cache_name(std::string(library), "ldd");
-    if (std::filesystem::exists(cache))
+    if (std::filesystem::exists(cache) && !std::filesystem::is_empty(cache))
       libraries = read_file<set>(cache, setorize);
     else {
       if (read_file<std::string>(library, head<5>) != "\177ELF\2") return;
       std::filesystem::create_directories(cache.parent_path());
 
       // If this is a library, add it.
-      if (std::filesystem::exists(library) && library.contains("/lib/") && directory == "") {
+      if (std::filesystem::exists(library) && library.starts_with("/usr/lib/") && directory == "") {
         libraries.emplace(library);
       }
 
@@ -65,7 +64,7 @@ namespace libraries {
           if (shared_lib.contains("..")) shared_lib = "/usr/lib/" + shared_lib.substr(shared_lib.rfind('/') + 1);
 
           // Ensure it's actually here.
-          if (std::filesystem::exists(shared_lib)) libraries.emplace(shared_lib);
+          if (std::filesystem::exists(shared_lib) && shared_lib.starts_with("/usr/lib")) libraries.emplace(shared_lib);
         }
       }
 
@@ -90,7 +89,7 @@ namespace libraries {
     auto cache = cache_name(std::string(library), "get");
 
     // If the cache exists, and we don't need to update, use it.
-    if (std::filesystem::exists(cache)) {
+    if (std::filesystem::exists(cache) && !std::filesystem::is_empty(cache)) {
       libraries.merge(read_file<set>(cache, setorize));
       return;
     }
@@ -108,7 +107,10 @@ namespace libraries {
     }
 
     // Just use the direct dependencies of the library
-    else local.emplace(library);
+    else if (library.starts_with("/usr/lib")) local.emplace(library);
+    
+    // Binaries just exclude itself.
+    else parse_ldd(libraries, library.data(), "");
 
     batch(parse_ldd, local, local, directory);
 
@@ -124,21 +126,15 @@ namespace libraries {
   }
 
   // Setup the SOF
-  void setup(const lib_t& libraries, const std::string_view& application) {
+  void setup(const vector& libraries, const std::string_view& application, const std::filesystem::path& app_sof) {
     const auto share_dir = std::filesystem::path(arg::get("sof")) / "shared";
     std::filesystem::create_directory(share_dir);
-
-    const auto app_dir = std::filesystem::path(arg::get("sof")) / application;
-    const auto app_sof = app_dir / "lib";
-    if (std::filesystem::is_directory(app_sof) && arg::at("update") < "libraries") return;
+    if (std::filesystem::is_directory(app_sof) && arg::at("update") < "libraries" && !std::filesystem::is_empty(app_sof)) return;
     std::filesystem::create_directories(app_sof);
 
-    vector vec; vec.reserve(libraries.size());
-    vec.insert(vec.end(), std::make_move_iterator(libraries.begin()), std::make_move_iterator(libraries.end()));
-
     // Write Lambda. We batch writes to tremendously speed up initial SOF generation.
-    auto write_library = [&share_dir, &app_sof, &vec](const uint_fast32_t x) {
-      const std::string& lib = vec[x];
+    auto write_library = [&share_dir, &app_sof, &libraries](const uint_fast32_t x) {
+      const std::string& lib = libraries[x];
 
       // We only write normalized library files, directories are mounted
       if (!lib.starts_with("/usr/lib/") || std::filesystem::is_directory(lib)) return;
@@ -187,10 +183,14 @@ namespace libraries {
 
     // Zoom.
     //for (size_t x = 0; x < vec.size(); ++x) write_library(x);
-    auto futures = pool.submit_loop(0, vec.size(), write_library);
+    auto futures = pool.submit_loop(0, libraries.size(), write_library);
     futures.wait();
-
     std::filesystem::remove(lock_file);
+  }
+  void setup(const set& libraries, const std::string_view& application, const std::filesystem::path& app_sof) {
+    vector vec; vec.reserve(libraries.size());
+    vec.insert(vec.end(), std::make_move_iterator(libraries.begin()), std::make_move_iterator(libraries.end()));
+    setup(vec, application, app_sof);
   }
 
   // Symlink libraries

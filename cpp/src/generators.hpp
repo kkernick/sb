@@ -30,6 +30,8 @@ namespace generate {
    */
   void flatpak_info(const std::string_view& program, const std::string_view& instance, const shared::TemporaryDirectory& work_dir);
 
+  std::pair<std::filesystem::path, std::future<void>> proxy_lib();
+
   /**
    * @brief Spawn an instance of the xdg-dbus-proxy for the application instance.
    * @param program: The name of the program attached to this proxy.

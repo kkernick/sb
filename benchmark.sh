@@ -51,7 +51,7 @@ for PROFILE in $EXAMPLES; do
 
   sleep 1
 
-  ARGS="--time-unit microsecond --min-runs 10 --shell=none" 
+  ARGS="--time-unit microsecond --min-runs 10 --shell=none"
   program=$(sed '2q;d' "$ROOT/$subdir/examples/$PROFILE" | awk '{print $2}')
 
 
@@ -71,7 +71,7 @@ for PROFILE in $EXAMPLES; do
 
   # Hot Boot, but we need to refresh libraries like after an update.
   if [[ "${subdir}" == "cpp" ]]; then
-    UPDATE="--update libraries:dirty"
+    UPDATE="--update libraries"
   else
     UPDATE="--update-libraries"
   fi
@@ -80,7 +80,7 @@ for PROFILE in $EXAMPLES; do
 
   # Hot Boot, but we need to refresh libraries like after an update.
   if [[ "${subdir}" == "cpp" ]]; then
-    UPDATE="--update cache:dirty"
+    UPDATE="--update cache"
   else
     UPDATE="--update-libraries --update-cache"
   fi

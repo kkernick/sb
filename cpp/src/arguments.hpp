@@ -35,6 +35,7 @@ namespace arg {
     const bool& list = false;
     const uint_fast8_t& position = -1;
     const std::string& help;
+    const bool& updates_sof = false;
   } config;
 
 
@@ -54,7 +55,7 @@ namespace arg {
       std::string help;
 
       // A path for if wildcards are encountered.
-      bool list = false;
+      bool list = false, update_sof = false;
 
       // The set of valid values. Empty means any value is acceptable.
       // list_val is only used when list=true.
@@ -176,6 +177,7 @@ namespace arg {
         help = c.help;
         parser = handler;
         m_parser = m_handler;
+        update_sof = c.updates_sof;
 
         // Parse the defaults.
         if (!c.mod.empty()) modifier = m_parser(c.mod);
@@ -390,7 +392,10 @@ namespace arg {
         }
         return ret;
       }
+      
+      const bool& updates_sof() const {return update_sof;}
 
+      
       /**
        * @brief Return the position of the argument.
        * @returns The mandatory level.
@@ -428,6 +433,8 @@ namespace arg {
 
   // The arguments.
   extern shared::vector args;
+  
+  extern std::string hash;
 
   // Helper functions.
   inline const Arg& at(const std::string& key) {return switches.at(key);}

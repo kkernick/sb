@@ -1,6 +1,7 @@
 #include "arguments.hpp"
 #include "generators.hpp"
 #include "syscalls.hpp"
+#include "libraries.hpp"
 
 #include <cstring>
 #include <fstream>
@@ -24,14 +25,18 @@ static void child_handler(int sig) {
 static void cleanup(int sig) {
   // Please die.
   if (proxy_pid != -1) {
-    kill(proxy_pid, SIGTERM);
+    kill(proxy_pid, sig == SIGTERM ? SIGKILL : SIGTERM);
     while (wait(NULL) != -1 || errno == EINTR);
   }
 
   if (arg::get("fs") == "persist") {
     auto path = arg::mod("fs");
     exec({"find", path, "-type", "l", "-exec", "rm", "-f", "{}", ";"});
-    exec({"find", path, "-type", "f", "-empty", "-exec", "rm", "-f", "{}", ";"});
+    exec<void>({"find", path, "-type", "f", "-empty", "-exec", "rm", "-f", "{}", ";"}, wait_for);
+    for (const auto& junk : {"/dev", "/sys", "/run"}) {
+      if (std::filesystem::exists(path + junk))
+        std::filesystem::remove_all(path + junk);
+    }
   }
 
   auto sof = arg::get("sof");
@@ -85,28 +90,27 @@ int main(int argc, char* argv[]) {
 
   auto program = std::filesystem::path(arg::get("cmd")).filename().string();
 
-  // If we refresh, we delete libraries and caches.
-  if (arg::at("refresh") && arg::at("sof")) {
-    auto sof = std::filesystem::path(arg::get("sof")) / program / "lib";
-
-    if (std::filesystem::is_directory(sof)) std::filesystem::remove_all(sof);
-    else log({"SOF doesn't exist at:", sof.string()});
-
-    auto proxy = std::filesystem::path(arg::get("sof")) / "xdg-dbus-proxy" / "lib";
-    if (std::filesystem::is_directory(proxy)) std::filesystem::remove_all(proxy);
-    else log({"Proxy SOF doesn't exist at:", proxy.string()});
-    arg::get("update") = "libraries";
-  }
-
-  if (arg::get("update") == "cache") {
-    std::filesystem::remove_all(std::filesystem::path(data) / "sb" / "cache");
+  if (arg::at("startup") && arg::at("dry_startup")) {
+    arg::get("dry") = "true";
+    log({"Starting up..."});
+    auto lib_cache = libraries::hash_cache(program, arg::hash);
+    if (std::filesystem::exists(lib_cache) && !std::filesystem::is_empty(lib_cache)) {
+      log({"Cache found!"});
+      libraries::resolve(read_file<vector>(lib_cache, fd_splitter<vector, ' '>), program, arg::hash);
+      auto [dir, future] = generate::proxy_lib();
+      future.wait();
+      cleanup(0);
+      return 0;
+    }
+    log({"Cache doesn't exist:", lib_cache.string()});
   }
 
   // Create a script file and exit.
   if (arg::at("script")) {
     auto binary = std::filesystem::path(home) / ".local" / "bin" / (program + ".desktop.sb");
     generate::script(binary);
-    exit(0);
+    cleanup(0);
+    return 0;
   }
 
   // Create a desktop file and exit.
@@ -115,7 +119,14 @@ int main(int argc, char* argv[]) {
     if (arg::get("desktop_entry") == "true") desktop_path = program + ".desktop";
     else desktop_path = arg::get("desktop_entry");
     generate::desktop_entry(desktop_path);
-    exit(0);
+    cleanup(0);
+    return 0;
+  }
+
+  if (arg::at("update") >= "cache") {
+    std::filesystem::remove_all(std::filesystem::path(data) / "sb" / "cache");
+    std::filesystem::remove_all(std::filesystem::path(data) / "sb" / program / "cache");
+    std::filesystem::remove_all(std::filesystem::path(libraries::hash_sof(program, arg::hash)));
   }
 
   // Start getting the filter in another thread.

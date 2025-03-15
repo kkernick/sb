@@ -11,6 +11,9 @@ namespace arg {
 
   vector unknown = {}, args;
 
+  std::string hash = "";
+
+
   // All switches
   std::map<std::string, arg::Arg> switches = {
 
@@ -28,31 +31,37 @@ namespace arg {
       .l_name="--gui", .s_name="-g",
       .valid={"false", "true"},
       .help="Give the sandbox access to wayland and DRI libraries to render GUIs.",
+      .updates_sof = true
     }},
     {"pipewire", arg::config{
       .l_name="--pipewire", .s_name="-p",
       .valid={"false", "true"},
       .help="Give the sandbox access to pipewire for audio/screenshare/camera.",
+      .updates_sof = true
     }},
     {"hardened_malloc", arg::config{
       .l_name="--hardened-malloc", .s_name="-m",
       .valid={"false", "true"},
       .help="Enforce hardened malloc within the sandbox.",
+      .updates_sof = true
     }},
     {"xdg_open", arg::config{
       .l_name="--xdg-open", .s_name="-x",
       .valid={"false", "true"},
       .help="Provide xdg-open semantics within the sandbox.",
+      .updates_sof = true
     }},
     {"shell", arg::config{
       .l_name="--shell", .s_name="-s",
       .valid={"false", "true", "debug"},
       .help="Provide /usr/bin/sh, optionally drop into it",
+      .updates_sof = true
     }},
     {"locale", arg::config{
       .l_name="--locale", .s_name="-l",
       .valid={"false", "true"},
       .help="System locale",
+      .updates_sof = true
     }},
     {"dry", arg::config{
       .l_name="--dry", .s_name="-d",
@@ -64,11 +73,13 @@ namespace arg {
       .valid={"false", "true"},
       .custom=custom_policy::TRUE,
       .help="For electron applications. Implies --gtk --proc and --share user. Can also set to custom version.",
+      .updates_sof = true
     }},
     {"include", arg::config{
       .l_name="--include", .s_name="-i",
       .valid={"false", "true"},
       .help="/usr/include for C/C++ headers (IE for clang).",
+      .updates_sof = true
     }},
     {"dry_startup", arg::config{
       .l_name="--dry-startup", .s_name="-u",
@@ -85,23 +96,18 @@ namespace arg {
       .valid = {"false", "true"},
       .help="Pass the real hostname to the sandbox",
     }},
-    {"refresh", arg::config{
-      .l_name="--refresh", .s_name="-r",
-      .valid={"true", "false"},
-      .help="Refresh caches destructively (Removes cache and SOF)",
-    }},
     {"vulkan", arg::config{
       .l_name="--vulkan", .s_name="",
       .valid={"false", "true"},
       .help="Give the sandbox access to Vulkan. Implies --gui",
+      .updates_sof = true
     }},
 
     // Discrete, Single-Value Switches.
     {"update", arg::config{
       .l_name="--update", .s_name="",
       .valid={"libraries", "cache", "all"},
-      .custom = custom_policy::MODIFIABLE,
-      .help="Update caches, even if they exist. Use the dirty modifier to preserve existing SOFs.",
+      .help="Update caches, even if they exist.",
     }},
     {"seccomp", arg::config{
       .l_name="--seccomp", .s_name="",
@@ -122,15 +128,18 @@ namespace arg {
       .l_name="--qt", .s_name="",
       .valid = {"false", "5", "6", "kf6"},
       .help="Share QT libraries.",
+      .updates_sof = true
     }},
     {"gtk", arg::config{
       .l_name="--gtk", .s_name="",
       .valid={"false", "true", "3", "4"},
       .help="For gtk applications. Implies --gui",
+      .updates_sof = true
     }},
     {"python", arg::config{
       .l_name="--python", .s_name="",
       .help="Provide the specified version of python.",
+      .updates_sof = true
     }},
 
     // Lists of Values.
@@ -139,11 +148,13 @@ namespace arg {
       .custom = custom_policy::MODIFIABLE,
       .list=true,
       .help="Additional libraries to be provided in the sandbox. Use the :x modifier to exclude paths.",
+      .updates_sof = true
     }},
     {"binaries", arg::config{
       .l_name="--binaries", .s_name="",
       .list=true,
       .help="Additional libraries to be provided in the sandbox",
+      .updates_sof = true
     }},
     {"devices", arg::config{
       .l_name="--devices", .s_name="",
@@ -166,6 +177,7 @@ namespace arg {
       .valid = {"etc", "lib", "share", "opt"},
       .list=true,
       .help="Application specific folders to add to the sandbox",
+      .updates_sof = true
     }},
     {"sys_dirs", arg::config{
       .l_name="--sys-dirs", .s_name="",
@@ -289,7 +301,13 @@ namespace arg {
     }
 
     // Post update.
-    for (auto& [key, value] : switches) value.update();
+    hash = VERSION;
+    for (auto& [key, value] : switches) {
+      value.update();
+      if (value.updates_sof()) hash.append(value.is_list() ? join(value.get_list(), ' ') : value.get());
+      else if (key == "verbose") hash.append(std::to_string(value >= "error"));
+    }
+    hash = shared::hash(hash);
 
     // Report the values.
     if (get("verbose") == "debug") {

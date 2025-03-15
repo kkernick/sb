@@ -139,8 +139,8 @@ namespace shared {
    * @param dest: The container to extend.
    * @param source: The values to pull from.
    */
-  template <class T = list> void extend(vector& dest, const T& source);
-  template <class T = list> void extend(set& dest, const T& source);
+  template <class T = list> void extend(vector& dest, T source);
+  template <class T = list> void extend(set& dest, T source);
   void extend(set& dest, set source);
 
   /**

@@ -221,20 +221,20 @@ namespace shared {
 
 
   // Extend a vector with a container.
-  template <class T> void extend(vector& dest, const T& source) {
-    dest.reserve(dest.size() + distance(source.begin(), source.end()));
-    dest.insert(dest.end(), source.begin(), source.end());
+  template <class T> void extend(vector& dest, T source) {
+    dest.reserve(source.size());
+    dest.insert(dest.end(), std::make_move_iterator(source.begin()), std::make_move_iterator(source.end()));
   }
-  template void extend(vector&, const list&);
-  template void extend(vector&, const vector&);
-  template void extend(vector&, const set&);
+  template void extend(vector&, list);
+  template void extend(vector&, vector);
+  template void extend(vector&, set);
 
   // Extend a set with a container.
-  template <class T> void extend(set& dest, const T& source) {
+  template <class T> void extend(set& dest, const T source) {
     dest.insert(source.begin(), source.end());
   }
-  template void extend(set&, const list&);
-  template void extend(set&, const vector&);
+  template void extend(set&, const list);
+  template void extend(set&, const vector);
 
   // Compat function, merges two sets.
   void extend(set& dest, set source) {dest.merge(source);}
@@ -277,7 +277,7 @@ namespace shared {
       hex_hash << std::hex << std::setfill('0');
       for (size_t i = 0; i < hash_length; ++i)
         hex_hash << std::setw(2) << static_cast<unsigned>(hash[i]);
-      return hex_hash.str();
+      return hex_hash.str().substr(0, 20);
     }
     else throw std::runtime_error("Failed to hash string!");
   }

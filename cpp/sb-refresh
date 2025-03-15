@@ -3,20 +3,10 @@
 ARGS="$@"
 
 if [[ -z $ARGS ]]; then
-  ARGS="--refresh"
+  ARGS="--update all"
 fi
 
 find $XDG_DATA_HOME/sb/cache/ -type f -delete
-
-if [[ -d $XDG_DATA_HOME/sb/shared ]]; then
-  rm -rf $XDG_DATA_HOME/sb/shared
-fi
-if [[ -d  /tmp/sb/shared ]]; then
-  rm -rf /tmp/sb/shared
-fi
-if [[ -d  /run/sb/shared ]]; then
-  rm -rf /run/sb/shared
-fi
 
 for profile in $(ls $HOME/.local/bin/*.sb); do
   echo "Refreshing: ${profile}"

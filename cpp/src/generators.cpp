@@ -1,6 +1,7 @@
 #include "generators.hpp"
 #include "arguments.hpp"
 #include "binaries.hpp"
+#include "libraries.hpp"
 
 #include <cstring>
 #include <filesystem>
@@ -92,13 +93,43 @@ namespace generate {
   }
 
 
+  std::pair<std::filesystem::path, std::future<void>> proxy_lib() {
+    std::string p_hash;
+    #ifdef VERSION
+      p_hash = VERSION;
+    #endif
+
+    // This is the only applicable command line to the Proxy SOF.
+    p_hash.append(arg::get("hardened_malloc"));
+    p_hash = shared::hash(p_hash);
+
+    auto lib_cache = libraries::hash_sof("xdg-dbus-proxy", p_hash);
+    auto lib_setup = [lib_cache, p_hash = std::move(p_hash)]() {
+      if (!std::filesystem::exists(lib_cache)) {
+        auto cache = libraries::hash_cache("xdg-dbus-proxy", p_hash);
+        if (std::filesystem::exists(cache) && !std::filesystem::is_empty(cache)) {
+          log({"Using Proxy Cache"});
+          libraries::resolve(read_file<vector>(cache, fd_splitter<vector, ' '>), "xdg-dbus-proxy", p_hash, false);
+        }
+        else {
+          log({"Generating Proxy Cache"});
+          libraries::lib_t libraries = {};
+          if (arg::at("hardened_malloc")) libraries::get(libraries, "/usr/lib/libhardened_malloc.so");
+          rinit<binaries::bin_t>(binaries::parse, "/usr/bin/xdg-dbus-proxy", libraries);
+          libraries::resolve(libraries, "xdg-dbus-proxy", p_hash, false);
+        }
+      }
+    };
+    return {lib_cache, pool.submit_task(lib_setup)};
+  }
+
+
   std::pair<int, std::future<int>> xdg_dbus_proxy(const std::string& program, const TemporaryDirectory& work_dir) {
     auto proxy_path = work_dir.sub("proxy", true);
     auto wd = inotify_add_watch(inotify, proxy_path.c_str(), IN_CREATE);
     if (wd < 0) throw std::runtime_error(std::string("Failed to add inotify watcher: ") + strerror(errno));
 
     auto proxy = [&work_dir, &program]() {
-      const auto app_dir = std::filesystem::path(arg::get("sof")) / "xdg-dbus-proxy" / "lib";
       vector command = {
         "bwrap",
         "--new-session",
@@ -119,33 +150,8 @@ namespace generate {
       if (arg::at("hardened_malloc"))
         extend(command, {"--ro-bind", work_dir.sub("ld.so.preload"), "/etc/ld.so.preload"});
 
-      auto lib_setup = []() {
-        auto lib_dir = std::filesystem::path(arg::get("sof")) / "xdg-dbus-proxy" / "lib";
-        if (!std::filesystem::is_directory(lib_dir)) {
-
-          libraries::lib_t libraries = {};
-
-          auto cache = std::filesystem::path(data) / "sb" / "xdg-dbus-proxy" / "lib.cache";
-          if (std::filesystem::exists(cache)) {
-            log({"Using Proxy Cache"});
-            libraries = read_file<set>(cache, setorize);
-          }
-          else {
-            log({"Generating Proxy Cache"});
-            if (arg::at("hardened_malloc")) libraries::get(libraries, "/usr/lib/libhardened_malloc.so");
-            rinit<binaries::bin_t>(binaries::parse, "/usr/bin/xdg-dbus-proxy", libraries);
-            std::filesystem::create_directories(cache.parent_path());
-            auto cache_out = std::ofstream(cache);
-            for (const auto& lib : libraries)
-              cache_out << lib <<  ' ';
-            cache_out.close();
-          }
-          libraries::setup(libraries, "xdg-dbus-proxy");
-        }
-      };
-      auto lib_future = pool.submit_task(lib_setup);
-
-      extend(command, {"--overlay-src", app_dir.string(), "--tmp-overlay", "/usr/lib"});
+      auto [lib_dir, lib_future] = proxy_lib();
+      extend(command, {"--overlay-src", lib_dir.string(), "--tmp-overlay", "/usr/lib"});
       libraries::symlink(command);
       binaries::symlink(command);
 
@@ -180,12 +186,15 @@ namespace generate {
 
     const auto sof_dir = std::filesystem::path(arg::get("sof")) / program;
     const auto local_dir = std::filesystem::path(data) / "sb" / program;
+    const auto cache_dir =  local_dir / "cache";
     std::filesystem::create_directories(sof_dir);
     std::filesystem::create_directories(local_dir);
+    std::filesystem::create_directories(cache_dir);
 
-    const auto lib_dir = sof_dir / "lib";
-    const auto lib_cache = local_dir / "lib.cache";
-    const auto cmd_cache = local_dir / "cmd.cache";
+    const auto lib_dir = libraries::hash_sof(program, arg::hash);
+    const auto l_cache = libraries::hash_cache(program, arg::hash);
+
+    const auto c_cache = cache_dir / (arg::hash + ".cmd.cache");
 
     vector command;
     command.reserve(200);
@@ -197,46 +206,19 @@ namespace generate {
     auto shared = arg::list("share");
 
     const auto& app_dirs = arg::list("app_dirs");
-
     const bool lib = !sys_dirs.contains("lib"), bin = !sys_dirs.contains("bin");
-
-    std::string arguments;
-    const set omitted = {"startup", "dry", "update", "dry_startup", "verbose", "refresh"};
-    for (const auto& [key, value] : arg::switches) {
-      if (!omitted.contains(key)) {
-        if (value.is_list()) arguments += join(value.get_list(), ' ');
-        else arguments += value.get();
-      }
-    }
-    arguments += arg::at("verbose") < "error";
-    auto hash = shared::hash(arguments);
 
     bool update_sof = arg::at("update");
     if (lib && !update_sof) {
-      if (std::filesystem::exists(lib_cache)) {
-        auto lib_file = read_file<vector>(lib_cache, vectorize);
-        if (lib_file.size() == 2 && hash == lib_file[0]) {
-
-          if (!std::filesystem::is_directory(lib_dir)) {
-            log({"Reusing existing library cache"});
-            pool.detach_task([program, lib_cache, hash, lib_file = std::move(lib_file)]() {
-              libraries::resolve(init<vector>(split, lib_file[1], ' ', false), program, lib_cache.string(), hash);
-            });
-          }
-
-          // We should check the command cache here since it's predicated
-          // on use not needing to update anything.
-          if (std::filesystem::exists(cmd_cache)) {
-            auto cmd_file = read_file<vector>(cmd_cache, vectorize);
-            if (cmd_file.size() == 2 && hash == cmd_file[0]) {
-              log({"Reusing existing command cache"});
-              return init<vector>(split, cmd_file[1], ' ', true);
-            }
-          }
+      if (std::filesystem::exists(l_cache) && !std::filesystem::is_empty(l_cache)) {
+        if (!std::filesystem::is_directory(lib_dir)) {
+          log({"Reusing existing library cache"});
+          pool.detach_task([program, l_cache]() {libraries::resolve(read_file<vector>(l_cache, fd_splitter<vector, ' '>), program, arg::hash);});
         }
-        else {
-          log({"Library cache out of date!"});
-          update_sof = true;
+
+        if (std::filesystem::exists(c_cache)  && !std::filesystem::is_empty(c_cache)) {
+          log({"Reusing existing command cache"});
+          return read_file<vector>(c_cache, fd_splitter<vector, ' '>);
         }
       }
       else {
@@ -244,12 +226,7 @@ namespace generate {
         update_sof = true;
       }
     }
-    if (update_sof) {
-      log({"Updating SOF"});
-      if (arg::mod("update") == "dirty")
-        log({"Keeping existing SOF. Libraries no longer required may be in the sandbox!"});
-      else std::filesystem::remove_all(lib_dir);
-    }
+    if (update_sof) log({"Updating SOF"});
 
     if (!lib) extend(command, {"--overlay-src", "/usr/lib", "--tmp-overlay", "/usr/lib"});
     if (!bin) extend(command, {"--overlay-src", "/usr/bin", "--tmp-overlay", "/usr/bin"});
@@ -490,19 +467,15 @@ namespace generate {
     if (bin) binaries::setup(binaries, command);
     binaries::symlink(command);
 
-    if (update_sof || !std::filesystem::is_directory(lib_dir)) {
+    if (update_sof) {
       log({"Constructing SOF"});
       for (const auto& dir : libraries::directories)
         libraries::get(libraries, dir);
 
       // Because updating the SOF merely writes to the SOF directory, we can freely detach it
       // into another thread, and then call pool.wait() just before running the program.
-      pool.detach_task([
-        program = std::move(program),
-        cache = std::move(lib_cache),
-        hash,
-        libraries = std::move(libraries)]() {
-            libraries::resolve(libraries, program, cache.string(), hash);
+      pool.detach_task([program = std::move(program), libraries = std::move(libraries)]() {
+            libraries::resolve(libraries, program, arg::hash);
         });
       extend(command, {"--overlay-src", lib_dir.string(), "--tmp-overlay", "/usr/lib"});
     }
@@ -513,8 +486,8 @@ namespace generate {
     batch(share, command, libraries::directories, "ro-bind");
 
     // Write out the cache.
-    auto out = std::ofstream(cmd_cache);
-    out << hash << '\n';
+
+    auto out = std::ofstream(c_cache);
     for (const auto& arg : command) {
       if (arg.contains(' '))
         out << '\'' << arg << '\'';
