@@ -70,8 +70,7 @@ namespace binaries {
       // If the cache exists, and we don't need to update, use it.
       if (std::filesystem::exists(cache) && arg::at("update") < "cache") {
         local = read_file<bin_t>(cache, setorize);
-        single_batch(parse, required, local, libraries);
-        return;
+        single_batch(parse, local, local, libraries);
       }
       else {
         std::filesystem::create_directories(cache.parent_path());
