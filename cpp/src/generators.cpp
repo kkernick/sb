@@ -192,6 +192,7 @@ namespace generate {
     std::filesystem::create_directories(cache_dir);
 
     const auto lib_dir = libraries::hash_sof(program, arg::hash);
+    const auto l_cache = cache_dir / (arg::hash + ".lib.cache");
     const auto c_cache = cache_dir / (arg::hash + ".cmd.cache");
 
     vector command;
@@ -206,8 +207,8 @@ namespace generate {
     const auto& app_dirs = arg::list("app_dirs");
     const bool lib = !sys_dirs.contains("lib"), bin = !sys_dirs.contains("bin");
 
-    bool update_sof = arg::at("update");
-    if (lib && !update_sof && std::filesystem::is_directory(lib_dir)) {
+    bool update_sof = arg::at("update") | !std::filesystem::exists(l_cache);
+    if (lib && !update_sof) {
       if (std::filesystem::exists(c_cache)  && !std::filesystem::is_empty(c_cache)) {
         log({"Reusing existing command cache"});
         return read_file<vector>(c_cache, fd_splitter<vector, ' '>);

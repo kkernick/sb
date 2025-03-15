@@ -91,9 +91,15 @@ int main(int argc, char* argv[]) {
   auto program = std::filesystem::path(arg::get("cmd")).filename().string();
 
   auto lib_cache = libraries::hash_cache(program, arg::hash);
+  auto lib_sof = libraries::hash_sof(program, arg::hash);
   bool startup = arg::at("startup") && arg::at("dry_startup");
 
-  if (std::filesystem::exists(lib_cache) && !std::filesystem::is_empty(lib_cache) && !arg::at("update")) {
+  if (
+    std::filesystem::exists(lib_cache) &&
+    !std::filesystem::is_empty(lib_cache) &&
+    !arg::at("update") &&
+    !std::filesystem::is_directory(lib_sof)
+  ) {
     log({"Using cached SOF"});
     libraries::resolve(read_file<vector>(lib_cache, fd_splitter<vector, ' '>), program, arg::hash);
     auto [dir, future] = generate::proxy_lib();
