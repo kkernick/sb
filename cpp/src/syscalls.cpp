@@ -38,7 +38,11 @@ namespace syscalls {
     auto content = read_file<vector>(syscall_file, vectorize);
     if (content.size() > 1) {
       auto hash = std::string(arg::get("seccomp") == "enforcing" ? "E" : "P") + shared::hash(content[1]);
-      if (hash == init<vector>(split, content[0], ' ', false)[1] && std::filesystem::exists(bpf) && arg::at("update") < "cache") {
+      if (
+        hash == init<vector>(split, content[0], ' ', false)[1] &&
+        std::filesystem::exists(bpf) && arg::at("update") < "cache" &&
+        arg::get("shell") != "debug" && arg::at("vebose") < "error"
+      ) {
         log({"Using cached SECCOMP filter"});
         return bpf;
       }
@@ -50,8 +54,14 @@ namespace syscalls {
     else content = {"0", ""};
 
     // Get the syscalls that should be allowed
-    vector syscalls = init<vector>(split, content[1], ' ', false);
+    set syscalls = init<set>(usplit, content[1], ' ', false);
     log({arg::get("seccomp") == "enforcing" ? "Enforced": "Logged", "Syscalls:", std::to_string(syscalls.size())});
+
+    // Add necessary syscalls
+    if (arg::get("shell") == "debug")
+      extend(syscalls, {"getpgrp", "pselect6"});
+    if (arg::at("verbose") >= "error")
+      syscalls.emplace("ptrace");
 
     // Setup the filter.
     auto filter = seccomp_init(arg::get("seccomp") == "enforcing" ? SCMP_ACT_ERRNO(EPERM) : SCMP_ACT_LOG);
@@ -83,11 +93,13 @@ namespace syscalls {
     fclose(bpf_file);
 
     // Update the hash.
-    auto hash = shared::hash(content[1] + arg::get("seccomp"));
-    auto cache_file = std::ofstream(syscall_file);
-    cache_file << "HASH: " << hash << "\n";
-    cache_file << content[1];
-    cache_file.close();
+    if (arg::at("verbose") < "error" && arg::get("shell") != "debug") {
+      auto hash = shared::hash(content[1] + arg::get("seccomp"));
+      auto cache_file = std::ofstream(syscall_file);
+      cache_file << "HASH: " << hash << "\n";
+      cache_file << content[1];
+      cache_file.close();
+    }
 
     // Release the filter and return the path to the filter so the main process can open it.
     seccomp_release(filter);

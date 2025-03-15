@@ -65,11 +65,6 @@ namespace arg {
       .custom=custom_policy::TRUE,
       .help="For electron applications. Implies --gtk --proc and --share user. Can also set to custom version.",
     }},
-    {"gtk", arg::config{
-      .l_name="--gtk", .s_name="-t",
-      .valid={"false", "true"},
-      .help="For gtk applications. Implies --gui",
-    }},
     {"include", arg::config{
       .l_name="--include", .s_name="-i",
       .valid={"false", "true"},
@@ -94,6 +89,11 @@ namespace arg {
       .l_name="--refresh", .s_name="-r",
       .valid={"true", "false"},
       .help="Refresh caches destructively (Removes cache and SOF)",
+    }},
+    {"vulkan", arg::config{
+      .l_name="--vulkan", .s_name="",
+      .valid={"false", "true"},
+      .help="Give the sandbox access to Vulkan. Implies --gui",
     }},
 
     // Discrete, Single-Value Switches.
@@ -122,6 +122,15 @@ namespace arg {
       .l_name="--qt", .s_name="",
       .valid = {"false", "5", "6", "kf6"},
       .help="Share QT libraries.",
+    }},
+    {"gtk", arg::config{
+      .l_name="--gtk", .s_name="",
+      .valid={"false", "true", "3", "4"},
+      .help="For gtk applications. Implies --gui",
+    }},
+    {"python", arg::config{
+      .l_name="--python", .s_name="",
+      .help="Provide the specified version of python.",
     }},
 
     // Lists of Values.

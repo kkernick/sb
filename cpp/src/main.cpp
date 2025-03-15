@@ -200,7 +200,7 @@ int main(int argc, char* argv[]) {
   if (arg::at("shell")) {
     const auto passwd = work_dir.sub("passwd");
     auto out =  std::ofstream(passwd);
-    out << "[Application]\n" << "sb:x:" << real << ":" << "real" << ":SB:/home/sb:/usr/bin/sh\n";
+    out << "[Application]\n" << "sb:x:" << real << ":" << real << ":SB:/home/sb:/usr/bin/sh\n";
     out.close();
     extend(command, {
       "--ro-bind", passwd, "/etc/passwd",
@@ -375,7 +375,7 @@ int main(int argc, char* argv[]) {
     if (arg::get("seccomp") == "strace")
       syscalls::update_policy(program, exec<vector>(command, vectorize, STDERR));
 
-    else exec<void>(command, wait_for, STDOUT);
+    else exec<void>(command, wait_for);
   }
 
   // Cleanup FD.

@@ -277,7 +277,7 @@ namespace generate {
     // Add strace if we need to.
     if (arg::at("verbose") >= "error" && bin) {
       log({"Adding strace"});
-      binaries::parse(binaries, "strace", libraries);
+      if (bin) binaries::parse(binaries, "strace", libraries);
     }
 
     // Add our new home and path.
@@ -300,11 +300,6 @@ namespace generate {
     if (arg::at("shell")) {
       log({"Adding Shell"});
       if (bin) binaries::parse(binaries, "/usr/bin/sh", libraries);
-      batch(share, command, {
-        "/etc/shells",
-        "/etc/profile", "/usr/share/terminfo", "/var/run/utmp",
-        "/etc/group", config + "/environment.d",
-      }, "ro-bind");
     }
 
     if (arg::at("include")) {
@@ -313,12 +308,21 @@ namespace generate {
       extend(libraries::directories, {"/usr/lib/clang", "/usr/lib/gcc"});
     }
 
+    if (arg::at("python")) {
+      log({"Adding Python"});
+      std::string version = "python" + arg::get("python");
+      if (bin) binaries::parse(binaries, version, libraries);
+      if (update_sof) {
+        libraries::get(libraries, "lib" + version);
+        libraries::directories.emplace("/usr/lib/" + version);
+      }
+    }
+
     if (arg::at("electron")) {
       log({"Adding Electron"});
-      batch(share, command, {"/sys/block", "/sys/dev"}, "ro-bind");
       batch(share, command, {"/dev/null", "/dev/urandom", "/dev/shm"}, "dev-bind");
 
-      if (update_sof) batch(libraries::get, libraries, {"libsoftokn3*", "libfreeblpriv3*", "libsensors*", "libnssckbi*", "libsmime3*"}, "");
+      if (update_sof) batch(libraries::get, libraries, {"libsoftokn3*", "libfreeblpriv3*"}, "");
 
       // IE custom.
       if (arg::get("electron") != "true") {
@@ -326,31 +330,43 @@ namespace generate {
         if (bin) binaries::parse(binaries, "/usr/bin/electron" + mod, libraries);
         libraries::directories.emplace("/usr/lib/electron" + mod);
       }
-      arg::get("gtk") = true;
+
+      if (arg::at("gtk") < "3") arg::get("gtk") = "3";
       sys_dirs.emplace("proc");
       shared.emplace("user");
     }
 
     if (arg::at("gtk")) {
       log({"Adding GTK"});
-      batch(share, command, {
-        home + "/.gtkrc-2.0", config + "/gtkrc", config + "/gtkrc-2.0",
-        config + "/gtk-2.0", config + "/gtk-3.0", config + "/gtk-4.0",
-        config + "/dconf",
-        "/usr/share/gtk-2.0", "/usr/share/gtk-3.0", "/usr/share/gtk-4.0", "/usr/share/gtk",
-        "/usr/share/glib-2.0",
-        "/etc/xdg/gtk-3.0/",
-        "/usr/share/gir-1.0/",
-      }, "ro-bind");
-      extend(command, {"--setenv", "GTK_USE_PORTAL", "1", "--setenv", "GTK_A11Y", "none"});
-      extend(libraries::directories, {
-        "/usr/lib/gdk-pixbuf-2.0/", "/usr/lib/gtk-3.0", "/usr/lib/tinysparql-3.0/",
-        "/usr/lib/gtk-4.0", "/usr/lib/gio", "/usr/lib/gvfs",
-        "/usr/lib/girepository-1.0"
-      });
+      auto version = arg::get("gtk");
 
-      if (update_sof) batch(libraries::get, libraries, {"libgvfs*", "librsvg*", "libgio*", "libgdk*", "libgtk*"}, "");
-      arg::get("gui") = true;
+      batch(share, command, {
+        "/usr/share/gtk", config + "/gtkrc", "/usr/share/glib-2.0",
+        "/usr/share/gtk-2.0", home + "/.gtkrc-2.0",
+        config + "/gtkrc-2.0", config + "/gtk-2.0"
+      }, "ro-bind");
+
+      if (version == "3" || version == "true")  {
+        batch(share, command, {
+          config + "/gtk-3.0",
+          "/usr/share/gtk-3.0",
+          "/etc/xdg/gtk-3.0/",
+        }, "ro-bind");
+        libraries::directories.emplace("/usr/lib/gtk-3.0");
+        if (update_sof) batch(libraries::get, libraries, {"libgdk-3*", "libgtk-3*"}, "");
+      }
+
+      if (version == "4" || version == "true") {
+        batch(share, command, {
+          "/usr/share/gtk-4.0",
+          config + "/gtk-4.0",
+        }, "ro-bind");
+        libraries::directories.emplace("/usr/lib/gtk-4.0");
+        if (update_sof) batch(libraries::get, libraries, {"libgdk-4*", "libgtk-4*"}, "");
+      }
+
+      extend(command, {"--setenv", "GTK_USE_PORTAL", "1", "--setenv", "GTK_A11Y", "none"});
+      arg::get("gui") = "true";
     }
 
     if (arg::at("qt")) {
@@ -376,38 +392,40 @@ namespace generate {
         libraries::get(libraries, "libQt" + version + "*");
        if (version != "kf6") libraries::get(libraries, "/usr/lib/kf6/kioworker");
       }
-      arg::get("gui") = true;
+      arg::get("gui") = "true";
+    }
+
+
+    if (arg::at("vulkan")) {
+      log({"Adding Vulkan"});
+      batch(share, command, {"/etc/vulkan", "/usr/share/vulkan"}, "ro-bind");
+      if (update_sof) batch(libraries::get, libraries, {"libvulkan*", "libVkLayer*"}, "");
+      arg::get("gui") = "true";
     }
 
     if (arg::at("gui")) {
       log({"Adding GUI"});
-      batch(share, command, {"/dev/dri", "/dev/udmabuf"}, "dev-bind");
+      batch(share, command, {"/dev/dri"}, "dev-bind");
       batch(share, command, {
-        "/sys/devices",
-        "/sys/dev",
-        "/etc/vulkan",
+        "/sys/devices/pci0000:00",
+        "/sys/dev/char",
         "/usr/share/glvnd",
-        "/usr/share/vulkan",
         "/usr/share/libdrm",
         "/usr/share/fontconfig", "/etc/fonts",
         config + "/fontconfig", data + "/fontconfig",
+        "/usr/share/fonts", home + "/.fonts",
         "/usr/share/themes", "/usr/share/color-schemes", "/usr/share/icons", "/usr/share/cursors",
         "/usr/share/pixmaps",  data+ "/pixmaps",
         "/usr/share/mime", data + "/mime",
         runtime +"/wayland-0",
-        "/usr/share/X11/xkb", "/etc/xkb"
+        "/usr/share/X11/xkb",
       }, "ro-bind");
-      extend(command, {"--setenv", "XDG_SESSION_TYPE", "wayland"});
 
-      batch(share, command, {"/usr/share/fonts", home + "/.fonts"}, "ro-bind");
+      extend(command, {"--setenv", "XDG_SESSION_TYPE", "wayland"});
+      genv(command, "WAYLAND_DISPLAY");
 
       extend(libraries::directories, {"/usr/lib/dri", "/usr/lib/gbm"});
-      if (update_sof) {
-        batch(libraries::get, libraries, {
-          "libvulkan*", "libglapi*", "*mesa*", "*Mesa*", "libdrm*", "libGL*", "libVkLayer*", "libgbm*",
-          "libva*", "*egl*", "*EGL*"}, ""
-        );
-      }
+      if (update_sof) batch(libraries::get, libraries, {"*Mesa*", "*mesa*", "*EGL*"}, "");
     }
 
     if (arg::at("pipewire")) {
@@ -446,10 +464,8 @@ namespace generate {
         "/etc/gnutls", "/etc/ca-certificates", "/usr/share/ca-certificates",
         "/etc/pki", "/usr/share/pki",
         "/etc/ssl", "/usr/share/ssl",
-        "/usr/share/p11-kit"
       }, "ro-bind");
-      if (update_sof) batch(libraries::get, libraries, {"libnss*", "libgnutls*"}, "");
-      libraries::directories.emplace("/usr/lib/pkcs11");
+      if (update_sof) libraries::get(libraries, "libnss*");
     }
     if (!shared.contains("user")) extend(command, {"--disable-userns", "--assert-userns-disabled"});
 
