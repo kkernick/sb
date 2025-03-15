@@ -405,7 +405,7 @@ namespace generate {
 
     if (arg::at("gui")) {
       log({"Adding GUI"});
-      batch(share, command, {"/dev/dri"}, "dev-bind");
+      share(command, "/dev/dri", "dev-bind");
       batch(share, command, {
         "/sys/devices/pci0000:00",
         "/sys/dev/char",
