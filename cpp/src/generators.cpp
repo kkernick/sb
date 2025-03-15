@@ -423,7 +423,7 @@ namespace generate {
 
       extend(command, {
         "--setenv", "XDG_SESSION_TYPE", "wayland",
-        "--setenv", "WAYLAND-DISPLAY", "wayland-0"
+        "--setenv", "WAYLAND_DISPLAY", "wayland-0"
       });
 
       extend(libraries::directories, {"/usr/lib/dri", "/usr/lib/gbm"});
