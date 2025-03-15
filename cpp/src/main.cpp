@@ -92,7 +92,6 @@ int main(int argc, char* argv[]) {
 
   if (arg::at("startup") && arg::at("dry_startup")) {
     arg::get("dry") = "true";
-    log({"Starting up..."});
     auto lib_cache = libraries::hash_cache(program, arg::hash);
     if (std::filesystem::exists(lib_cache) && !std::filesystem::is_empty(lib_cache)) {
       log({"Cache found!"});
@@ -102,7 +101,9 @@ int main(int argc, char* argv[]) {
       cleanup(0);
       return 0;
     }
-    log({"Cache doesn't exist:", lib_cache.string()});
+    log({"Cache doesn't exist. Dry startup cannot continue as the runtime may not be fully initialized."});
+    cleanup(0);
+    return 0;
   }
 
   // Create a script file and exit.
