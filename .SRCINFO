@@ -1,11 +1,14 @@
 pkgbase = sb++-git
 	pkgdesc = Sandbox Applications
-	pkgver = r272.9981ea8
+	pkgver = r354.600ce3e
 	pkgrel = 1
 	arch = any
 	makedepends = git
-	makedepends = llvm-bolt
 	makedepends = lld
+	makedepends = libb2
+	makedepends = clang
+	makedepends = llvm
+	makedepends = doxygen
 	depends = findutils
 	depends = glibc
 	depends = which
