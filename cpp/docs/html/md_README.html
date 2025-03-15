@@ -88,9 +88,9 @@ $(function(){ initResizable(false); });
   <div class="headertitle"><div class="title">SB++</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md0"></a></p>
+<div class="textblock"><p><a class="anchor" id="autotoc_md1"></a></p>
 <p><code>sb++</code> is a C++ implementation of SB. It's faster, easier to use, and more functional than the original Python implementation.</p>
-<h1><a class="anchor" id="autotoc_md2"></a>
+<h1><a class="anchor" id="autotoc_md4"></a>
 Building</h1>
 <p>Run <code>make</code> in this directory (<code>cpp</code>) to build a native-optimized binary of SB, created at <code>sb</code>. You can also choose between more or less optimized recipes, including:</p>
 <ol type="1">
@@ -103,13 +103,15 @@ Building</h1>
 <p>For reference, here is a example in performance between all four binaries (From <code>benchmark.sh</code>, in milliseconds):</p>
 <table class="markdownTable">
 <tr class="markdownTableHead">
-<th class="markdownTableHeadNone">Profile   </th><th class="markdownTableHeadNone"><code>generic</code>   </th><th class="markdownTableHeadNone"><code>cpp</code>   </th><th class="markdownTableHeadNone"><code>pgo</code>   </th><th class="markdownTableHeadNone"><code>bolt</code>   </th><th class="markdownTableHeadNone"><code>bolt-pgo</code>    </th></tr>
+<th class="markdownTableHeadNone">Profile   </th><th class="markdownTableHeadNone"><code>debug</code>   </th><th class="markdownTableHeadNone"><code>generic</code>   </th><th class="markdownTableHeadNone"><code>cpp</code>   </th><th class="markdownTableHeadNone"><code>pgo</code>   </th><th class="markdownTableHeadNone"><code>bolt</code>   </th><th class="markdownTableHeadNone"><code>bolt-pgo</code>    </th></tr>
 <tr class="markdownTableRowOdd">
-<td class="markdownTableBodyNone">Chromium Cold   </td><td class="markdownTableBodyNone">261.8   </td><td class="markdownTableBodyNone">256.5   </td><td class="markdownTableBodyNone">268.4   </td><td class="markdownTableBodyNone">264.5   </td><td class="markdownTableBodyNone">267.6    </td></tr>
+<td class="markdownTableBodyNone">Chromium Cold   </td><td class="markdownTableBodyNone">227.0   </td><td class="markdownTableBodyNone">224.3   </td><td class="markdownTableBodyNone"><b>217.1</b>   </td><td class="markdownTableBodyNone">246.2   </td><td class="markdownTableBodyNone">220.0   </td><td class="markdownTableBodyNone">240.0    </td></tr>
 <tr class="markdownTableRowEven">
-<td class="markdownTableBodyNone">Chromium Hot   </td><td class="markdownTableBodyNone">3.4   </td><td class="markdownTableBodyNone">2.9   </td><td class="markdownTableBodyNone">3.0   </td><td class="markdownTableBodyNone">3.4   </td><td class="markdownTableBodyNone">3.3    </td></tr>
+<td class="markdownTableBodyNone">Chromium Hot   </td><td class="markdownTableBodyNone">4.0   </td><td class="markdownTableBodyNone">3.9   </td><td class="markdownTableBodyNone"><b>3.0</b>   </td><td class="markdownTableBodyNone">3.1   </td><td class="markdownTableBodyNone">3.1   </td><td class="markdownTableBodyNone">3.5    </td></tr>
 <tr class="markdownTableRowOdd">
-<td class="markdownTableBodyNone">Chromium Update   </td><td class="markdownTableBodyNone">169.3   </td><td class="markdownTableBodyNone">162.1   </td><td class="markdownTableBodyNone">164.4   </td><td class="markdownTableBodyNone">164.3   </td><td class="markdownTableBodyNone">164.7   </td></tr>
+<td class="markdownTableBodyNone">Chromium Library   </td><td class="markdownTableBodyNone">18.1   </td><td class="markdownTableBodyNone">18.5   </td><td class="markdownTableBodyNone">15.3   </td><td class="markdownTableBodyNone"><b>15.2</b>   </td><td class="markdownTableBodyNone">15.6   </td><td class="markdownTableBodyNone">15.7    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone">Chromium Update   </td><td class="markdownTableBodyNone">258.1   </td><td class="markdownTableBodyNone">258.6   </td><td class="markdownTableBodyNone">222.3   </td><td class="markdownTableBodyNone"><b>222.0</b>   </td><td class="markdownTableBodyNone">224.0   </td><td class="markdownTableBodyNone">224.1   </td></tr>
 </table>
 <p>Everything after a Generic binary fell within the standard error of each profile, which means that the differences can largely be chalked up to chance. While you probably won't gain <em>too</em> much off of just using an optimized, <code>-03 -march=native</code> binary in the <code>cpp</code> recipe, the <code>PKGBUILD</code> defaults to <code>Optimized+BOLT</code>. PGO may be faster if you have a more specialized profiling suite.</p>
 <p>The following dependencies are needed:</p>
@@ -127,7 +129,7 @@ Building</h1>
 <li><code>xdg-dbus-proxy</code>: To enable Flatpak emulation and Portals supports.</li>
 <li><code>libseccomp</code>: To enable <code>--seccomp</code> to further harden the sandbox by permitting what syscalls are allowed to be run.</li>
 </ol>
-<h1><a class="anchor" id="autotoc_md4"></a>
+<h1><a class="anchor" id="autotoc_md5"></a>
 Scripts and Services</h1>
 <p>The following files are located at the root of the repo, and are shared between both implementations:</p>
 <ol type="1">
@@ -141,39 +143,39 @@ Scripts and Services</h1>
 <li><code>sb-seccomp</code>: Append new syscalls to a SECCOMP filter. Use in conjunction with <code>--seccomp=strace</code>.</li>
 <li><code>sb-startup</code>: The startup worker.</li>
 </ol>
-<h1><a class="anchor" id="autotoc_md5"></a>
+<h1><a class="anchor" id="autotoc_md6"></a>
 Licenses and Third-Party Libraries</h1>
 <ul>
 <li>SB++ uses the <a href="https://github.com/bshoshany/thread-pool">BS::ThreadPool</a> library, which is licensed under the MIT. Without a native thread pool library to compete against Python, SB++ would not be competitive in speed, and such this project would not exist without this library. </li>
 </ul>
-<h1><a class="anchor" id="autotoc_md6"></a>
+<h1><a class="anchor" id="autotoc_md7"></a>
 Why?</h1>
-<h2><a class="anchor" id="autotoc_md7"></a>
+<h2><a class="anchor" id="autotoc_md8"></a>
 Speed</h2>
 <p>Speed was the principal reason for implementing SB in C++, and the results are to be expected from moving from Python to C++ (via <code>benchmark.sh</code>):</p>
 <table class="markdownTable">
 <tr class="markdownTableHead">
 <th class="markdownTableHeadNone">Profile (ms)   </th><th class="markdownTableHeadNone">Cold (P)   </th><th class="markdownTableHeadNone"><b>Cold (C)</b>   </th><th class="markdownTableHeadNone">Hot (P)   </th><th class="markdownTableHeadNone">Hot (C)   </th><th class="markdownTableHeadNone">Libraries (P)   </th><th class="markdownTableHeadNone">Libraries (C)   </th><th class="markdownTableHeadNone">Caches (P)   </th><th class="markdownTableHeadNone">Caches (C)    </th></tr>
 <tr class="markdownTableRowOdd">
-<td class="markdownTableBodyNone"><a href="https://github.com/ungoogled-software/ungoogled-chromium">Chromium</a>   </td><td class="markdownTableBodyNone">1165.5   </td><td class="markdownTableBodyNone"><b>252.1</b>   </td><td class="markdownTableBodyNone">64.5   </td><td class="markdownTableBodyNone"><b>2.8</b>   </td><td class="markdownTableBodyNone">252.6   </td><td class="markdownTableBodyNone"><b>15.8</b>   </td><td class="markdownTableBodyNone">418.5   </td><td class="markdownTableBodyNone"><b>161.1</b>    </td></tr>
+<td class="markdownTableBodyNone"><a href="https://github.com/ungoogled-software/ungoogled-chromium">Chromium</a>   </td><td class="markdownTableBodyNone">1032.0   </td><td class="markdownTableBodyNone"><b>217.1</b>   </td><td class="markdownTableBodyNone">64.0   </td><td class="markdownTableBodyNone"><b>3.0</b>   </td><td class="markdownTableBodyNone">249.2   </td><td class="markdownTableBodyNone"><b>15.3</b>   </td><td class="markdownTableBodyNone">411.6   </td><td class="markdownTableBodyNone"><b>222.3</b>    </td></tr>
 <tr class="markdownTableRowEven">
-<td class="markdownTableBodyNone"><a href="https://github.com/zed-industries/zed">Zed</a>   </td><td class="markdownTableBodyNone">857.6   </td><td class="markdownTableBodyNone"><b>324.1</b>   </td><td class="markdownTableBodyNone">64.5   </td><td class="markdownTableBodyNone"><b>3.0</b>   </td><td class="markdownTableBodyNone">197.6   </td><td class="markdownTableBodyNone"><b>12.9</b>   </td><td class="markdownTableBodyNone">230.3   </td><td class="markdownTableBodyNone"><b>56.8</b>    </td></tr>
+<td class="markdownTableBodyNone"><a href="https://github.com/zed-industries/zed">Zed</a>   </td><td class="markdownTableBodyNone">750.9   </td><td class="markdownTableBodyNone"><b>309.7</b>   </td><td class="markdownTableBodyNone">63.4   </td><td class="markdownTableBodyNone"><b>3.2</b>   </td><td class="markdownTableBodyNone">194.8   </td><td class="markdownTableBodyNone"><b>7.1</b>   </td><td class="markdownTableBodyNone">224.6   </td><td class="markdownTableBodyNone"><b>89.7</b>    </td></tr>
 <tr class="markdownTableRowOdd">
-<td class="markdownTableBodyNone"><a href="https://obsidian.md/">Obsidian</a>   </td><td class="markdownTableBodyNone">1125.3   </td><td class="markdownTableBodyNone"><b>238.9</b>   </td><td class="markdownTableBodyNone">64.4   </td><td class="markdownTableBodyNone"><b>3.4</b>   </td><td class="markdownTableBodyNone">241.8   </td><td class="markdownTableBodyNone"><b>13.5</b>   </td><td class="markdownTableBodyNone">382.4   </td><td class="markdownTableBodyNone"><b>191.3</b>    </td></tr>
+<td class="markdownTableBodyNone"><a href="https://obsidian.md/">Obsidian</a>   </td><td class="markdownTableBodyNone">1014.3   </td><td class="markdownTableBodyNone"><b>229.3</b>   </td><td class="markdownTableBodyNone">63.6   </td><td class="markdownTableBodyNone"><b>3.6</b>   </td><td class="markdownTableBodyNone">239.7   </td><td class="markdownTableBodyNone"><b>12.1</b>   </td><td class="markdownTableBodyNone">380.0   </td><td class="markdownTableBodyNone"><b>184.8</b>    </td></tr>
 <tr class="markdownTableRowEven">
-<td class="markdownTableBodyNone"><a href="https://github.com/fooyin/fooyin">Fooyin</a>   </td><td class="markdownTableBodyNone">4544.2   </td><td class="markdownTableBodyNone"><b>962.4</b>   </td><td class="markdownTableBodyNone">64.2   </td><td class="markdownTableBodyNone"><b>3.1</b>   </td><td class="markdownTableBodyNone">1179.9   </td><td class="markdownTableBodyNone"><b>10.2</b>   </td><td class="markdownTableBodyNone">2058.2   </td><td class="markdownTableBodyNone"><b>89.1</b>    </td></tr>
+<td class="markdownTableBodyNone"><a href="https://github.com/fooyin/fooyin">Fooyin</a>   </td><td class="markdownTableBodyNone">4192.4   </td><td class="markdownTableBodyNone"><b>628.4</b>   </td><td class="markdownTableBodyNone">62.9   </td><td class="markdownTableBodyNone"><b>3.2</b>   </td><td class="markdownTableBodyNone">1151.1   </td><td class="markdownTableBodyNone"><b>10.1</b>   </td><td class="markdownTableBodyNone">2015.7   </td><td class="markdownTableBodyNone"><b>884.9</b>    </td></tr>
 <tr class="markdownTableRowOdd">
-<td class="markdownTableBodyNone"><a href="https://invent.kde.org/graphics/okular">Okular</a>   </td><td class="markdownTableBodyNone">4296.4   </td><td class="markdownTableBodyNone"><b>950.7</b>   </td><td class="markdownTableBodyNone">63.9   </td><td class="markdownTableBodyNone"><b>3.4</b>   </td><td class="markdownTableBodyNone">994.7   </td><td class="markdownTableBodyNone"><b>12.6</b>   </td><td class="markdownTableBodyNone">1829.1   </td><td class="markdownTableBodyNone"><b>86.6</b>    </td></tr>
+<td class="markdownTableBodyNone"><a href="https://invent.kde.org/graphics/okular">Okular</a>   </td><td class="markdownTableBodyNone">4011.5   </td><td class="markdownTableBodyNone"><b>666.7</b>   </td><td class="markdownTableBodyNone">62.7   </td><td class="markdownTableBodyNone"><b>3.7</b>   </td><td class="markdownTableBodyNone">976.7   </td><td class="markdownTableBodyNone"><b>13.1</b>   </td><td class="markdownTableBodyNone">1818.8   </td><td class="markdownTableBodyNone"><b>849.6</b>    </td></tr>
 <tr class="markdownTableRowEven">
-<td class="markdownTableBodyNone"><a href="https://github.com/keepassxreboot/keepassxc">KeePassXC</a>   </td><td class="markdownTableBodyNone">4176.1   </td><td class="markdownTableBodyNone"><b>948.4</b>   </td><td class="markdownTableBodyNone">63.6   </td><td class="markdownTableBodyNone"><b>3.1</b>   </td><td class="markdownTableBodyNone">910.1   </td><td class="markdownTableBodyNone"><b>14.9</b>   </td><td class="markdownTableBodyNone">1745.0   </td><td class="markdownTableBodyNone"><b>88.1</b>    </td></tr>
+<td class="markdownTableBodyNone"><a href="https://github.com/keepassxreboot/keepassxc">KeePassXC</a>   </td><td class="markdownTableBodyNone">3871.0   </td><td class="markdownTableBodyNone"><b>674.2</b>   </td><td class="markdownTableBodyNone">62.9   </td><td class="markdownTableBodyNone"><b>3.5</b>   </td><td class="markdownTableBodyNone">899.4   </td><td class="markdownTableBodyNone"><b>13.1</b>   </td><td class="markdownTableBodyNone">1738.1   </td><td class="markdownTableBodyNone"><b>843.0</b>    </td></tr>
 <tr class="markdownTableRowOdd">
-<td class="markdownTableBodyNone"><a href="https://github.com/syncthing/syncthing">Syncthing</a>   </td><td class="markdownTableBodyNone">154.4   </td><td class="markdownTableBodyNone"><b>30.3</b>   </td><td class="markdownTableBodyNone">63.6   </td><td class="markdownTableBodyNone"><b>3.5</b>   </td><td class="markdownTableBodyNone">96.2   </td><td class="markdownTableBodyNone"><b>12.1</b>   </td><td class="markdownTableBodyNone">100.0   </td><td class="markdownTableBodyNone"><b>19.3</b>    </td></tr>
+<td class="markdownTableBodyNone"><a href="https://github.com/syncthing/syncthing">Syncthing</a>   </td><td class="markdownTableBodyNone">129.0   </td><td class="markdownTableBodyNone"><b>21.5</b>   </td><td class="markdownTableBodyNone">59.9   </td><td class="markdownTableBodyNone"><b>3.4</b>   </td><td class="markdownTableBodyNone">93.4   </td><td class="markdownTableBodyNone"><b>3.7</b>   </td><td class="markdownTableBodyNone">98.8   </td><td class="markdownTableBodyNone"><b>26.2</b>    </td></tr>
 <tr class="markdownTableRowEven">
-<td class="markdownTableBodyNone"><a href="https://github.com/nkanaev/yarr">Yarr</a>   </td><td class="markdownTableBodyNone">154.8   </td><td class="markdownTableBodyNone"><b>27.6</b>   </td><td class="markdownTableBodyNone">63.6   </td><td class="markdownTableBodyNone"><b>3.4</b>   </td><td class="markdownTableBodyNone">99.7   </td><td class="markdownTableBodyNone"><b>8.1</b>   </td><td class="markdownTableBodyNone">103.7   </td><td class="markdownTableBodyNone"><b>15.5</b>    </td></tr>
+<td class="markdownTableBodyNone"><a href="https://github.com/nkanaev/yarr">Yarr</a>   </td><td class="markdownTableBodyNone">133.5   </td><td class="markdownTableBodyNone"><b>19.0</b>   </td><td class="markdownTableBodyNone">60.4   </td><td class="markdownTableBodyNone"><b>3.2</b>   </td><td class="markdownTableBodyNone">97.8   </td><td class="markdownTableBodyNone"><b>3.7</b>   </td><td class="markdownTableBodyNone">101.3   </td><td class="markdownTableBodyNone"><b>26.5</b>    </td></tr>
 <tr class="markdownTableRowOdd">
-<td class="markdownTableBodyNone">Average   </td><td class="markdownTableBodyNone">2059.3   </td><td class="markdownTableBodyNone"><b>466.8</b>   </td><td class="markdownTableBodyNone">64.0   </td><td class="markdownTableBodyNone"><b>3.2</b>   </td><td class="markdownTableBodyNone">496.5   </td><td class="markdownTableBodyNone"><b>12.5</b>   </td><td class="markdownTableBodyNone">858.4   </td><td class="markdownTableBodyNone"><b>88.5</b>    </td></tr>
+<td class="markdownTableBodyNone">Average   </td><td class="markdownTableBodyNone">1891.8   </td><td class="markdownTableBodyNone"><b>345.7</b>   </td><td class="markdownTableBodyNone">62.5   </td><td class="markdownTableBodyNone"><b>3.4</b>   </td><td class="markdownTableBodyNone">487.8   </td><td class="markdownTableBodyNone"><b>9.8</b>   </td><td class="markdownTableBodyNone">848.6   </td><td class="markdownTableBodyNone"><b>285.6</b>    </td></tr>
 <tr class="markdownTableRowEven">
-<td class="markdownTableBodyNone">Speedup   </td><td class="markdownTableBodyNone"></td><td class="markdownTableBodyNone"><b>441%</b>   </td><td class="markdownTableBodyNone"></td><td class="markdownTableBodyNone"><b>2000%</b>   </td><td class="markdownTableBodyNone"></td><td class="markdownTableBodyNone"><b>3972%</b>   </td><td class="markdownTableBodyNone"></td><td class="markdownTableBodyNone"><b>970%</b>   </td></tr>
+<td class="markdownTableBodyNone">Speedup   </td><td class="markdownTableBodyNone"></td><td class="markdownTableBodyNone"><b>547%</b>   </td><td class="markdownTableBodyNone"></td><td class="markdownTableBodyNone"><b>1838%</b>   </td><td class="markdownTableBodyNone"></td><td class="markdownTableBodyNone"><b>4978%</b>   </td><td class="markdownTableBodyNone"></td><td class="markdownTableBodyNone"><b>297%</b>   </td></tr>
 </table>
 <ul>
 <li>Cold Launch is an important metric if the startup service isn't be used, as it determines how long a program will take to launch for the first time after booting. Applications can benefit from the loading of other applications (One Qt application will populate the shared SOF for other Qt applications, letting it launch "warm").</li>
@@ -190,7 +192,7 @@ Speed</h2>
 <li>Library Updates fix a bug in the Python implementation, where <code>ldd</code> was assumed to not recursively determine dependencies. It does. This speed up allows for a far more reliable parser, mentioned below.</li>
 <li>Cache Updates no longer using a thread-mediated <code>searched</code> list, to which mutex access significantly slowed access down. Instead, we just cache <code>ldd</code> results, and return the pre-computed results immediately. You may think that returning libraries instead of just an empty list would slow things down, but the performance gain is tremendous, and come with the benefit in that it is more accurate, as the prior implementation had a bug where caches would not be complete if one of their libraries/binaries were already check prior in the sandbox construction.</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md8"></a>
+<h2><a class="anchor" id="autotoc_md9"></a>
 Functionality and Usability</h2>
 <p>New functionality and usability improvements were also a major consideration, with many improvements infeasible or impossible within the confines of Python. Such improvements include:</p><ul>
 <li>A custom, flexible argument handler:<ul>

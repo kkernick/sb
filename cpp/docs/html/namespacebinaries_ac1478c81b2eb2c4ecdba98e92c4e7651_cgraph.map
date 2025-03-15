@@ -21,7 +21,7 @@
 <area shape="poly" id="edge20_Node000001_Node000016" title=" " alt="" coords="77,475,114,506,161,537,174,544,172,548,158,542,111,510,73,479"/>
 <area shape="rect" id="Node000017" href="$namespaceshared.html#a4ddc24b4d99e824f9b941fa905fb0a81" title="A Blocking Parser that returns the first line of output." alt="" coords="172,602,288,629"/>
 <area shape="poly" id="edge23_Node000001_Node000017" title=" " alt="" coords="70,476,105,530,131,561,161,588,168,593,166,597,158,592,127,565,100,533,65,479"/>
-<area shape="rect" id="Node000018" href="$namespaceshared.html#a48db957c3256c3eb24bc748642cd1bb9" title="Batch multiple iterations of an accumulator function together." alt="" coords="160,653,301,679"/>
+<area shape="rect" id="Node000018" href="$namespaceshared.html#a15763c51cb9218c385860ced9f47ac05" title="Batch multiple iterations of an accumulator function together." alt="" coords="160,653,301,679"/>
 <area shape="poly" id="edge27_Node000001_Node000018" title=" " alt="" coords="66,476,78,509,98,553,125,599,161,639,167,643,163,647,158,643,121,602,93,555,73,511,61,478"/>
 <area shape="rect" id="Node000019" href="$namespaceshared.html#ae0ec3e8d4de79340eda47eabfd075feb" title="Strip all instance of character from a string." alt="" coords="184,703,277,730"/>
 <area shape="poly" id="edge28_Node000001_Node000019" title=" " alt="" coords="65,477,74,518,91,575,120,636,139,664,161,689,171,697,168,701,158,693,135,668,115,639,86,577,68,519,59,478"/>

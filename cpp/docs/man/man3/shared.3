@@ -224,7 +224,7 @@ shared \- Shared functionality\&.
 .RI "template<class T, class A, class \&.\&.\&. Args, class \&.\&.\&. Refs> T \fBrinit\fP (const A &fun, const Args &\&.\&.\&. args, Refs &\&.\&.\&. refs)"
 .br
 .ti -1c
-.RI "template<class T, class A, class L = list, class \&.\&.\&. Args> void \fBsingle_batch\fP (const A &fun, T &accum, const L &mem, Args\&.\&.\&. args)"
+.RI "template<class T, class A, class L = list, class \&.\&.\&. Args, class \&.\&.\&. Refs> void \fBsingle_batch\fP (const A &fun, T &accum, const L &mem, Args\&.\&.\&. args, Refs &\&.\&.\&. refs)"
 .br
 .RI "Batch multiple iterations of an accumulator function together\&. "
 .ti -1c
@@ -664,7 +664,7 @@ Share a path with the sandbox using a mode\&.
 .RE
 .PP
 
-.SS "template<class T, class A, class L = list, class \&.\&.\&. Args> void shared::single_batch (const A & fun, T & accum, const L & mem, Args\&.\&.\&. args)"
+.SS "template<class T, class A, class L = list, class \&.\&.\&. Args, class \&.\&.\&. Refs> void shared::single_batch (const A & fun, T & accum, const L & mem, Args\&.\&.\&. args, Refs &\&.\&.\&. refs)"
 
 .PP
 Batch multiple iterations of an accumulator function together\&. 

@@ -20,7 +20,7 @@
 <area shape="poly" id="edge22_Node000001_Node000016" title=" " alt="" coords="57,746,64,682,81,584,110,469,131,411,155,356,191,291,225,244,267,203,325,156,343,145,346,149,329,161,271,207,230,247,196,294,160,358,135,413,115,471,86,585,70,683,63,746"/>
 <area shape="rect" id="Node000017" href="$namespacebinaries.html#ac1478c81b2eb2c4ecdba98e92c4e7651" title="Parse a binary to determine dependencies." alt="" coords="165,442,272,469"/>
 <area shape="poly" id="edge25_Node000001_Node000017" title=" " alt="" coords="64,745,200,482,205,484,68,747"/>
-<area shape="rect" id="Node000020" href="$namespaceshared.html#a48db957c3256c3eb24bc748642cd1bb9" title="Batch multiple iterations of an accumulator function together." alt="" coords="327,772,468,798"/>
+<area shape="rect" id="Node000020" href="$namespaceshared.html#a15763c51cb9218c385860ced9f47ac05" title="Batch multiple iterations of an accumulator function together." alt="" coords="327,772,468,798"/>
 <area shape="poly" id="edge45_Node000001_Node000020" title=" " alt="" coords="110,761,311,776,311,781,110,766"/>
 <area shape="rect" id="Node000023" href="$namespacebinaries.html#a8c5deb9459b44c3bdf9bb6d78ee53322" title="Setup the sandbox for the used binaries." alt="" coords="522,1025,628,1052"/>
 <area shape="poly" id="edge41_Node000001_Node000023" title=" " alt="" coords="62,773,67,820,81,886,94,921,110,955,132,986,159,1011,200,1035,244,1051,290,1061,337,1066,429,1063,506,1052,507,1057,429,1069,337,1071,289,1066,242,1056,197,1039,156,1015,128,989,106,958,89,923,76,888,62,821,57,773"/>

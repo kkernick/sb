@@ -247,7 +247,7 @@ var sectionId = 'dynsection-0';
 <!-- Node20 -->
 <g id="Node000020" class="node">
 <title>Node20</title>
-<g id="a_Node000020"><a xlink:href="namespaceshared.html#a48db957c3256c3eb24bc748642cd1bb9" target="_top" xlink:title="Batch multiple iterations of an accumulator function together.">
+<g id="a_Node000020"><a xlink:href="namespaceshared.html#a15763c51cb9218c385860ced9f47ac05" target="_top" xlink:title="Batch multiple iterations of an accumulator function together.">
 <polygon fill="white" stroke="#666666" points="347.25,-286 241.25,-286 241.25,-266 347.25,-266 347.25,-286"/>
 <text text-anchor="middle" x="294.25" y="-272.5" font-family="Helvetica,sans-Serif" font-size="10.00">shared::single_batch</text>
 </a>
