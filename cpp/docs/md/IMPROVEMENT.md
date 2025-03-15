@@ -31,7 +31,8 @@ The following table shows the speed of Python-SB at its last update before SB++ 
 | 17    | 29b01b6  | 275.3 | 5.1  | 18.2      | 269.9 | "Documentation"              |
 | 18    | 22074db  | 275.6 | 4.0  | 18.4      | 265.1 | LDD Corrections.             |
 | 19    | 0a01c31  | 212.7 | 3.8  | 10.2      | 200.8 | Cleanup switches             |
-| 20    | 8f4af8c2 | 223.8 | 3.7  | 10.2      | 211   | Per-Config SOF               |
+| 20    | 8f4af8c2 | 223.8 | 3.7  | 10.2      | 211.0 | Per-Config SOF               |
+| 21    | 3f5f5b33 | 221.8 | 3.5  | 9.9       | 204   | Early SOF Generation         |
 ^times
 
 ```chart
