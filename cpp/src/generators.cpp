@@ -234,7 +234,7 @@ namespace generate {
     log({"Resolving libraries"});
     for (const auto& [lib, mod] : arg::modlist("libraries")) {
       if (mod != "x") {
-        if (std::filesystem::is_directory(lib)) libraries.emplace(lib);
+        if (std::filesystem::is_directory(lib)) libraries::directories.emplace(lib);
         if (update_sof) libraries::get(libraries, lib);
       }
     }
