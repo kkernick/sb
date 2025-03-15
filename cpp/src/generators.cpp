@@ -421,8 +421,10 @@ namespace generate {
         "/usr/share/X11/xkb",
       }, "ro-bind");
 
-      extend(command, {"--setenv", "XDG_SESSION_TYPE", "wayland"});
-      genv(command, "WAYLAND_DISPLAY");
+      extend(command, {
+        "--setenv", "XDG_SESSION_TYPE", "wayland",
+        "--setenv", "WAYLAND-DISPLAY", "wayland-0"
+      });
 
       extend(libraries::directories, {"/usr/lib/dri", "/usr/lib/gbm"});
       if (update_sof) batch(libraries::get, libraries, {"*Mesa*", "*mesa*", "*EGL*"}, "");
