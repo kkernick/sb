@@ -65,16 +65,16 @@ Speed was the principal reason for implementing SB in C++, and the results are t
 
 | Profile (ms)                                                         | Cold (P) | **Cold (C)** | Hot (P) | Hot (C)   | Libraries (P) | Libraries (C) | Caches (P) | Caches (C) |
 | -------------------------------------------------------------------- | -------- | ------------ | ------- | --------- | ------------- | ------------- | ---------- | ---------- |
-| [Chromium](https://github.com/ungoogled-software/ungoogled-chromium) | 1032.0   | **217.1**    | 64.0    | **3.0**   | 249.2         | **15.3**      | 411.6      | **222.3**      |
-| [Zed](https://github.com/zed-industries/zed)                         | 750.9    | **309.7**    | 63.4    | **3.2**   | 194.8         | **7.1**       | 224.6      | **89.7**       |
-| [Obsidian](https://obsidian.md/)                                     | 1014.3   | **229.3**    | 63.6    | **3.6**   | 239.7         | **12.1**      | 380.0      | **184.8**      |
-| [Fooyin](https://github.com/fooyin/fooyin)                           | 4192.4   | **628.4**    | 62.9    | **3.2**   | 1151.1        | **10.1**      | 2015.7     | **884.9**      |
-| [Okular](https://invent.kde.org/graphics/okular)                     | 4011.5   | **666.7**    | 62.7    | **3.7**   | 976.7         | **13.1**      | 1818.8     | **849.6**      |
-| [KeePassXC](https://github.com/keepassxreboot/keepassxc)             | 3871.0   | **674.2**    | 62.9    | **3.5**   | 899.4         | **13.1**      | 1738.1     | **843.0**      |
-| [Syncthing](https://github.com/syncthing/syncthing)                  | 129.0    | **21.5**     | 59.9    | **3.4**   | 93.4          | **3.7**       | 98.8       | **26.2**       |
-| [Yarr](https://github.com/nkanaev/yarr)                              | 133.5    | **19.0**     | 60.4    | **3.2**   | 97.8          | **3.7**       | 101.3      | **26.5**       |
-| Average                                                              | 1891.8   | **345.7**    | 62.5    | **3.4**   | 487.8         | **9.8**       | 848.6      | **285.6**      |
-| Speedup                                                              |          | **547%**     |         | **1838%** |               | **4978%**     |            | **297%**   |
+| [Chromium](https://github.com/ungoogled-software/ungoogled-chromium) | 1350.0   | **214.6**    | 74.7    | **3.3**   | 310.7         | **8.7**       | 519.2      | **187.1**  |
+| [Zed](https://github.com/zed-industries/zed)                         | 996.3    | **303.2**    | 76.4    | **3.6**   | 232.9         | **4.5**       | 267.3      | **68.4**   |
+| [Obsidian](https://obsidian.md/)                                     | 1366.6   | **217.3**    | 72.7    | **3.9**   | 290.6         | **5.1**       | 487.2      | **155.2**  |
+| [Fooyin](https://github.com/fooyin/fooyin)                           | 5439.4   | **658.8**    | 72.7    | **3.1**   | 1494.6        | **6.7**       | 2588.3     | **1036.2** |
+| [Okular](https://invent.kde.org/graphics/okular)                     | 5152.2   | **634.0**    | 73.3    | **2.9**   | 1303.6        | **9.1**       | 2387.5     | **993.0**  |
+| [KeePassXC](https://github.com/keepassxreboot/keepassxc)             | 5069.6   | **640.7**    | 73.0    | **2.9**   | 1211.2        | **9.1**       | 2224.1     | **999.2**  |
+| [Syncthing](https://github.com/syncthing/syncthing)                  | 161.7    | **8.3**      | 72.0    | **3.6**   | 111.5         | **4.0**       | 116.5      | **19.0**   |
+| [Yarr](https://github.com/nkanaev/yarr)                              | 163.0    | **8.7**      | 72.1    | **3.6**   | 116.3         | **4.0**       | 121.6      | **19.0**   |
+| Average                                                              | 2462.3   | **335.7**    | 83.8    | **3.4**   | 633.9         | **6.4**       | 1089.0     | **309.7**  |
+| Speedup                                                              |          | **733%**     |         | **2465%** |               | **9904%**     |            | **352%**   |
 
 * Cold Launch is an important metric if the startup service isn't be used, as it determines how long a program will take to launch for the first time after booting.  Applications can benefit from the loading of other applications (One Qt application will populate the shared SOF for other Qt applications, letting it launch "warm").
 * Hot Launch is the most important metric for SB. It defines how fast the program can launch with a warm SOF and both a `lib.cache` and `cmd.cache`. It effectively measures how quickly SB can read the `cmd.cache` and launch `bwrap`. The ideal is for this value to be zero, which would be equivalent to launching the application directly.
