@@ -1,0 +1,2 @@
+#!/bin/sh
+sb syncthingtray-qt6 --portals Desktop --talk org.kde.StatusNotifierWatcher --qt 6 --share net --fs=cache -- "$@"

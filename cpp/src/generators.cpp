@@ -296,7 +296,7 @@ namespace generate {
         libraries::directories.emplace("/usr/lib/electron" + mod);
       }
 
-      if (arg::at("gtk") < "3") arg::get("gtk") = "3";
+      if (arg::at("gtk") < "3") arg::emplace("gtk", "3");
       sys_dirs.emplace("proc");
       shared.emplace("user");
     }
@@ -331,7 +331,7 @@ namespace generate {
       }
 
       extend(command, {"--setenv", "GTK_USE_PORTAL", "1", "--setenv", "GTK_A11Y", "none"});
-      arg::get("gui") = "true";
+      arg::emplace("gui", "true");
     }
 
     if (arg::at("qt")) {
@@ -357,15 +357,7 @@ namespace generate {
         libraries::get(libraries, "libQt" + version + "*");
        if (version != "kf6") libraries::get(libraries, "/usr/lib/kf6/kioworker");
       }
-      arg::get("gui") = "true";
-    }
-
-
-    if (arg::at("vulkan")) {
-      log({"Adding Vulkan"});
-      batch(share, command, {"/etc/vulkan", "/usr/share/vulkan"}, "ro-bind");
-      if (update_sof) batch(libraries::get, libraries, {"libvulkan*", "libVkLayer*"}, "");
-      arg::get("gui") = "true";
+      arg::emplace("gui", "true");
     }
 
     if (arg::at("gui")) {
@@ -392,10 +384,19 @@ namespace generate {
       });
 
       extend(libraries::directories, {"/usr/lib/dri", "/usr/lib/gbm"});
-      if (update_sof) batch(libraries::get, libraries, {
-        "*Mesa*", "*mesa*", "*EGL*", 
-        "libva-drm*", "libva-wayland*", "libva.so*"
-      }, "");
+      if (update_sof) batch(libraries::get, libraries, {"*Mesa*", "*mesa*", "*EGL*"}, "");
+      
+      const auto& flags = arg::list("gui");
+      if (flags.contains("vulkan")) {
+        log({"Adding Vulkan"});
+        batch(share, command, {"/etc/vulkan", "/usr/share/vulkan"}, "ro-bind");
+        if (update_sof) batch(libraries::get, libraries, {"libvulkan*", "libVkLayer*"}, "");
+      }
+      
+      if (flags.contains("vaapi")) {
+        log({"Adding VA-API"});
+        if (update_sof) batch(libraries::get, libraries, {"libva-drm*", "libva-wayland*", "libva.so*"}, "");
+      }
     }
 
     if (arg::at("pipewire")) {

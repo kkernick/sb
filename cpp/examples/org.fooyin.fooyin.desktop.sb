@@ -1,2 +1,2 @@
 #!/bin/sh
-sb fooyin --portals Documents Desktop Notifications FileChooser --pipewire --qt 6 --fs=cache --sys-dirs proc --own org.mpris.MediaPlayer2.fooyin --app-dirs lib --libraries "libSDL3*" "$@"
+sb fooyin --portals Documents Desktop Notifications FileChooser --talk org.kde.StatusNotifierWatcher --pipewire --qt 6 --fs=cache --sys-dirs proc --own org.mpris.MediaPlayer2.fooyin --app-dirs lib --libraries "libSDL3*" -- "$@"

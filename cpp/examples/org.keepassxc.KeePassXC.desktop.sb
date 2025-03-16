@@ -1,2 +1,2 @@
 #!/bin/sh
-sb keepassxc --portals Desktop FileChooser Documents --qt kf6 "$@"
+sb keepassxc --portals Desktop FileChooser Documents --qt kf6 --file-passthrough=ro -- "$@"

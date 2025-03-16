@@ -31,6 +31,7 @@ namespace arg {
     const std::string& mod = "";
     const shared::vector valid = {};
     const bool& must_set = false;
+    const bool& flag_set = false;
     const custom_policy& custom = custom_policy::FALSE;
     const bool& list = false;
     const uint_fast8_t& position = -1;
@@ -62,8 +63,11 @@ namespace arg {
       shared::set valid = {}, list_val = {};
       shared::vector order = {};
 
-      // If the flag is mandatory, it must be set.
-      bool mandatory = false, set = false;
+      // If the argument is mandatory, it must be set.
+      // Flags combine the properties of single value arguments
+      // and lists. They can either be toggled on/off, or you
+      // can provide a list of additional modifiers.
+      bool mandatory = false, set = false, flag = false;
 
       // The custom policy.
       custom_policy custom = custom_policy::FALSE;
@@ -116,17 +120,22 @@ namespace arg {
           // Ensure the value is valid.
           else if (valid.size() <= 1 || custom == custom_policy::TRUE || std::find(valid.begin(), valid.end(), val) != valid.end()) {
 
-            // If our key already has multiple values, split and handle separately.
-            if (list && val.contains(',')) {
-              for (const auto& x : shared::init<shared::vector>(shared::split, val, ',', false))
-                digest_keypair(key, x, pos);
-            }
+            if (list || flag) {
+              // If our key already has multiple values, split and handle separately.
+              if (val.contains(',')) {
+                for (const auto& x : shared::init<shared::vector>(shared::split, val, ',', false))
+                  digest_keypair(key, x, pos);
+              }
 
-            // Otherwise just update.
-            else if (list) list_val.emplace(parser(val));
+              // Otherwise just update.
+              else list_val.emplace(parser(val));
+            }
             else value = parser(val);
             return true;
           }
+
+          // Flags can be increment by just passing true, even if "true" isn't a valid value for the flagset.
+          else if (flag && val == "true") return true;
         }
         return false;
       }
@@ -178,6 +187,7 @@ namespace arg {
         parser = handler;
         m_parser = m_handler;
         update_sof = c.updates_sof;
+        flag = c.flag_set;
 
         // Parse the defaults.
         if (!c.mod.empty()) modifier = m_parser(c.mod);
@@ -210,6 +220,9 @@ namespace arg {
         const auto& key = args[x];
         auto ret = false;
 
+        if (key == "--help") throw std::runtime_error("Help!");
+        if (key == "--version") throw std::runtime_error("Version");
+
         // If a .sb script ends with a list argument, new args
         // may be "consumed" by the list. However, we need to append
         // arguments to the end for proper overriding. Scripts, therefore
@@ -235,13 +248,10 @@ namespace arg {
           // need to parse for each match.
         }
 
-        if (key == "--help") throw std::runtime_error("Help!");
-        if (key == "--version") throw std::runtime_error("Version");
-
         // / Otherwise, if the next argument isn't a switch, we have `key value`
         else if (!key.empty() && (key == long_name || key == short_name)) {
           if (x + 1 != args.size() && !args[x].empty() && args[x + 1][0] != '-') {
-            if (list) {
+            if (list || flag) {
               while (++x < args.size() && !args[x].empty() && args[x][0] != '-')
                 digest_keypair(key, args[x], x);
               ret = true;
@@ -249,6 +259,11 @@ namespace arg {
             }
             else ret = digest_keypair(key, args[++x], x);
           }
+
+          else if (list) throw std::runtime_error("List argument requires values: " + long_name);
+
+          // 'Increment' the flag. Flags use the set bool to check if it's been set.
+          else if (flag) ret = true;
 
           // If there are stages to the switch, increment it.
           else if (valid.size() > 1) {
@@ -320,21 +335,28 @@ namespace arg {
        * @returns The reference.
        * @throws std::runtime_error if the argument is a list, use get_list() instead.
        */
-      std::string& get() {
-        if (list) throw std::runtime_error("Not a discrete value: " + long_name);
-        return value;
-      }
       const std::string& get() const {
         if (list) throw std::runtime_error("Not a discrete value: " + long_name);
         return value;
       }
+
+
+      /**
+       * @brief Emplace a value
+       * @param val: The value to emplace.
+       * @throws std::runtime_error if the valid is invalid.
+       * @info For single value arguments, this overwrites the stored value. For lists,
+       * it emplaces to the back of the list if its valid.
+       * @warning This function uses the same parsing logic as initial argument parsing,
+       * which means invalid values will throw exceptions.
+       */
+       void emplace(const std::string& val) {set |= digest_keypair(long_name, val, -1);}
 
       /**
        * @brief Get a mutable reference to the stored modifier.
        * @returns The modifier.
        * @info This function returns an empty string if a modifier does not exist or is allowed.
        */
-      std::string& mod() {return modifier;}
       const std::string& mod() const {return modifier;}
 
 
@@ -343,6 +365,13 @@ namespace arg {
        * @returns Whether the argument accepts multiple values.
        */
       const bool& is_list() const {return list;}
+
+
+      /**
+       * @brief Return whether the argument is a flagset.
+       * @returns Whether the argument is a true/false with a list of flags
+       */
+      const bool& is_flagset() const {return flag;}
 
 
       /**
@@ -357,12 +386,8 @@ namespace arg {
        * @returns The set.
        * @throws std::runtime_error if the argument is not a list.
        */
-      shared::set& get_list() {
-        if (!list) throw std::runtime_error("Argument must be a list: " + long_name);
-        return list_val;
-      }
       const shared::set& get_list() const {
-        if (!list) throw std::runtime_error("Argument must be a list: " + long_name);
+        if (!list && !flag) throw std::runtime_error("Argument must be a list: " + long_name);
         return list_val;
       }
 
@@ -370,7 +395,6 @@ namespace arg {
        * @brief Return a set of all valid values.
        * @returns The set.
        */
-      shared::set& get_valid() {return valid;}
       const shared::set& get_valid() const {return valid;}
 
       /**
@@ -392,10 +416,10 @@ namespace arg {
         }
         return ret;
       }
-      
+
       const bool& updates_sof() const {return update_sof;}
 
-      
+
       /**
        * @brief Return the position of the argument.
        * @returns The mandatory level.
@@ -406,7 +430,7 @@ namespace arg {
        * @brief Return whether the argument was set.
        * @returns Whether the value is greater than the default (IE unset).
        */
-      operator bool() const {return level() != 0;}
+      operator bool() const {return level() != 0 || (flag && set);}
 
       /**
        * @brief Check if the current value is underneath the provided.
@@ -433,16 +457,17 @@ namespace arg {
 
   // The arguments.
   extern shared::vector args;
-  
+
   extern std::string hash;
 
   // Helper functions.
   inline const Arg& at(const std::string& key) {return switches.at(key);}
-  inline std::string& get(const std::string& key) {return switches.at(key).get();}
-  inline std::string& mod(const std::string& key) {return switches.at(key).mod();}
+  inline const std::string& get(const std::string& key) {return switches.at(key).get();}
+  inline void emplace(const std::string& key, const std::string& val) {switches.at(key).emplace(val);}
+  inline const std::string& mod(const std::string& key) {return switches.at(key).mod();}
   inline uint_fast8_t level(const std::string& key) {return switches.at(key).level();}
-  inline shared::set& list(const std::string& key) {return switches.at(key).get_list();}
-  inline shared::set& valid(const std::string& key) {return switches.at(key).get_valid();}
+  inline const shared::set& list(const std::string& key) {return switches.at(key).get_list();}
+  inline const shared::set& valid(const std::string& key) {return switches.at(key).get_valid();}
   inline const bool& is_list(const std::string& key) {return switches.at(key).is_list();}
   inline std::vector<std::pair<std::string, std::string>> modlist(const std::string& key) {return switches.at(key).get_modlist();}
 

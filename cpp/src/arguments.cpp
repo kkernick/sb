@@ -29,9 +29,10 @@ namespace arg {
     // True/False options; these get top priority for lower cases short-switches so that they can be chained together.
     {"gui", arg::config{
       .l_name="--gui", .s_name="-g",
-      .valid={"false", "true"},
+      .valid={"vulkan", "vaapi"},
+      .flag_set = true,
       .help="Give the sandbox access to wayland and DRI libraries to render GUIs.",
-      .updates_sof = true
+      .updates_sof = true,
     }},
     {"pipewire", arg::config{
       .l_name="--pipewire", .s_name="-p",
@@ -95,12 +96,6 @@ namespace arg {
       .l_name="--hostname", .s_name="-n",
       .valid = {"false", "true"},
       .help="Pass the real hostname to the sandbox",
-    }},
-    {"vulkan", arg::config{
-      .l_name="--vulkan", .s_name="",
-      .valid={"false", "true"},
-      .help="Give the sandbox access to Vulkan. Implies --gui",
-      .updates_sof = true
     }},
 
     // Discrete, Single-Value Switches.
@@ -263,7 +258,7 @@ namespace arg {
 
           if (!switches.contains(k)) std::cout << "Unrecognized configuration: " << conf << std::endl;
           else if (!valid(k).contains(v)) std::cout << "Invalid option for " << k << ": " << v << std::endl;
-          else get(k) = v;
+          else emplace(k, v);
         }
       }
     }
@@ -317,6 +312,16 @@ namespace arg {
         std::cout << key << ": ";
         if (value.is_list()) {
           for (const auto& x : value.get_list()) std::cout << x << ' ';
+        }
+        else if (value.is_flagset()) {
+          if (value) {
+            std::cout << "true";
+            if (value.get_list().size()) {
+              std::cout << ": ";
+              for (const auto& x : value.get_list()) std::cout << x << '|';
+            }
+          }
+          else std::cout << "false";
         }
         else std::cout << value.get();
         if (!value.mod().empty()) std::cout << '(' << value.mod() << ')';

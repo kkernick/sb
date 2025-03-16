@@ -1,2 +1,2 @@
 #!/bin/sh
-sb okular --portals Desktop FileChooser --qt kf6 --app-dirs share --own org.kde.okular-2 --fs=cache "$@"
+sb okular --portals Desktop FileChooser --qt kf6 --app-dirs share --own org.kde.okular-2 --fs=cache --file-passthrough=ro -- "$@"

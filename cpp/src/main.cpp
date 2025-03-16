@@ -261,7 +261,7 @@ int main(int argc, char* argv[]) {
   // Only one instance has control off the SOF to prevent races.
 
   // Add strace if we need to.
-  if (arg::get("seccomp") == "strace" && arg::at("verbose") < "errors") arg::get("verbose") = "errors";
+  if (arg::get("seccomp") == "strace" && arg::at("verbose") < "errors") arg::emplace("verbose", "errors");
 
   // Lock and Generate
   auto generate_command = [&program, &command]() {
