@@ -5,7 +5,7 @@ pkgrel=1
 
 source=(
   "git+https://github.com/kkernick/sb.git"
-  "sb.sysusers"
+  "cpp/sb.sysusers"
 )
 b2sums=(
   "SKIP"
