@@ -261,7 +261,8 @@ int main(int argc, char* argv[]) {
   // Only one instance has control off the SOF to prevent races.
 
   // Add strace if we need to.
-  if (arg::get("seccomp") == "strace" && arg::at("verbose") < "errors") arg::emplace("verbose", "errors");
+  if ((arg::get("seccomp") == "strace") && arg::at("verbose") < "error")
+    arg::emplace("verbose", "error");
 
   // Lock and Generate
   auto generate_command = [&program, &command]() {
@@ -397,7 +398,6 @@ int main(int argc, char* argv[]) {
 
     if (arg::get("seccomp") == "strace")
       syscalls::update_policy(program, exec<vector>(command, vectorize, STDERR));
-
     else exec<void>(command, wait_for);
   }
 

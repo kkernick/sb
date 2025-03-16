@@ -128,7 +128,7 @@ namespace shared {
         if (r_bound == l_bound)
           ++l_bound;
         else if (contains(str[r_bound + 1], delim)) {
-          emplace(working, std::string_view(&str[l_bound], r_bound - l_bound - 1));
+          emplace(working, std::string_view(&str[l_bound], r_bound - l_bound));
           l_bound = r_bound + 1;
         }
         wrapped ^= 1;

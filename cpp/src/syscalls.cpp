@@ -61,7 +61,7 @@ namespace syscalls {
     if (arg::get("shell") == "debug")
       extend(syscalls, {"getpgrp", "pselect6"});
     if (arg::at("verbose") >= "error")
-      syscalls.emplace("ptrace");
+      extend(syscalls, {"ptrace", "kill"});
 
     // Setup the filter.
     auto filter = seccomp_init(arg::get("seccomp") == "enforcing" ? SCMP_ACT_ERRNO(EPERM) : SCMP_ACT_LOG);

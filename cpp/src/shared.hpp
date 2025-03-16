@@ -293,10 +293,10 @@ namespace shared {
    * @param pid: The PID of the process.
    * @returns The split output/contents.
    */
-  template <class C, char delim> C fd_splitter(const int& fd, const int& pid) {
+  template <class C, char delim, bool escape = false> C fd_splitter(const int& fd, const int& pid) {
     C result;
     auto contents = dump(fd, pid);
-    splitter<C, char>(result, contents, delim, false);
+    splitter<C, char>(result, contents, delim, escape);
     return result;
   }
 
@@ -472,7 +472,7 @@ namespace shared {
    */
   void extend(vector& dest, const std::initializer_list<const list>& source);
 
-
+  
   // Profiling stuff :)
   #ifdef PROFILE
   extern std::map<std::string, uint_fast32_t> time_slice;

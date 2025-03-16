@@ -211,7 +211,7 @@ namespace generate {
     if (lib && !update_sof) {
       if (std::filesystem::exists(c_cache)  && !std::filesystem::is_empty(c_cache)) {
         log({"Reusing existing command cache"});
-        return read_file<vector>(c_cache, fd_splitter<vector, ' '>);
+        return read_file<vector>(c_cache, fd_splitter<vector, ' ', true>);
       }
     }
     if (update_sof) log({"Updating SOF"});

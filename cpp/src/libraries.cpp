@@ -108,7 +108,7 @@ namespace libraries {
 
     // Just use the direct dependencies of the library
     else if (library.starts_with("/usr/lib")) local.emplace(library);
-    
+
     // Binaries just exclude itself.
     else parse_ldd(libraries, library.data(), "");
 
@@ -173,7 +173,7 @@ namespace libraries {
       }
     };
 
-    auto lock_file = share_dir / "sb.lock";
+    auto lock_file = app_sof / "sb.lock";
     while (std::filesystem::exists(lock_file)) {
       log({"Another instance of the application is writing to the SOF. Waiting..."});
       auto wd = inotify_add_watch(inotify, lock_file.c_str(), IN_DELETE_SELF);
