@@ -141,14 +141,11 @@ namespace libraries {
       const auto base = lib.substr(lib.find("/lib/") + 5);
       auto local_path = app_sof / base;
 
+      if (std::filesystem::exists(local_path)) return;
+
       if (arg::at("sof") < "usr") {
         const auto share_dir = std::filesystem::path(arg::get("sof")) / "shared";
         auto shared_path = share_dir / base;
-
-        // Files are actually written to the shared directory,
-        // and then hard-linked into the respective directories.
-        // This shared libraries between applications.
-        if (std::filesystem::exists(local_path)) return;
 
         if (std::filesystem::is_symlink(lib)) {
           auto resolved = std::filesystem::read_symlink(lib);
@@ -175,6 +172,7 @@ namespace libraries {
         }
       }
       else try {
+        std::filesystem::create_directories(local_path.parent_path());
         if (std::filesystem::is_symlink(lib)) {
           auto resolved = std::filesystem::read_symlink(lib);
           if (resolved.is_relative()) resolved = "/usr/lib/" + resolved.string();
@@ -185,8 +183,7 @@ namespace libraries {
       }
       catch (std::filesystem::filesystem_error& e) {
         std::cerr << "Failed to create SOF hardlink: " << e.what() << '\n' <<
-          "This may be because hardlinks are protected. sysfs fs.protected_hardlinks=0 may fix this, " <<
-          "or provide the sb executable the CAP_FOWNER capability!" << std::endl;;
+        "This may be because hardlinks are protected." << std::endl;
       }
     };
 
