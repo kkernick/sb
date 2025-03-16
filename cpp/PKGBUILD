@@ -5,7 +5,7 @@ pkgrel=1
 
 source=(
   "git+https://github.com/kkernick/sb.git"
-  "cpp/sb.sysusers"
+  "sb.sysusers"
 )
 b2sums=(
   "SKIP"
@@ -47,7 +47,7 @@ package() {
   install -Dm644 "$srcdir/sb/cpp/sb.service" "$pkgdir/usr/lib/systemd/user/sb.service"
   install -Dm644 "$srcdir/sb/cpp/sb.conf" "$pkgdir/usr/lib/systemd/zram-generator.conf.d/sb.conf"
   install -Dm755 "$srcdir/sb/sb-open" "$pkgdir/usr/bin/sb-open"
-  install -Dm644 "$srcdir/sb/cpp/sb.sysusers" "$pkgdir/usr/lib/sysusers.d/sb.conf"
+  install -Dm644 "$srcdir/sb/sb.sysusers" "$pkgdir/usr/lib/sysusers.d/sb.conf"
 
 
   for page in $srcdir/sb/cpp/docs/man/man3/*; do
