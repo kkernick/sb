@@ -214,14 +214,15 @@ namespace arg {
     {"sof", {arg::config{
       .l_name="--sof", .s_name="",
       .def = "tmp",
-      .valid={"tmp", "data", "zram"},
-      .help="Create a script file for the application",
+      .valid={"tmp", "data", "zram", "usr"},
+      .help="The SOF backing medium.",
       },
 
       [](const std::string_view& v) -> std::string {
         if (v == "tmp") return "/tmp/sb";
         else if (v == "data") return data + "/sb";
         else if (v == "zram") return "/run/sb";
+        else if (v == "usr") return "/usr/share/sb";
         return std::string(v);
       }
     }},

@@ -125,51 +125,68 @@ namespace libraries {
     libraries.merge(local);
   }
 
+
   // Setup the SOF
   void setup(const vector& libraries, const std::string_view& application, const std::filesystem::path& app_sof) {
-    const auto share_dir = std::filesystem::path(arg::get("sof")) / "shared";
-    std::filesystem::create_directories(share_dir);
     if (std::filesystem::is_directory(app_sof) && arg::at("update") < "libraries" && !std::filesystem::is_empty(app_sof)) return;
     std::filesystem::create_directories(app_sof);
 
     // Write Lambda. We batch writes to tremendously speed up initial SOF generation.
-    auto write_library = [&share_dir, &app_sof, &libraries](const uint_fast32_t x) {
+    auto write_library = [&app_sof, &libraries](const uint_fast32_t x) {
       const std::string& lib = libraries[x];
 
       // We only write normalized library files, directories are mounted
       if (!lib.starts_with("/usr/lib/") || std::filesystem::is_directory(lib)) return;
 
       const auto base = lib.substr(lib.find("/lib/") + 5);
-      auto shared_path = share_dir / base;
       auto local_path = app_sof / base;
 
-      // Files are actually written to the shared directory,
-      // and then hard-linked into the respective directories.
-      // This shared libraries between applications.
-      if (std::filesystem::exists(local_path)) return;
+      if (arg::at("sof") < "usr") {
+        const auto share_dir = std::filesystem::path(arg::get("sof")) / "shared";
+        auto shared_path = share_dir / base;
 
-      if (std::filesystem::is_symlink(lib)) {
-        auto resolved = std::filesystem::read_symlink(lib);
-        auto local_resolved = app_sof / resolved;
+        // Files are actually written to the shared directory,
+        // and then hard-linked into the respective directories.
+        // This shared libraries between applications.
+        if (std::filesystem::exists(local_path)) return;
 
-        if (!std::filesystem::exists(local_resolved)) {
-          auto shared_resolved = share_dir / resolved;
-          if (!std::filesystem::exists(shared_resolved)) {
-            std::filesystem::copy_file(lib.substr(0, lib.rfind('/')) / resolved, shared_resolved);
+        if (std::filesystem::is_symlink(lib)) {
+          auto resolved = std::filesystem::read_symlink(lib);
+          auto local_resolved = app_sof / resolved;
+
+          if (!std::filesystem::exists(local_resolved)) {
+            auto shared_resolved = share_dir / resolved;
+            if (!std::filesystem::exists(shared_resolved)) {
+              std::filesystem::copy_file(lib.substr(0, lib.rfind('/')) / resolved, shared_resolved);
+            }
+            std::filesystem::create_hard_link(shared_resolved, local_resolved);
           }
-          std::filesystem::create_hard_link(shared_resolved, local_resolved);
+          std::filesystem::create_symlink(resolved, local_path);
         }
-        std::filesystem::create_symlink(resolved, local_path);
-      }
 
-      else {
-        const auto dir = std::filesystem::path(base).parent_path();
-        if (!std::filesystem::exists(shared_path)) {
-          std::filesystem::create_directories(share_dir / dir);
-          std::filesystem::copy_file(lib, shared_path);
+        else {
+          const auto dir = std::filesystem::path(base).parent_path();
+          if (!std::filesystem::exists(shared_path)) {
+            std::filesystem::create_directories(share_dir / dir);
+            std::filesystem::copy_file(lib, shared_path);
+          }
+          std::filesystem::create_directories(app_sof / dir);
+          std::filesystem::create_hard_link(shared_path, local_path);
         }
-        std::filesystem::create_directories(app_sof / dir);
-        std::filesystem::create_hard_link(shared_path, local_path);
+      }
+      else try {
+        if (std::filesystem::is_symlink(lib)) {
+          auto resolved = std::filesystem::read_symlink(lib);
+          if (resolved.is_relative()) resolved = "/usr/lib/" + resolved.string();
+          std::filesystem::create_hard_link(resolved, local_path);
+        }
+        else
+          std::filesystem::create_hard_link(lib, local_path);
+      }
+      catch (std::filesystem::filesystem_error& e) {
+        std::cerr << "Failed to create SOF hardlink: " << e.what() << '\n' <<
+          "This may be because hardlinks are protected. sysfs fs.protected_hardlinks=0 may fix this, " <<
+          "or provide the sb executable the CAP_FOWNER capability!" << std::endl;;
       }
     };
 

@@ -51,4 +51,6 @@ package() {
   for license in "$srcdir/sb/LICENSE" $srcdir/sb/cpp/src/third_party/licenses/*; do
     install -Dm644 "$license" "$pkgdir/usr/share/licenses/sb/$(basename $license)"
   done
+  
+  install -Dm777 -d "$pkgdir/usr/share/sb"
 }
