@@ -1,10 +1,16 @@
 pkgname=sb++-git
 pkgdesc="Sandbox Applications"
-pkgver=r373.a1bc1a9
+pkgver=r370.49a9f64
 pkgrel=1
 
-source=("git+https://github.com/kkernick/sb.git")
-sha256sums=("SKIP")
+source=(
+  "git+https://github.com/kkernick/sb.git"
+  "sb.sysusers"
+)
+b2sums=(
+  "SKIP"
+  "792af0991e641558928d35ff55f721507813fe3433b15e3031fa7e9fa76acb8ebde638154a97286bf515a9397087e4a605e925e07fc0505fba8f80fddd90fb91"
+)
 depends=(findutils glibc which bubblewrap)
 makedepends=(git lld libb2 clang llvm doxygen)
 optdepends=(
@@ -31,26 +37,25 @@ build() {
 
 package() {
   cd $srcdir/sb/cpp
-  for binary in sb sb-refresh sb-seccomp; do
+  for binary in sb-refresh sb-seccomp; do
     install -Dm755 "$binary" "$pkgdir/usr/bin/$binary"
   done
 
-  for service in sb.service; do
-    install -Dm644 "$service" "$pkgdir/usr/lib/systemd/user/$service"
-  done
+  install -Dm4755 -o77 -g77 sb "$pkgdir/usr/bin/sb"
+  install -Dm775 -o77 -g77 -d "$pkgdir/usr/share/sb"
 
-  cd $srcdir/sb
-  install -Dm 644 sb.conf "$pkgdir/usr/lib/systemd/zram-generator.conf.d/sb.conf"
+  install -Dm644 "$srcdir/sb/cpp/sb.service" "$pkgdir/usr/lib/systemd/user/sb.service"
+  install -Dm644 "$srcdir/sb/cpp/sb.conf" "$pkgdir/usr/lib/systemd/zram-generator.conf.d/sb.conf"
   install -Dm755 "$srcdir/sb/sb-open" "$pkgdir/usr/bin/sb-open"
-  
+  install -Dm644 "$srcdir/sb/cpp/sb.sysusers" "$pkgdir/usr/lib/sysusers.d/sb.conf"
+
+
   for page in $srcdir/sb/cpp/docs/man/man3/*; do
     gzip $page
     install -Dm644 "$page.gz" "$pkgdir/usr/share/man/man3/sb.$(basename $page).gz"
   done
-  
+
   for license in "$srcdir/sb/LICENSE" $srcdir/sb/cpp/src/third_party/licenses/*; do
     install -Dm644 "$license" "$pkgdir/usr/share/licenses/sb/$(basename $license)"
   done
-  
-  install -Dm777 -d "$pkgdir/usr/share/sb"
 }
