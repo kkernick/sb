@@ -392,7 +392,10 @@ namespace generate {
       });
 
       extend(libraries::directories, {"/usr/lib/dri", "/usr/lib/gbm"});
-      if (update_sof) batch(libraries::get, libraries, {"*Mesa*", "*mesa*", "*EGL*"}, "");
+      if (update_sof) batch(libraries::get, libraries, {
+        "*Mesa*", "*mesa*", "*EGL*", 
+        "libva-drm*", "libva-wayland*", "libva.so*"
+      }, "");
     }
 
     if (arg::at("pipewire")) {
