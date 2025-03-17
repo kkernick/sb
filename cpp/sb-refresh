@@ -3,7 +3,7 @@
 ARGS="$@"
 
 if [[ -z $ARGS ]]; then
-  ARGS="--update all:batch"
+  ARGS="--update clean:batch"
 fi
 
 find $XDG_DATA_HOME/sb/cache/ -type f -delete

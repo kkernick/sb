@@ -40,6 +40,13 @@ There are also optional runtime dependencies, guarded behind switches, that can 
 supports.
 5. `libseccomp`: To enable `--seccomp` to further harden the sandbox by permitting what syscalls are allowed to be run.
 
+## Installation
+
+If you're running an Arch-Based Distribution, you can use the PKGBUILD in this repo. Just run `makepkg -si`. 
+
+### Manual Installation
+SB creates a library folder, called the SOF, for each application, that can contain either copies or hard-links of system libraries, which are directly mounted in the sandbox. To prevent tampering of the SOF, it's recommended to install SB as a `setgid` application with a `sb` group on the system; the zram configuration in this repo is setup to give members of this group write-access to it, and you are further encouraged to setup the `/usr/share/sb` folder with $775$ permissions, and `root:sb` owner/group permissions. SB drops its group ID to the UID when running commands, including `bubblewrap`, which ensures that only it, and none of its children, have write access to the SOF. 
+
 ## Scripts and Services
 
 The following files are located at the root of the repo, and are shared between both implementations:
