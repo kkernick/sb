@@ -97,16 +97,18 @@ For lists, such as defining libraries:
 	* `true` merely provides the shell
 	* `debug` will drop you *into* the shell, rather than running the app, so you can look around the sandbox for troubleshooting.
 * `--sof` specifies the location for the SOF folder that contains libraries mounted to `/usr/lib` within the sandbox.
-	* `tmp` will create the SOF at `/tmp/sb/app`, and is recommended if cold boot time isn't an issue since it keeps libraries up to date with system as they are cycled every boot.
+	* `tmp` will create the SOF at `/tmp/sb/app`, which is backed by ram.
 	* `data` will create the SOF at `$XDG_DATA_HOME/sb/app/lib`. The libraries are persistent on disk, which means you'll need to occasional refresh it. However, since the SOF is self contained, this also allows you to run different versions of an app, irrespective of the hosts files.
-	* `zram` will create the SOF at `/run/sb`, which should be a `zram` device mounted by the `sb.conf` zram generator service. This uses less RAM than `tmp`, and has comparable or better performance:
+	* `zram` will create the SOF at `/run/sb`, which should be a `zram` device mounted by the `sb.conf` zram generator service. This uses less RAM than `tmp`, and has comparable or better performance
+	* `usr` will create the SOF at `/usr/share/sb`, which--being on the same file system as the host library folder, allows for direct hard-linking and thus zero storage overhead for storing the SOF. Additionally, this avoid the need to copy files to another system, which can dramatically increase cold boot speed:
 
-| Profile         | `data`        | `tmp`        | `zram`         | `usr`   |
-| --------------- | ------------- | ------------ | -------------- | ------- |
-| Chromium Cold   | 216.3ms       | 207.4ms      | 199.9ms        | 202.9ms |
-| Chromium Hot    | 4.0ms         | 3.6ms        | 3.7ms          | 3.8ms   |
-| Chromium Update | 213.7ms       | 212.2ms      | 206.8ms        | 210.6ms |
-| Storage Usage   | 535.8M (Disk) | 535.8M (RAM) | 309.5 MB (RAM) | 0M      |
+| Profile (ms/MB) | `data` | `tmp` | `zram` | `usr` |
+| --------------- | ------ | ----- | ------ | ----- |
+| Chromium Cold   | 184.8  | 191.3 | 183.5  | 169.6 |
+| Chromium Hot    | 3.2    | 2.9   | 3.0    | 3.1   |
+| Chromium Update | 180.8  | 176.5 | 173.5  | 176.2 |
+| Storage Usage   | 373    | 373   | 172    | 0M    |
+| Backing         | Disk   | RAM   | RAM    | Disk  |
 
 > [!warning]
 > Race conditions can occur between the `sb.service` that populates the SOF on start, and other startup services. If you run a service confined by SB on startup, such as `syncthing`, either delay the service until *after* `sb.service` has run (Add `After=sb.service` to the service), or use `--sof=data`.
