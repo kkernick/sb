@@ -264,6 +264,8 @@ namespace shared {
     if (pid < 0) throw std::runtime_error("Failed to fork");
     else if (pid == 0) {
 
+      setgid(getuid());
+      
       // Zip the command, open our standard files to the pipe.
       auto argv = zip(cmd);
 

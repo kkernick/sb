@@ -143,7 +143,7 @@ namespace libraries {
 
       if (std::filesystem::exists(local_path)) return;
 
-      if (arg::at("sof") < "usr") {
+      if (arg::get("sof") != "usr") {
         const auto share_dir = std::filesystem::path(arg::get("sof")) / "shared";
         auto shared_path = share_dir / base;
 
