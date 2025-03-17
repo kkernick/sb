@@ -27,6 +27,7 @@ For lists, such as defining libraries:
 	* `etc` provides `/etc/app`
 	* `lib` provides `/usr/lib/app`
 	* `share` provides `/usr/share/app`
+	* `opt` provides `/opt/app`
 * `--binaries` provides a list of additional binaries to provide in the sandbox
 * `--destkop-entry/-D`  creates a desktop entry for the application. If needed, you can provide a desktop file explicitly in case it deviates from the program name, such as `--destkop-entry application.desktop`.
 * `--devices` provides a list of devices to add to the sandbox
@@ -38,7 +39,7 @@ For lists, such as defining libraries:
 	* `ro` mounts the files as read-only
 	* `rw` mounts the files as read-write. Note that files are attached via bind-mounts, which means that the file cannot be moved or deleted. Some KDE applications update configuration files by creating a copy, then moving it into the original. If you use `--fs` instead of attaching host configurations, this isn't a problem.
 	* `discard` only applies to directories, and uses an overlay to allow seamless, real read-write to the directory and its files, but to which writes are actually done to a temporary copy that is discarded upon program termination.
-* `--files` provides a list of files to provide in the sandbox at `/enclave/path`. Modifier semantics allows for granular control over permissions, defaulting to the value of `--file-passthrough` (Which defaults to `false`, hence if `--file-passthrough` is not defined all files will need an explicit policy) such as `--files test.txt:ro test.csv:rw dir:discard`
+* `--files` provides a list of files to provide in the sandbox at `/enclave/path`. Modifier semantics allows for granular control over permissions, defaulting to the value of `--file-passthrough` (Which defaults to `false`, hence if `--file-passthrough` is not defined all files will need an explicit policy) such as `--files test.txt:ro test.csv:rw dir:discard`. You can also provide the unique modifiers `do` and `dw` for Direct Read-Only and Direct Read-Write, which will be exposed in the sandbox in the exact same path they appear on the host.
 
 > [!note]
 > This system has superseded `--ro` and `--rw`
@@ -100,11 +101,12 @@ For lists, such as defining libraries:
 	* `data` will create the SOF at `$XDG_DATA_HOME/sb/app/lib`. The libraries are persistent on disk, which means you'll need to occasional refresh it. However, since the SOF is self contained, this also allows you to run different versions of an app, irrespective of the hosts files.
 	* `zram` will create the SOF at `/run/sb`, which should be a `zram` device mounted by the `sb.conf` zram generator service. This uses less RAM than `tmp`, and has comparable or better performance:
 
-| Profile       | `data`        | `tmp`        | `zram`         |
-| ------------- | ------------- | ------------ | -------------- |
-| Chromium Cold | 258.4ms       | 266.8ms      | 258.1ms        |
-| Chromium Hot  | 3.2ms         | 3.0ms        | 3.0ms          |
-| Storage Usage | 535.8M (Disk) | 535.8M (RAM) | 309.5 MB (RAM) |
+| Profile         | `data`        | `tmp`        | `zram`         | `usr`   |
+| --------------- | ------------- | ------------ | -------------- | ------- |
+| Chromium Cold   | 216.3ms       | 207.4ms      | 199.9ms        | 202.9ms |
+| Chromium Hot    | 4.0ms         | 3.6ms        | 3.7ms          | 3.8ms   |
+| Chromium Update | 213.7ms       | 212.2ms      | 206.8ms        | 210.6ms |
+| Storage Usage   | 535.8M (Disk) | 535.8M (RAM) | 309.5 MB (RAM) | 0M      |
 
 > [!warning]
 > Race conditions can occur between the `sb.service` that populates the SOF on start, and other startup services. If you run a service confined by SB on startup, such as `syncthing`, either delay the service until *after* `sb.service` has run (Add `After=sb.service` to the service), or use `--sof=data`.
