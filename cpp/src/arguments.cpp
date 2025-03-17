@@ -180,6 +180,7 @@ namespace arg {
       .valid = {"dev", "proc", "lib", "bin", "etc", "share", "var"},
       .list=true,
       .help="Application specific folders to add to the sandbox",
+      .updates_sof = true
     }},
     {"share", arg::config{
       .l_name="--share", .s_name="",
@@ -187,6 +188,13 @@ namespace arg {
       .valid = {"user", "ipc", "pid", "net", "cgroup", "none", "all"},
       .list=true,
       .help="Share namespaces.",
+    }},
+    {"encrypt", arg::config{
+      .l_name="--encrypt", .s_name="-E",
+      .valid={"persist", "init", "external-sof"},
+      .flag_set = true,
+      .help="Encrypt the profile's configuration and filesystems as $XDG_DATA_HOME.",
+      .updates_sof = true
     }},
 
     // Portals.
@@ -215,7 +223,8 @@ namespace arg {
       .l_name="--sof", .s_name="",
       .def = "usr",
       .valid={"usr", "tmp", "data", "zram"},
-      .help="The SOF backing medium.",
+      .custom = custom_policy::TRUE,
+      .help="The SOF backing medium. Optionally provide an explicit path",
       },
 
       [](const std::string_view& v) -> std::string {
@@ -234,8 +243,13 @@ namespace arg {
       },
       [](const std::string_view& v) -> std::string {return std::string(v);},
       [](const std::string_view& v) -> std::string {
-        if (switches.contains("cmd") && !v.starts_with('/'))
-          return std::filesystem::path(data) / "sb" / std::filesystem::path(arg::get("cmd")).filename() / v;
+        if (switches.contains("cmd")) {
+          auto basename = arg::get("cmd");
+          if (basename.contains('/')) basename = basename.substr(basename.rfind('/') + 1);
+          auto path = std::filesystem::path(data) / "sb";
+          if (arg::at("encrypt")) return path / "work" / basename / v;
+          return path / basename / v;
+        }
         return std::string(v);
       }
     }},

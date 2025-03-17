@@ -1,5 +1,6 @@
 #include "arguments.hpp"
 #include "generators.hpp"
+#include "shared.hpp"
 #include "syscalls.hpp"
 #include "libraries.hpp"
 
@@ -8,6 +9,7 @@
 #include <sys/wait.h>
 
 using namespace shared;
+namespace fs = std::filesystem;
 
 // The WD of the proxy
 int proxy_pid = -1;
@@ -34,14 +36,19 @@ static void cleanup(int sig) {
     exec({"find", path, "-type", "l", "-exec", "rm", "-f", "{}", ";"});
     exec<void>({"find", path, "-type", "f", "-empty", "-exec", "rm", "-f", "{}", ";"}, wait_for);
     for (const auto& junk : {"/dev", "/sys", "/run"}) {
-      if (std::filesystem::exists(path + junk))
-        std::filesystem::remove_all(path + junk);
+      if (fs::exists(path + junk))
+        fs::remove_all(path + junk);
     }
   }
 
+  if (arg::at("encrypt") && !arg::list("encrypt").contains("persist")) {
+    log({"Unmounting encrypted root at", app_data.string()});
+    exec<void>({"fusermount", "-u", app_data.string()}, wait_for);
+  }
+
   auto sof = arg::get("sof");
-  if (std::filesystem::exists(sof + "/sb.lock"))
-    std::filesystem::remove(sof + "/sb.lock");
+  if (fs::exists(sof + "/sb.lock"))
+    fs::remove(sof + "/sb.lock");
 }
 
 
@@ -63,7 +70,7 @@ int main(int argc, char* argv[]) {
   auto parse_args = []() {
     if (arg::args.size() > 0 && arg::args[0].ends_with(".sb")) {
       auto program = arg::args[0];
-      auto resolved = std::filesystem::exists(arg::args[1]) ? program : exec<std::string>({"which", program}, one_line, STDOUT);
+      auto resolved = fs::exists(arg::args[1]) ? program : exec<std::string>({"which", program}, one_line, STDOUT);
       auto contents = read_file<vector>(resolved, vectorize);
       if (contents.size() == 2) {
         auto old = arg::args;
@@ -88,17 +95,35 @@ int main(int argc, char* argv[]) {
   };
   profile("Argument Parser", parse_args);
 
-  auto program = std::filesystem::path(arg::get("cmd")).filename().string();
-
+  auto program = fs::path(arg::get("cmd")).filename().string();
   auto lib_cache = libraries::hash_cache(program, arg::hash);
   auto lib_sof = libraries::hash_sof(program, arg::hash);
   bool startup = arg::at("startup") && arg::at("dry_startup");
 
+  app_data = fs::path(data) / "sb" / program;
+  try {
+    if (arg::at("encrypt") || fs::exists(app_data / "gocryptfs.diriv")) {
+      // We won't prompt for a password on startup, nor refresh it in batch.
+      if (arg::at("startup") || arg::mod("update") == "batch") return 0;
+      generate::encrypted(program);
+    }
+    else app_data = data_dir / program;
+  }
+  catch (const std::runtime_error& e) {
+    log({e.what()});
+    cleanup(0);
+    return 0;
+  }
+
+  auto app_sof = fs::path(arg::get("sof")) / program;
+  fs::create_directories(app_sof);
+  auto work_dir = TemporaryDirectory(app_sof);
+
   if (
-    std::filesystem::exists(lib_cache) &&
-    !std::filesystem::is_empty(lib_cache) &&
+    fs::exists(lib_cache) &&
+    !fs::is_empty(lib_cache) &&
     !arg::at("update") &&
-    !std::filesystem::is_directory(lib_sof)
+    !fs::is_directory(lib_sof)
   ) {
     log({"Using cached SOF"});
     libraries::resolve(read_file<vector>(lib_cache, fd_splitter<vector, ' '>), program, arg::hash);
@@ -114,7 +139,7 @@ int main(int argc, char* argv[]) {
 
   // Create a script file and exit.
   if (arg::at("script")) {
-    auto binary = std::filesystem::path(home) / ".local" / "bin" / (program + ".desktop.sb");
+    auto binary = fs::path(home) / ".local" / "bin" / (program + ".desktop.sb");
     generate::script(binary);
     cleanup(0);
     return 0;
@@ -135,13 +160,13 @@ int main(int argc, char* argv[]) {
     // So sb-refresh can reuse caches populated by other sandboxes.
     // We don't need to repeat the work.
     if (arg::mod("update") != "batch")
-      std::filesystem::remove_all(std::filesystem::path(data) / "sb" / "cache");
+      fs::remove_all(fs::path(data) / "sb" / "cache");
 
-    std::filesystem::remove_all(std::filesystem::path(data) / "sb" / program / "cache");
+    fs::remove_all(fs::path(data) / "sb" / program / "cache");
 
     if (arg::get("update") == "clean")
-      std::filesystem::remove_all(std::filesystem::path(arg::get("sof")) / program / "lib");
-    else std::filesystem::remove_all(libraries::hash_sof(program, arg::hash));
+      fs::remove_all(fs::path(arg::get("sof")) / program / "lib");
+    else fs::remove_all(libraries::hash_sof(program, arg::hash));
 
     if (arg::mod("update") == "exit") {cleanup(0); return 0;}
   }
@@ -153,16 +178,10 @@ int main(int argc, char* argv[]) {
   inotify = inotify_init();
   if (inotify == -1) throw std::runtime_error(std::string("Failed to initialize inotify: ") + strerror(errno));
 
-  // Get the application's directories.
-  auto app_sof = std::filesystem::path(arg::get("sof")) / program;
-  std::filesystem::create_directories(app_sof);
-
-  auto local_dir = std::filesystem::path(data) / "sb" / program;
-  auto work_dir = TemporaryDirectory(app_sof);
 
   // Create the ld.so.preload to ensure hardened malloc is enforced.
   if (arg::at("hardened_malloc")) {
-      if (!std::filesystem::exists("/usr/lib/libhardened_malloc.so"))
+      if (!fs::exists("/usr/lib/libhardened_malloc.so"))
         throw std::runtime_error("Installed hardened malloc!");
       auto preload = std::ofstream(work_dir.sub("ld.so.preload"));
       preload << "/usr/lib/libhardened_malloc.so";
@@ -201,13 +220,13 @@ int main(int argc, char* argv[]) {
   // If we are using a local file system, attach it.
   if (arg::at("fs")) {
     const auto path = arg::mod("fs");
-    std::filesystem::create_directories(path);
+    fs::create_directories(path);
 
     // Mount it.
     if (arg::get("fs") == "cache") extend(command, {"--overlay-src", arg::mod("fs"), "--tmp-overlay", "/"});
     else extend(command, {"--bind", arg::mod("fs"), "/"});
 
-    if (std::filesystem::is_directory(path + "/tmp")) extend(command, {"--overlay-src", arg::mod("fs") + "/tmp", "--tmp-overlay", "/tmp"});
+    if (fs::is_directory(path + "/tmp")) extend(command, {"--overlay-src", arg::mod("fs") + "/tmp", "--tmp-overlay", "/tmp"});
     else extend(command, {"--tmpfs", "/tmp"});
   }
   else extend(command, {"--tmpfs", "/tmp", "--tmpfs", "/home/sb/.cache"});
@@ -268,7 +287,6 @@ int main(int argc, char* argv[]) {
   if ((arg::get("seccomp") == "strace") && arg::at("verbose") < "error")
     arg::emplace("verbose", "error");
 
-  // Lock and Generate
   auto generate_command = [&program, &command]() {
     try {
       auto next = generate::cmd(program);
@@ -294,7 +312,7 @@ int main(int argc, char* argv[]) {
       // Discard, which only applies on folders, puts a TMPFS overlay to make directories appear
       // writable within the sandbox, but to which said changes are discarded.
       else if (policy == "discard") {
-        if (!std::filesystem::is_directory(path)) throw std::runtime_error("Discard policy can only apply to directories!");
+        if (!fs::is_directory(path)) throw std::runtime_error("Discard policy can only apply to directories!");
         extend(command, {"--overlay-src", path, "--tmp-overlay", "/enclave" + path});
         return;
       }
@@ -325,7 +343,7 @@ int main(int argc, char* argv[]) {
 
   // Unknown arguments do not get parsed.
   for (const auto& arg : arg::unknown) {
-    if (std::filesystem::exists(arg)) {
+    if (fs::exists(arg)) {
       passthrough(arg, arg::get("file_passthrough"));
       post.emplace_back("/enclave/" + arg);
     }
@@ -359,8 +377,8 @@ int main(int argc, char* argv[]) {
     extend(command, post);
 
     // Add flags
-    auto flags = local_dir / "flags.conf";
-    if (std::filesystem::exists(flags)) splits(command, read_file<std::string>(flags.string(), dump), " \n");
+    auto flags = app_data / "flags.conf";
+    if (fs::exists(flags)) splits(command, read_file<std::string>(flags.string(), dump), " \n");
   }
 
   // Do this before our auxiliary wait.

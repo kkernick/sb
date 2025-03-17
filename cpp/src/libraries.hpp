@@ -19,7 +19,6 @@ namespace libraries {
   using lib_t = shared::set;
   extern lib_t directories;
 
-  
   inline std::filesystem::path hash_cache(const std::string_view& program, const std::string& hash) {
     return std::filesystem::path(std::filesystem::path(shared::data)) / "sb" / program / "cache" / (hash + ".lib.cache");
   }

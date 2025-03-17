@@ -8,8 +8,67 @@
 #include <fstream>
 
 using namespace shared;
+namespace fs = std::filesystem;
 
 namespace generate {
+
+
+  void encrypted(const std::string_view& program) {
+    const auto enc_root = fs::path(data) / "sb" / "work";
+    fs::create_directories(enc_root);
+    fs::permissions(enc_root, fs::perms::owner_all);
+
+    auto enc_dir = enc_root / program;
+    fs::create_directories(enc_dir);
+
+    const std::string title = "SB++ — " + std::string(program);
+
+  // Decrypt, making a copy of app_data before it gets overwritten.
+    const auto& flags = arg::list("encrypt");
+    bool create = flags.contains("init");
+    if (create && fs::exists(app_data)) {
+      if (!fs::exists(app_data / "gocryptfs.diriv")) {
+        log({"Migrating existing sandbox directory"});
+        fs::rename(app_data, enc_root / (std::string(program) + "-old"));
+      }
+      else create = false;
+    }
+    if (create) {
+      fs::create_directories(app_data);
+      auto pass = exec<std::string>({
+        "kdialog",
+        "--title", title,
+        "--newpassword", "To setup an encrypted sandbox, enter a password. You will need to enter this password each time you want to run the application.",
+        "--desktopfile", std::string(program) + ".desktop.sb",
+
+      }, one_line, STDOUT);
+
+      exec<void>({"gocryptfs", "-init", app_data.string()}, wait_for, NONE, pass);
+      for (auto& c : pass) c = '\0';
+    }
+
+    if (!flags.contains("external-lib"))
+      arg::emplace("sof", enc_dir / "lib");
+    auto pass = exec<std::string>({
+      "kdialog",
+      "--title", title,
+      "--password", "This Sandbox is encrypted. Please enter its decryption password.",
+      "--desktopfile", std::string(program) + ".desktop.sb",
+    }, one_line, STDOUT);
+
+    auto mount = exec<std::string>({"gocryptfs", app_data.string(), enc_dir.string()}, dump, STDOUT, pass);
+    if (!mount.contains("Filesystem mounted and ready")) {
+      throw std::runtime_error("Failed to decrypt sandbox!");
+    }
+
+   if (fs::exists(enc_root / (std::string(program) + "-old"))) {
+     std::filesystem::copy(enc_root / (std::string(program) + "-old"), enc_dir, fs::copy_options::recursive);
+     std::filesystem::remove_all(enc_root / (std::string(program) + "-old"));
+   }
+
+    data_dir = enc_dir;
+    app_data = enc_dir;
+  }
 
   // Generate the script file
   void script(const std::string& binary) {
@@ -186,10 +245,8 @@ namespace generate {
   vector cmd(const std::string& program) {
 
     const auto sof_dir = std::filesystem::path(arg::get("sof")) / program;
-    const auto local_dir = std::filesystem::path(data) / "sb" / program;
-    const auto cache_dir =  local_dir / "cache";
+    const auto cache_dir = app_data / "cache";
     std::filesystem::create_directories(sof_dir);
-    std::filesystem::create_directories(local_dir);
     std::filesystem::create_directories(cache_dir);
 
     const auto lib_dir = libraries::hash_sof(program, arg::hash);

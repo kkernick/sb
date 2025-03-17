@@ -10,6 +10,9 @@
 
 namespace generate {
 
+
+  void encrypted(const std::string_view& program);
+
   /**
    * @brief Generate a script for the sandbox
    * @param binary: Where to write the script to.

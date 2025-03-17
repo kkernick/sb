@@ -26,13 +26,15 @@ namespace shared {
   // Environment variables
   extern const std::string runtime, config, cache, data, home, session, nobody, real;
 
+  extern std::filesystem::path data_dir, app_data;
+
   // Our inotify watch
   extern int inotify;
 
   /**
    * @brief policy for the executor, describing what should be captured.
    */
-  typedef enum {NONE, STDOUT, STDERR, ALL} exec_return;
+  typedef enum {NONE, STDOUT, STDERR, ALL} exec_policy;
 
   // Definitions.
   using set = std::set<std::string>;
@@ -253,12 +255,18 @@ namespace shared {
   template <class R = void, class T = list> R exec(
       const T& cmd,
       const std::function<R(const int&, const int&)>& parser = [](const int& fd, const int& pid) {close(fd);},
-      const exec_return& policy = NONE
+      const exec_policy& policy = NONE,
+      const std::string& in = ""
   )  {
 
     // Open a pipe for communication.
-    int pipefd[2];
-    if (pipe(pipefd) == -1) throw std::runtime_error("Failed to setup pipe");
+    int output[2];
+    if (pipe(output) == -1) throw std::runtime_error("Failed to setup pipe");
+
+    int input[2] = {-1, -1};
+    if (!in.empty()) {
+      if (pipe(input) == -1) throw std::runtime_error("Failed to setup pipe");
+    }
 
     auto pid = fork();
     if (pid < 0) throw std::runtime_error("Failed to fork");
@@ -266,22 +274,34 @@ namespace shared {
       // Zip the command, open our standard files to the pipe.
       auto argv = zip(cmd);
 
-      close(pipefd[0]);
+      close(output[0]);
       switch (policy) {
-        case STDOUT: dup2(pipefd[1], STDOUT_FILENO); break;
-        case STDERR: dup2(pipefd[1], STDERR_FILENO); break;
-        case ALL:  dup2(pipefd[1], STDOUT_FILENO); dup2(pipefd[1], STDERR_FILENO); break;
+        case STDOUT: dup2(output[1], STDOUT_FILENO); break;
+        case STDERR: dup2(output[1], STDERR_FILENO); break;
+        case ALL:  dup2(output[1], STDOUT_FILENO); dup2(output[1], STDERR_FILENO); break;
         default: break;
       }
 
+      if (!in.empty()) {
+        close(input[1]);
+        dup2(input[0], STDIN_FILENO);
+        close(input[1]);
+      }
+
       // Close the pipe and execute.
-      close(pipefd[1]);
+      close(output[1]);
       execvp(argv[0], const_cast<char* const*>(argv.data()));
     }
 
+    if (!in.empty()) {
+      close(input[0]);
+      write(input[1], in.c_str(), in.length());
+      close(input[1]);
+    }
+
     // Close the pipe and parser the other side.
-    close(pipefd[1]);
-    return parser(pipefd[0], pid);
+    close(output[1]);
+    return parser(output[0], pid);
   }
 
   /**

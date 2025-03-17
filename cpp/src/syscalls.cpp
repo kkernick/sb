@@ -16,9 +16,8 @@ namespace syscalls {
     if (arg::at("seccomp") < "permissive") return "";
 
     // Get our files.
-    auto local_dir = std::filesystem::path(data) / "sb" / application;
-    auto syscall_file = local_dir / "syscalls.txt",
-    bpf = local_dir / "filter.bpf";
+    auto syscall_file = app_data / "syscalls.txt",
+    bpf = app_data / "filter.bpf";
 
     // If we are lacking a syscall file, permissive can just create one, but there's
     // nothing we can do except panic if we're expected to enforce something that doesn't
@@ -121,8 +120,7 @@ namespace syscalls {
     }
 
     // Get our files.
-    auto local_dir = std::filesystem::path(data) / "sb" / application;
-    auto syscall_file = local_dir / "syscalls.txt";
+    auto syscall_file = app_data / "syscalls.txt";
 
     std::string joined;
     if (std::filesystem::exists(syscall_file)) {

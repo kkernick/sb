@@ -21,7 +21,7 @@ namespace libraries {
   inline std::filesystem::path cache_name(std::string library, const std::string& function) {
     std::replace(library.begin(), library.end(), '/', '.');
     library = strip<char>(library, '*');
-    auto cache = std::filesystem::path(data) / "sb" / "cache" / std::string(library + '.' + function + ".lib.cache");
+    auto cache = data_dir / "cache" / std::string(library + '.' + function + ".lib.cache");
     return cache;
   }
 

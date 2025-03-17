@@ -34,6 +34,7 @@ namespace shared {
     nobody = std::to_string(getpwnam("nobody")->pw_uid),
     real = std::to_string(getuid());
 
+  std::filesystem::path data_dir = std::filesystem::path(data) / "sb", app_data = "";
 
   // Log to output
   void log(const list& msg, const std::string& level) {
