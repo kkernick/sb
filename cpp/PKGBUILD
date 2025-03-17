@@ -3,14 +3,8 @@ pkgdesc="Sandbox Applications"
 pkgver=r384.f2d6c5a
 pkgrel=1
 
-source=(
-  "git+https://github.com/kkernick/sb.git"
-  "sb.sysusers"
-)
-b2sums=(
-  "SKIP"
-  "2be0726e7cf7fcb1f3bc322c5998ad43a72f35b6968844019f6f244c58d3d37ce97de9a15ceee874696b22a59ec62dcd0d4d3b8187d0b5ec6ce9c62d6273375c"
-)
+source=("git+https://github.com/kkernick/sb.git")
+b2sums=("SKIP")
 depends=(findutils glibc which bubblewrap)
 makedepends=(git lld libb2 clang llvm doxygen)
 optdepends=(
