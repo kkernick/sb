@@ -9,7 +9,7 @@ source=(
 )
 b2sums=(
   "SKIP"
-  "792af0991e641558928d35ff55f721507813fe3433b15e3031fa7e9fa76acb8ebde638154a97286bf515a9397087e4a605e925e07fc0505fba8f80fddd90fb91"
+  "2be0726e7cf7fcb1f3bc322c5998ad43a72f35b6968844019f6f244c58d3d37ce97de9a15ceee874696b22a59ec62dcd0d4d3b8187d0b5ec6ce9c62d6273375c"
 )
 depends=(findutils glibc which bubblewrap)
 makedepends=(git lld libb2 clang llvm doxygen)
