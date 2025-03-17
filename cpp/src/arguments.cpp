@@ -213,8 +213,8 @@ namespace arg {
     // SOF directory, which resolves the actual path.
     {"sof", {arg::config{
       .l_name="--sof", .s_name="",
-      .def = "tmp",
-      .valid={"tmp", "data", "zram", "usr"},
+      .def = "usr",
+      .valid={"usr", "tmp", "data", "zram"},
       .help="The SOF backing medium.",
       },
 
