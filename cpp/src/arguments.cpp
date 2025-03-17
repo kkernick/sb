@@ -103,7 +103,7 @@ namespace arg {
       .l_name="--update", .s_name="",
       .valid={"libraries", "cache", "all", "clean"},
       .custom = custom_policy::MODIFIABLE,
-      .help="Update caches, even if they exist.",
+      .help="Update caches, even if they exist. Use :batch to exclude cache deletion, and :exit to quit after cleaning.",
     }},
     {"seccomp", arg::config{
       .l_name="--seccomp", .s_name="",

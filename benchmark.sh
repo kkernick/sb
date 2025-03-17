@@ -5,6 +5,7 @@ subdir="${1}"
 COMMIT="${2}"
 EXAMPLE="${3}"
 RECIPE="${4}"
+PARGS="${5}"
 
 cd "$ROOT/$subdir"
 
@@ -59,14 +60,14 @@ for PROFILE in $EXAMPLES; do
 
   # Cold Boot--there is no cache.
   mkdir /tmp/sb
-  hyperfine --command-name "Cold $PROFILE" $ARGS --prepare "rm -r /tmp/sb" "$PROFILE --dry"
+  hyperfine $ARGS --prepare "$PROFILE --update clean:exit" "$PROFILE --dry $PARGS"
   sleep 1
 
   # Add warmup since we're not cold-boot anymore
   ARGS="${ARGS} --warmup 1"
 
   # Hot Boot--like after sb.service has run.
-  hyperfine --command-name "Hot $PROFILE" $ARGS "$PROFILE --dry"
+  hyperfine $ARGS "$PROFILE --dry $PARGS"
   sleep 1
 
   # Hot Boot, but we need to refresh libraries like after an update.
@@ -75,7 +76,7 @@ for PROFILE in $EXAMPLES; do
   else
     UPDATE="--update-libraries"
   fi
-  hyperfine --command-name "Lib $PROFILE" $ARGS "$PROFILE --dry $UPDATE"
+  hyperfine $ARGS "$PROFILE --dry $UPDATE $PARGS"
   sleep 1
 
   # Hot Boot, but we need to refresh libraries like after an update.
@@ -84,7 +85,7 @@ for PROFILE in $EXAMPLES; do
   else
     UPDATE="--update-libraries --update-cache"
   fi
-  hyperfine --command-name "Cache $PROFILE" $ARGS "$PROFILE --dry $UPDATE"
+  hyperfine $ARGS "$PROFILE --dry $UPDATE $PARGS"
 done
 
 if [[ "$COMMIT" != "main" ]]; then

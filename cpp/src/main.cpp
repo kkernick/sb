@@ -138,15 +138,16 @@ int main(int argc, char* argv[]) {
       std::filesystem::remove_all(std::filesystem::path(data) / "sb" / "cache");
 
     std::filesystem::remove_all(std::filesystem::path(data) / "sb" / program / "cache");
-    
+
     if (arg::get("update") == "clean")
       std::filesystem::remove_all(std::filesystem::path(arg::get("sof")) / program / "lib");
     else std::filesystem::remove_all(libraries::hash_sof(program, arg::hash));
+
+    if (arg::mod("update") == "exit") {cleanup(0); return 0;}
   }
 
   // Start getting the filter in another thread.
   std::future<std::string> seccomp_future = pool.submit_task([&program]() -> std::string {return syscalls::filter(program);});
-
 
   // Initialize inotify
   inotify = inotify_init();
