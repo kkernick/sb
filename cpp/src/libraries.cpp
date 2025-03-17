@@ -133,11 +133,6 @@ namespace libraries {
     if (std::filesystem::is_directory(app_sof) && arg::at("update") < "libraries" && !std::filesystem::is_empty(app_sof)) return;
     std::filesystem::create_directories(app_sof);
 
-    // Files in the SOF can only be written by the SB group,
-    // such that the user calling the program cannot read/write
-    // to the SOF.
-    auto old = umask(S_IRUSR | S_IRGRP | S_IWGRP | S_IROTH);
-
     // Write Lambda. We batch writes to tremendously speed up initial SOF generation.
     auto write_library = [&app_sof, &libraries](const uint_fast32_t x) {
       const std::string& lib = libraries[x];
@@ -207,9 +202,6 @@ namespace libraries {
     auto futures = pool.submit_loop(0, libraries.size(), write_library);
     futures.wait();
     std::filesystem::remove(lock_file);
-
-    // Restore the umask.
-    umask(old);
   }
   void setup(const set& libraries, const std::string_view& application, const std::filesystem::path& app_sof) {
     vector vec; vec.reserve(libraries.size());
