@@ -138,7 +138,10 @@ int main(int argc, char* argv[]) {
       std::filesystem::remove_all(std::filesystem::path(data) / "sb" / "cache");
 
     std::filesystem::remove_all(std::filesystem::path(data) / "sb" / program / "cache");
-    std::filesystem::remove_all(std::filesystem::path(libraries::hash_sof(program, arg::hash)));
+    
+    if (arg::get("update") == "clean")
+      std::filesystem::remove_all(std::filesystem::path(arg::get("sof")) / program / "lib");
+    else std::filesystem::remove_all(libraries::hash_sof(program, arg::hash));
   }
 
   // Start getting the filter in another thread.

@@ -264,8 +264,15 @@ namespace shared {
     if (pid < 0) throw std::runtime_error("Failed to fork");
     else if (pid == 0) {
 
+      // It's recommended to install SB++ as a setgid process, such that other user
+      // processes' cannot modifier the SOF (Although this protection only
+      // extends to the zram and usr configurations since its bad form to
+      // restrict permissions within the user's own home directory, and anything
+      // in tmp. SB uses this group permission to write to the SOF, but
+      // any auxiliary program, including bwrap, drop this permission so that
+      // they just run as the calling user.
       setgid(getuid());
-      
+
       // Zip the command, open our standard files to the pipe.
       auto argv = zip(cmd);
 
@@ -474,7 +481,7 @@ namespace shared {
    */
   void extend(vector& dest, const std::initializer_list<const list>& source);
 
-  
+
   // Profiling stuff :)
   #ifdef PROFILE
   extern std::map<std::string, uint_fast32_t> time_slice;

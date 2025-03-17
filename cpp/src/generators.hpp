@@ -30,6 +30,11 @@ namespace generate {
    */
   void flatpak_info(const std::string_view& program, const std::string_view& instance, const shared::TemporaryDirectory& work_dir);
 
+  /**
+   * @brief Setup the Proxy's SOF.
+   * @returns The path to the Proxy's SOF, and a future to wait for the path to be populated.
+   * @info We run this on --dry, such that the Proxy SOF gets generated along with all the others.
+   */
   std::pair<std::filesystem::path, std::future<void>> proxy_lib();
 
   /**

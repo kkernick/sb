@@ -93,6 +93,7 @@ namespace generate {
   }
 
 
+  // Setup the Proxy's SOF
   std::pair<std::filesystem::path, std::future<void>> proxy_lib() {
     std::string p_hash;
     #ifdef VERSION
