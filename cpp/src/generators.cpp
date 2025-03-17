@@ -105,7 +105,7 @@ namespace generate {
 
     auto lib_cache = libraries::hash_sof("xdg-dbus-proxy", p_hash);
     auto lib_setup = [lib_cache, p_hash = std::move(p_hash)]() {
-      if (!std::filesystem::exists(lib_cache)) {
+      if (!std::filesystem::exists(lib_cache) || arg::at("update") >= "libraries") {
         auto cache = libraries::hash_cache("xdg-dbus-proxy", p_hash);
         if (std::filesystem::exists(cache) && !std::filesystem::is_empty(cache)) {
           log({"Using Proxy Cache"});
@@ -385,14 +385,14 @@ namespace generate {
 
       extend(libraries::directories, {"/usr/lib/dri", "/usr/lib/gbm"});
       if (update_sof) batch(libraries::get, libraries, {"*Mesa*", "*mesa*", "*EGL*"}, "");
-      
+
       const auto& flags = arg::list("gui");
       if (flags.contains("vulkan")) {
         log({"Adding Vulkan"});
         batch(share, command, {"/etc/vulkan", "/usr/share/vulkan"}, "ro-bind");
         if (update_sof) batch(libraries::get, libraries, {"libvulkan*", "libVkLayer*"}, "");
       }
-      
+
       if (flags.contains("vaapi")) {
         log({"Adding VA-API"});
         if (update_sof) batch(libraries::get, libraries, {"libva-drm*", "libva-wayland*", "libva.so*"}, "");
