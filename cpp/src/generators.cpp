@@ -49,16 +49,19 @@ namespace generate {
 
     if (!flags.contains("external-lib"))
       arg::emplace("sof", enc_dir / "lib");
-    auto pass = exec<std::string>({
-      "kdialog",
-      "--title", title,
-      "--password", "This Sandbox is encrypted. Please enter its decryption password.",
-      "--desktopfile", std::string(program) + ".desktop.sb",
-    }, one_line, STDOUT);
 
-    auto mount = exec<std::string>({"gocryptfs", app_data.string(), enc_dir.string()}, dump, STDOUT, pass);
-    if (!mount.contains("Filesystem mounted and ready")) {
-      throw std::runtime_error("Failed to decrypt sandbox!");
+    if (fs::is_empty(enc_dir)) {
+      auto pass = exec<std::string>({
+        "kdialog",
+        "--title", title,
+        "--password", "This Sandbox is encrypted. Please enter its decryption password.",
+        "--desktopfile", std::string(program) + ".desktop.sb",
+      }, one_line, STDOUT);
+
+      auto mount = exec<std::string>({"gocryptfs", app_data.string(), enc_dir.string()}, dump, STDOUT, pass);
+      if (!mount.contains("Filesystem mounted and ready")) {
+        throw std::runtime_error("Failed to decrypt sandbox!");
+      }
     }
 
    if (fs::exists(enc_root / (std::string(program) + "-old"))) {

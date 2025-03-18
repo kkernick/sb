@@ -43,7 +43,9 @@ static void cleanup(int sig) {
 
   if (arg::at("encrypt") && !arg::list("encrypt").contains("persist")) {
     log({"Unmounting encrypted root at", app_data.string()});
-    exec<void>({"fusermount", "-u", app_data.string()}, wait_for);
+    if (!exec<std::string>({"fusermount", "-u", app_data.string()}, dump, STDERR).empty()) {
+      exec<void>({"kdialog", "--error", "Failed to close sandbox! Another instance may be using it!"});
+    }
   }
 
   auto sof = arg::get("sof");
@@ -105,6 +107,8 @@ int main(int argc, char* argv[]) {
     if (arg::at("encrypt") || fs::exists(app_data / "gocryptfs.diriv")) {
       // We won't prompt for a password on startup, nor refresh it in batch.
       if (arg::at("startup") || arg::mod("update") == "batch") return 0;
+
+      arg::emplace("encrypt", "true");
       generate::encrypted(program);
     }
     else app_data = data_dir / program;
