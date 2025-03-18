@@ -459,17 +459,21 @@ namespace arg {
   extern shared::vector args;
 
   extern std::string hash;
-
+  
+  
   // Helper functions.
-  inline const Arg& at(const std::string& key) {return switches.at(key);}
-  inline const std::string& get(const std::string& key) {return switches.at(key).get();}
-  inline void emplace(const std::string& key, const std::string& val) {switches.at(key).emplace(val);}
-  inline const std::string& mod(const std::string& key) {return switches.at(key).mod();}
-  inline uint_fast8_t level(const std::string& key) {return switches.at(key).level();}
-  inline const shared::set& list(const std::string& key) {return switches.at(key).get_list();}
-  inline const shared::set& valid(const std::string& key) {return switches.at(key).get_valid();}
-  inline const bool& is_list(const std::string& key) {return switches.at(key).is_list();}
-  inline std::vector<std::pair<std::string, std::string>> modlist(const std::string& key) {return switches.at(key).get_modlist();}
+  inline Arg& at(const std::string& key) {
+    if (!switches.contains(key)) throw std::runtime_error("Invalid argument" + key);
+    else return switches.at(key);
+  }
+  inline const std::string& get(const std::string& key) {return at(key).get();}
+  inline void emplace(const std::string& key, const std::string& val) {at(key).emplace(val);}
+  inline const std::string& mod(const std::string& key) {return at(key).mod();}
+  inline uint_fast8_t level(const std::string& key) {return at(key).level();}
+  inline const shared::set& list(const std::string& key) {return at(key).get_list();}
+  inline const shared::set& valid(const std::string& key) {return at(key).get_valid();}
+  inline const bool& is_list(const std::string& key) {return at(key).is_list();}
+  inline std::vector<std::pair<std::string, std::string>> modlist(const std::string& key) {return at(key).get_modlist();}
 
   /**
    * @brief Parse command line arguments.

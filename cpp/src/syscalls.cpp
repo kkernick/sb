@@ -40,7 +40,7 @@ namespace syscalls {
       if (
         hash == init<vector>(split, content[0], ' ', false)[1] &&
         std::filesystem::exists(bpf) && arg::at("update") < "cache" &&
-        arg::get("shell") != "debug" && arg::at("vebose") < "error"
+        arg::get("shell") != "debug" && arg::at("verbose") < "error"
       ) {
         log({"Using cached SECCOMP filter"});
         return bpf;
@@ -109,20 +109,9 @@ namespace syscalls {
   // Update the policy based on strace output.
   void update_policy(const std::string& application, const vector &straced) {
 
-    // Get the syscalls from the output.
-    set syscalls;
-    for (const auto& line : straced) {
-      auto s = init<vector>(splits, line, " \t", false);
-      if (s.size() > 2 && s[2].contains('(')) {
-        auto syscall = init<vector>(split, s[2], '(', false)[0];
-        if (seccomp_syscall_resolve_name(syscall.c_str()) != __NR_SCMP_ERROR) syscalls.emplace(syscall);
-      }
-    }
-
     // Get our files.
     auto syscall_file = app_data / "syscalls.txt";
-
-    std::string joined;
+    set syscalls;
     if (std::filesystem::exists(syscall_file)) {
       auto content = read_file<vector>(syscall_file, vectorize);
       switch (content.size()) {
@@ -132,7 +121,27 @@ namespace syscalls {
       }
     }
 
-    joined = join(syscalls, ' ');
+    log({"Existing syscalls:", std::to_string(syscalls.size())});
+
+
+    for (const auto& line : straced) {
+      if (line.contains('(')) {
+        auto start = line.find("] ");
+        if (start == std::string::npos) continue;
+        start += 2;
+
+        auto end = line.find('(', start);
+        if (end == std::string::npos) continue;
+
+        auto syscall = line.substr(start, end - start);
+        if (seccomp_syscall_resolve_name(syscall.c_str()) != __NR_SCMP_ERROR && !syscalls.contains(syscall)) {
+          log({"New syscall:", syscall});
+          syscalls.emplace(syscall);
+        }
+      }
+    }
+
+    auto joined = join(syscalls, ' ');
     auto out = std::ofstream(syscall_file);
     out << "HASH: " << 'P' << shared::hash(joined) << '\n' << joined;
     out.close();

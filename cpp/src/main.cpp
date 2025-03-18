@@ -33,7 +33,7 @@ static void cleanup(int sig) {
 
   if (arg::get("fs") == "persist") {
     auto path = arg::mod("fs");
-    exec({"find", path, "-type", "l", "-exec", "rm", "-f", "{}", ";"});
+    exec<void>({"find", path, "-type", "l", "-exec", "rm", "-f", "{}", ";"}, wait_for);
     exec<void>({"find", path, "-type", "f", "-empty", "-exec", "rm", "-f", "{}", ";"}, wait_for);
     for (const auto& junk : {"/dev", "/sys", "/run"}) {
       if (fs::exists(path + junk))
@@ -41,16 +41,17 @@ static void cleanup(int sig) {
     }
   }
 
+  auto sof = arg::get("sof");
+  if (fs::exists(sof + "/sb.lock")) fs::remove(sof + "/sb.lock");
+
   if (arg::at("encrypt") && !arg::list("encrypt").contains("persist")) {
     log({"Unmounting encrypted root at", app_data.string()});
-    if (!exec<std::string>({"fusermount", "-u", app_data.string()}, dump, STDERR).empty()) {
+    auto stderr = exec<std::string>({"fusermount", "-u", app_data.string()}, dump, STDERR);
+    if (!stderr.empty()) {
+      log({"Failed to unmount:", stderr});
       exec<void>({"kdialog", "--error", "Failed to close sandbox! Another instance may be using it!"});
     }
   }
-
-  auto sof = arg::get("sof");
-  if (fs::exists(sof + "/sb.lock"))
-    fs::remove(sof + "/sb.lock");
 }
 
 
