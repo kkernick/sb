@@ -21,7 +21,7 @@ namespace generate {
     auto enc_dir = enc_root / program;
     fs::create_directories(enc_dir);
 
-    const std::string title = "SB++ — " + std::string(program);
+    std::string title = "SB++ — " + std::string(program);
 
   // Decrypt, making a copy of app_data before it gets overwritten.
     const auto& flags = arg::list("encrypt");
@@ -39,7 +39,7 @@ namespace generate {
         "kdialog",
         "--title", title,
         "--newpassword", "To setup an encrypted sandbox, enter a password. You will need to enter this password each time you want to run the application.",
-        "--desktopfile", std::string(program) + ".desktop.sb",
+        "--desktopfile", std::string(program) + ".desktop",
 
       }, one_line, STDOUT);
 
@@ -51,17 +51,29 @@ namespace generate {
       arg::emplace("sof", enc_dir / "lib");
 
     if (fs::is_empty(enc_dir)) {
-      auto pass = exec<std::string>({
-        "kdialog",
-        "--title", title,
-        "--password", "This Sandbox is encrypted. Please enter its decryption password.",
-        "--desktopfile", std::string(program) + ".desktop.sb",
-      }, one_line, STDOUT);
 
-      auto mount = exec<std::string>({"gocryptfs", app_data.string(), enc_dir.string()}, dump, STDOUT, pass);
-      if (!mount.contains("Filesystem mounted and ready")) {
-        throw std::runtime_error("Failed to decrypt sandbox!");
+      while (true) {
+        auto pass = exec<std::string>({
+          "kdialog",
+          "--title", title,
+          "--password", "This sandbox is encrypted. Please enter its decryption password.",
+          "--desktopfile", std::string(program) + ".desktop",
+        }, one_line, STDOUT);
+
+        if (pass.empty()) exit(0);
+
+        auto mount = exec<std::string>({"gocryptfs", app_data.string(), enc_dir.string()}, dump, STDOUT, pass);
+        if (mount.contains("Filesystem mounted and ready")) break;
       }
+    }
+    else if (!flags.contains("persist")) {
+      exec<void>({
+        "kdialog", "--title", title,
+        "--desktopfile", std::string(program) + ".desktop",
+        "--error", "An instance of the sandbox is already running. Use the persist flag if you want to run more than one instance!"
+      },
+      wait_for);
+      exit(0);
     }
 
    if (fs::exists(enc_root / (std::string(program) + "-old"))) {
