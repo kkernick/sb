@@ -88,7 +88,7 @@ $(function(){ initResizable(false); });
   <div class="headertitle"><div class="title">Usage</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md0"></a></p>
+<div class="textblock"><p><a class="anchor" id="autotoc_md2"></a></p>
 <p>SB++ and Python-SB are generally similar, but the former has combined many features, removed others, and introduced some new functionality on top. Profiles created for one will likely not work for the other, but they are very similar and can be easily translated. See the examples folders in both implementations to see identical applications confined within both.</p>
 <p>See Python-SB's <a href="../../python/docs/USAGE">Usage Guide</a> for a description of the more general points; this document outlines SB++ libraries and major deviations from the former.</p>
 <h1><a class="anchor" id="autotoc_md3"></a>
@@ -114,6 +114,7 @@ Command Line Reference</h1>
 <li><code>etc</code> provides <code>/etc/app</code></li>
 <li><code>lib</code> provides <code>/usr/lib/app</code></li>
 <li><code>share</code> provides <code>/usr/share/app</code></li>
+<li><code>opt</code> provides <code>/opt/app</code></li>
 </ul>
 </li>
 <li><code>--binaries</code> provides a list of additional binaries to provide in the sandbox</li>
@@ -121,7 +122,7 @@ Command Line Reference</h1>
 <li><code>--devices</code> provides a list of devices to add to the sandbox</li>
 <li><code>--dry</code> will create the sandbox, but not run the application, useful to warm the SOF.</li>
 <li><code>--dry-startup</code> marks a profile as eligible to run by <code>sb.service</code>, which allows its SOF to be populated immediately. This remove the cold start penalty.</li>
-<li><code>--electron</code> specifies the application as an Electron app, giving it access to GTK and NSS libraries, the ability to create user namespaces, and more. It can be provided with an explicit version if the app uses a system electron, such as <code>--electron 33 *</code>&ndash;env<code>provides a list of</code>KEY=VAL<code>environment variables to pass into the sandbox. *</code>&ndash;file-passthrough<code>defines the default mode for files passed into the sandbox, either as unknown arguments (particularly when attached to a desktop file), or provided via</code>&ndash;files<code>: *</code>ro<code>mounts the files as read-only *</code>rw<code>mounts the files as read-write. Note that files are attached via bind-mounts, which means that the file cannot be moved or deleted. Some KDE applications update configuration files by creating a copy, then moving it into the original. If you use</code>&ndash;fs<code>instead of attaching host configurations, this isn't a problem. *</code>discard<code>only applies to directories, and uses an overlay to allow seamless, real read-write to the directory and its files, but to which writes are actually done to a temporary copy that is discarded upon program termination. *</code>&ndash;files<code>provides a list of files to provide in the sandbox at</code>/enclave/path<code>. Modifier semantics allows for granular control over permissions, defaulting to the value of</code>&ndash;file-passthrough<code>(Which defaults to</code>false<code>, hence if</code>&ndash;file-passthrough<code>is not defined all files will need an explicit policy) such as</code>&ndash;files test.txt:ro test.csv:rw dir:discard`</li>
+<li><code>--electron</code> specifies the application as an Electron app, giving it access to GTK and NSS libraries, the ability to create user namespaces, and more. It can be provided with an explicit version if the app uses a system electron, such as <code>--electron 33 *</code>&ndash;env<code>provides a list of</code>KEY=VAL<code>environment variables to pass into the sandbox. *</code>&ndash;file-passthrough<code>defines the default mode for files passed into the sandbox, either as unknown arguments (particularly when attached to a desktop file), or provided via</code>&ndash;files<code>: *</code>ro<code>mounts the files as read-only *</code>rw<code>mounts the files as read-write. Note that files are attached via bind-mounts, which means that the file cannot be moved or deleted. Some KDE applications update configuration files by creating a copy, then moving it into the original. If you use</code>&ndash;fs<code>instead of attaching host configurations, this isn't a problem. *</code>discard<code>only applies to directories, and uses an overlay to allow seamless, real read-write to the directory and its files, but to which writes are actually done to a temporary copy that is discarded upon program termination. *</code>&ndash;files<code>provides a list of files to provide in the sandbox at</code>/enclave/path<code>. Modifier semantics allows for granular control over permissions, defaulting to the value of</code>&ndash;file-passthrough<code>(Which defaults to</code>false<code>, hence if</code>&ndash;file-passthrough<code>is not defined all files will need an explicit policy) such as</code>&ndash;files test.txt:ro test.csv:rw dir:discard<code>. You can also provide the unique modifiers</code>do<code>and</code>dw` for Direct Read-Only and Direct Read-Write, which will be exposed in the sandbox in the exact same path they appear on the host.</li>
 </ul>
 <dl class="section note"><dt>Note</dt><dd>This system has superseded <code>--ro</code> and <code>--rw</code></dd></dl>
 <ul>
@@ -191,21 +192,26 @@ Command Line Reference</h1>
 </ul>
 </li>
 <li><code>--sof</code> specifies the location for the SOF folder that contains libraries mounted to <code>/usr/lib</code> within the sandbox.<ul>
-<li><code>tmp</code> will create the SOF at <code>/tmp/sb/app</code>, and is recommended if cold boot time isn't an issue since it keeps libraries up to date with system as they are cycled every boot.</li>
+<li><code>tmp</code> will create the SOF at <code>/tmp/sb/app</code>, which is backed by ram.</li>
 <li><code>data</code> will create the SOF at <code>$XDG_DATA_HOME/sb/app/lib</code>. The libraries are persistent on disk, which means you'll need to occasional refresh it. However, since the SOF is self contained, this also allows you to run different versions of an app, irrespective of the hosts files.</li>
-<li><code>zram</code> will create the SOF at <code>/run/sb</code>, which should be a <code>zram</code> device mounted by the <code>sb.conf</code> zram generator service. This uses less RAM than <code>tmp</code>, and has comparable or better performance:</li>
+<li><code>zram</code> will create the SOF at <code>/run/sb</code>, which should be a <code>zram</code> device mounted by the <code>sb.conf</code> zram generator service. This uses less RAM than <code>tmp</code>, and has comparable or better performance</li>
+<li><code>usr</code> will create the SOF at <code>/usr/share/sb</code>, which&ndash;being on the same file system as the host library folder, allows for direct hard-linking and thus zero storage overhead for storing the SOF. Additionally, this avoid the need to copy files to another system, which can dramatically increase cold boot speed:</li>
 </ul>
 </li>
 </ul>
 <table class="markdownTable">
 <tr class="markdownTableHead">
-<th class="markdownTableHeadNone">Profile   </th><th class="markdownTableHeadNone"><code>data</code>   </th><th class="markdownTableHeadNone"><code>tmp</code>   </th><th class="markdownTableHeadNone"><code>zram</code>    </th></tr>
+<th class="markdownTableHeadNone">Profile (ms/MB)   </th><th class="markdownTableHeadNone"><code>data</code>   </th><th class="markdownTableHeadNone"><code>tmp</code>   </th><th class="markdownTableHeadNone"><code>zram</code>   </th><th class="markdownTableHeadNone"><code>usr</code>    </th></tr>
 <tr class="markdownTableRowOdd">
-<td class="markdownTableBodyNone">Chromium Cold   </td><td class="markdownTableBodyNone">258.4ms   </td><td class="markdownTableBodyNone">266.8ms   </td><td class="markdownTableBodyNone">258.1ms    </td></tr>
+<td class="markdownTableBodyNone">Chromium Cold   </td><td class="markdownTableBodyNone">184.8   </td><td class="markdownTableBodyNone">191.3   </td><td class="markdownTableBodyNone">183.5   </td><td class="markdownTableBodyNone">169.6    </td></tr>
 <tr class="markdownTableRowEven">
-<td class="markdownTableBodyNone">Chromium Hot   </td><td class="markdownTableBodyNone">3.2ms   </td><td class="markdownTableBodyNone">3.0ms   </td><td class="markdownTableBodyNone">3.0ms    </td></tr>
+<td class="markdownTableBodyNone">Chromium Hot   </td><td class="markdownTableBodyNone">3.2   </td><td class="markdownTableBodyNone">2.9   </td><td class="markdownTableBodyNone">3.0   </td><td class="markdownTableBodyNone">3.1    </td></tr>
 <tr class="markdownTableRowOdd">
-<td class="markdownTableBodyNone">Storage Usage   </td><td class="markdownTableBodyNone">535.8M (Disk)   </td><td class="markdownTableBodyNone">535.8M (RAM)   </td><td class="markdownTableBodyNone">309.5 MB (RAM)   </td></tr>
+<td class="markdownTableBodyNone">Chromium Update   </td><td class="markdownTableBodyNone">180.8   </td><td class="markdownTableBodyNone">176.5   </td><td class="markdownTableBodyNone">173.5   </td><td class="markdownTableBodyNone">176.2    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone">Storage Usage   </td><td class="markdownTableBodyNone">373   </td><td class="markdownTableBodyNone">373   </td><td class="markdownTableBodyNone">172   </td><td class="markdownTableBodyNone">0M    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone">Backing   </td><td class="markdownTableBodyNone">Disk   </td><td class="markdownTableBodyNone">RAM   </td><td class="markdownTableBodyNone">RAM   </td><td class="markdownTableBodyNone">Disk   </td></tr>
 </table>
 <dl class="section warning"><dt>Warning</dt><dd>Race conditions can occur between the <code>sb.service</code> that populates the SOF on start, and other startup services. If you run a service confined by SB on startup, such as <code>syncthing</code>, either delay the service until <em>after</em> <code>sb.service</code> has run (Add <code>After=sb.service</code> to the service), or use <code>--sof=data</code>.</dd></dl>
 <ul>

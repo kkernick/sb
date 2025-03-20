@@ -40,22 +40,25 @@ arg \- A general purpose, flexible command-line argument handler\&. This file in
 .br
 .RI "Parse command line arguments\&. "
 .ti -1c
-.RI "const \fBArg\fP & \fBat\fP (const std::string &key)"
+.RI "\fBArg\fP & \fBat\fP (const std::string &key)"
 .br
 .ti -1c
-.RI "std::string & \fBget\fP (const std::string &key)"
+.RI "const std::string & \fBget\fP (const std::string &key)"
 .br
 .ti -1c
-.RI "std::string & \fBmod\fP (const std::string &key)"
+.RI "void \fBemplace\fP (const std::string &key, const std::string &val)"
+.br
+.ti -1c
+.RI "const std::string & \fBmod\fP (const std::string &key)"
 .br
 .ti -1c
 .RI "uint_fast8_t \fBlevel\fP (const std::string &key)"
 .br
 .ti -1c
-.RI "shared::set & \fBlist\fP (const std::string &key)"
+.RI "const shared::set & \fBlist\fP (const std::string &key)"
 .br
 .ti -1c
-.RI "shared::set & \fBvalid\fP (const std::string &key)"
+.RI "const shared::set & \fBvalid\fP (const std::string &key)"
 .br
 .ti -1c
 .RI "const bool & \fBis_list\fP (const std::string &key)"
@@ -72,6 +75,9 @@ arg \- A general purpose, flexible command-line argument handler\&. This file in
 .br
 .ti -1c
 .RI "vector \fBargs\fP"
+.br
+.ti -1c
+.RI "std::string \fBhash\fP = ''"
 .br
 .ti -1c
 .RI "std::map< std::string, \fBarg::Arg\fP > \fBswitches\fP"

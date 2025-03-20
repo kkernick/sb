@@ -32,7 +32,7 @@ shared \- Shared functionality\&.
 
 .in +1c
 .ti -1c
-.RI "enum \fBexec_return\fP { \fBNONE\fP, \fBSTDOUT\fP, \fBSTDERR\fP, \fBALL\fP }"
+.RI "enum \fBexec_policy\fP { \fBNONE\fP, \fBSTDOUT\fP, \fBSTDERR\fP, \fBALL\fP }"
 .br
 .RI "policy for the executor, describing what should be captured\&. "
 .in -1c
@@ -156,26 +156,26 @@ shared \- Shared functionality\&.
 .br
 .RI "Attach an environment variable to the sandbox\&. "
 .ti -1c
-.RI "template<class T> void \fBextend\fP (vector &dest, const T &source)"
+.RI "template<class T> void \fBextend\fP (vector &dest, T source)"
 .br
 .RI "Extend a container in place\&. "
 .ti -1c
-.RI "template void \fBextend\fP (vector &, const list &)"
+.RI "template void \fBextend\fP (vector &, list)"
 .br
 .ti -1c
-.RI "template void \fBextend\fP (vector &, const vector &)"
+.RI "template void \fBextend\fP (vector &, vector)"
 .br
 .ti -1c
-.RI "template void \fBextend\fP (vector &, const set &)"
+.RI "template void \fBextend\fP (vector &, set)"
 .br
 .ti -1c
-.RI "template<class T> void \fBextend\fP (set &dest, const T &source)"
+.RI "template<class T> void \fBextend\fP (set &dest, const T source)"
 .br
 .ti -1c
-.RI "template void \fBextend\fP (set &, const list &)"
+.RI "template void \fBextend\fP (set &, const list)"
 .br
 .ti -1c
-.RI "template void \fBextend\fP (set &, const vector &)"
+.RI "template void \fBextend\fP (set &, const vector)"
 .br
 .ti -1c
 .RI "void \fBextend\fP (set &dest, set source)"
@@ -197,11 +197,11 @@ shared \- Shared functionality\&.
 .br
 .RI "A Blocking Parser that returns the first count of the output\&. "
 .ti -1c
-.RI "template<class R = void, class T = list> R \fBexec\fP (const T &cmd, const std::function< R(const int &, const int &)> &parser=[](const int &fd, const int &pid) {close(fd);}, const \fBexec_return\fP &policy=NONE)"
+.RI "template<class R = void, class T = list> R \fBexec\fP (const T &cmd, const std::function< R(const int &, const int &)> &parser=[](const int &fd, const int &pid) {close(fd);}, const \fBexec_policy\fP &policy=NONE, const std::string &in='')"
 .br
 .RI "Execute stuff\&. "
 .ti -1c
-.RI "template<class C, char delim> C \fBfd_splitter\fP (const int &fd, const int &pid)"
+.RI "template<class C, char delim, bool escape = false> C \fBfd_splitter\fP (const int &fd, const int &pid)"
 .br
 .RI "Split the contents of an FD\&. "
 .ti -1c
@@ -217,18 +217,15 @@ shared \- Shared functionality\&.
 .br
 .RI "Merge two sets together\&. "
 .ti -1c
-.RI "template<class T, class A, class \&.\&.\&. Args> T \fBinit\fP (const A &fun, const Args &\&.\&.\&. args)"
+.RI "template<class T, class A, class \&.\&.\&. Args> T \fBinit\fP (const A &fun, Args &&\&.\&.\&. args)"
 .br
 .RI "Compose a return value from an accumulator function\&. "
 .ti -1c
-.RI "template<class T, class A, class \&.\&.\&. Args, class \&.\&.\&. Refs> T \fBrinit\fP (const A &fun, const Args &\&.\&.\&. args, Refs &\&.\&.\&. refs)"
-.br
-.ti -1c
-.RI "template<class T, class A, class L = list, class \&.\&.\&. Args, class \&.\&.\&. Refs> void \fBsingle_batch\fP (const A &fun, T &accum, const L &mem, Args\&.\&.\&. args, Refs &\&.\&.\&. refs)"
+.RI "template<class T, class A, class L = list, class \&.\&.\&. Args> void \fBsingle_batch\fP (const A &fun, T &accum, const L &mem, Args &&\&.\&.\&. args)"
 .br
 .RI "Batch multiple iterations of an accumulator function together\&. "
 .ti -1c
-.RI "template<class T, class A, class L = list, class \&.\&.\&. Args> void \fBbatch\fP (const A &fun, T &accum, const L &mem, const Args &\&.\&.\&. args)"
+.RI "template<class T, class A, class L = list, class \&.\&.\&. Args> void \fBbatch\fP (const A &fun, T &accum, const L &mem, Args &&\&.\&.\&. args)"
 .br
 .RI "Batch multiple iterations of an accumulator function together, threaded\&. "
 .ti -1c
@@ -272,13 +269,19 @@ shared \- Shared functionality\&.
 .ti -1c
 .RI "const std::string \fBreal\fP = std::to_string(getuid())"
 .br
+.ti -1c
+.RI "std::filesystem::path \fBdata_dir\fP = std::filesystem::path(data) / 'sb'"
+.br
+.ti -1c
+.RI "std::filesystem::path \fBapp_data\fP = ''"
+.br
 .in -1c
 .SH "Detailed Description"
 .PP 
 Shared functionality\&. 
 .SH "Function Documentation"
 .PP 
-.SS "template<class T, class A, class L = list, class \&.\&.\&. Args> void shared::batch (const A & fun, T & accum, const L & mem, const Args &\&.\&.\&. args)"
+.SS "template<class T, class A, class L = list, class \&.\&.\&. Args> void shared::batch (const A & fun, T & accum, const L & mem, Args &&\&.\&.\&. args)"
 
 .PP
 Batch multiple iterations of an accumulator function together, threaded\&. 
@@ -345,7 +348,7 @@ Escape a string\&.
 .RE
 .PP
 
-.SS "template<class R = void, class T = list> R shared::exec (const T & cmd, const std::function< R(const int &, const int &)> & parser = \fR[](const int& fd, const int& pid) {close(fd);}\fP, const \fBexec_return\fP & policy = \fRNONE\fP)"
+.SS "template<class R = void, class T = list> R shared::exec (const T & cmd, const std::function< R(const int &, const int &)> & parser = \fR[](const int& fd, const int& pid) {close(fd);}\fP, const \fBexec_policy\fP & policy = \fRNONE\fP, const std::string & in = \fR''\fP)"
 
 .PP
 Execute stuff\&. 
@@ -390,7 +393,7 @@ Batch multiple extend calls into the thread pool\&.
 .RE
 .PP
 
-.SS "template<class T> void shared::extend (vector & dest, const T & source)"
+.SS "template<class T> void shared::extend (vector & dest, T source)"
 
 .PP
 Extend a container in place\&. 
@@ -408,7 +411,7 @@ Extend a container in place\&.
 .RE
 .PP
 
-.SS "template<class C, char delim> C shared::fd_splitter (const int & fd, const int & pid)"
+.SS "template<class C, char delim, bool escape = false> C shared::fd_splitter (const int & fd, const int & pid)"
 
 .PP
 Split the contents of an FD\&. 
@@ -503,7 +506,7 @@ A Blocking Parser that returns the first count of the output\&.
 .RE
 .PP
 
-.SS "template<class T, class A, class \&.\&.\&. Args> T shared::init (const A & fun, const Args &\&.\&.\&. args)"
+.SS "template<class T, class A, class \&.\&.\&. Args> T shared::init (const A & fun, Args &&\&.\&.\&. args)"
 
 .PP
 Compose a return value from an accumulator function\&. 
@@ -664,7 +667,7 @@ Share a path with the sandbox using a mode\&.
 .RE
 .PP
 
-.SS "template<class T, class A, class L = list, class \&.\&.\&. Args, class \&.\&.\&. Refs> void shared::single_batch (const A & fun, T & accum, const L & mem, Args\&.\&.\&. args, Refs &\&.\&.\&. refs)"
+.SS "template<class T, class A, class L = list, class \&.\&.\&. Args> void shared::single_batch (const A & fun, T & accum, const L & mem, Args &&\&.\&.\&. args)"
 
 .PP
 Batch multiple iterations of an accumulator function together\&. 

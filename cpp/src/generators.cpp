@@ -190,7 +190,7 @@ namespace generate {
           log({"Generating Proxy Cache"});
           libraries::lib_t libraries = {};
           if (arg::at("hardened_malloc")) libraries::get(libraries, "/usr/lib/libhardened_malloc.so");
-          rinit<binaries::bin_t>(binaries::parse, "/usr/bin/xdg-dbus-proxy", libraries);
+          init<binaries::bin_t>(binaries::parse, "/usr/bin/xdg-dbus-proxy", libraries);
           libraries::resolve(libraries, "xdg-dbus-proxy", p_hash, false);
         }
       }

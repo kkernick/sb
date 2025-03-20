@@ -96,6 +96,9 @@ $(function(){ initResizable(false); });
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
+<tr class="memitem:a856a8762019042bef78ae7778e85bca1" id="r_a856a8762019042bef78ae7778e85bca1"><td class="memItemLeft" align="right" valign="top"><a id="a856a8762019042bef78ae7778e85bca1" name="a856a8762019042bef78ae7778e85bca1"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>encrypted</b> (const std::string_view &amp;program)</td></tr>
+<tr class="separator:a856a8762019042bef78ae7778e85bca1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a67b94cdd53f264ff45e467ce97cd44d4" id="r_a67b94cdd53f264ff45e467ce97cd44d4"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a67b94cdd53f264ff45e467ce97cd44d4">script</a> (const std::string &amp;binary)</td></tr>
 <tr class="memdesc:a67b94cdd53f264ff45e467ce97cd44d4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Generate a script for the sandbox.  <br /></td></tr>
 <tr class="separator:a67b94cdd53f264ff45e467ce97cd44d4"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -105,6 +108,9 @@ Functions</h2></td></tr>
 <tr class="memitem:a06d09480d1b42592ffc0654698d15b6d" id="r_a06d09480d1b42592ffc0654698d15b6d"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a06d09480d1b42592ffc0654698d15b6d">flatpak_info</a> (const std::string_view &amp;program, const std::string_view &amp;instance, const <a class="el" href="classshared_1_1TemporaryDirectory.html">shared::TemporaryDirectory</a> &amp;work_dir)</td></tr>
 <tr class="memdesc:a06d09480d1b42592ffc0654698d15b6d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Create a .flatpak-info file for the program.  <br /></td></tr>
 <tr class="separator:a06d09480d1b42592ffc0654698d15b6d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a17cf0da8addab269d21c2c8074d85c4e" id="r_a17cf0da8addab269d21c2c8074d85c4e"><td class="memItemLeft" align="right" valign="top">std::pair&lt; std::filesystem::path, std::future&lt; void &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a17cf0da8addab269d21c2c8074d85c4e">proxy_lib</a> ()</td></tr>
+<tr class="memdesc:a17cf0da8addab269d21c2c8074d85c4e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Setup the Proxy's SOF.  <br /></td></tr>
+<tr class="separator:a17cf0da8addab269d21c2c8074d85c4e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a5c0026523dd30f942c55ad25f1b607b4" id="r_a5c0026523dd30f942c55ad25f1b607b4"><td class="memItemLeft" align="right" valign="top">std::pair&lt; int, std::future&lt; int &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a5c0026523dd30f942c55ad25f1b607b4">xdg_dbus_proxy</a> (const std::string &amp;program, const <a class="el" href="classshared_1_1TemporaryDirectory.html">shared::TemporaryDirectory</a> &amp;work_dir)</td></tr>
 <tr class="memdesc:a5c0026523dd30f942c55ad25f1b607b4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Spawn an instance of the xdg-dbus-proxy for the application instance.  <br /></td></tr>
 <tr class="separator:a5c0026523dd30f942c55ad25f1b607b4"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -175,7 +181,7 @@ Functions</h2></td></tr>
 <div id="dynsection-1-summary" class="dynsummary" style="display:block;">
 </div>
 <div id="dynsection-1-content" class="dyncontent" style="display:none;">
-<div class="center"><div class="zoom"><iframe scrolling="no" frameborder="0" src="namespacegenerate_aca905bc877bc18f8cb6a2cb1eaec6988_cgraph.svg" width="100%" height="442"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div></div>
+<div class="center"><div class="zoom"><iframe scrolling="no" frameborder="0" src="namespacegenerate_aca905bc877bc18f8cb6a2cb1eaec6988_cgraph.svg" width="100%" height="461"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div></div>
 </div>
 
 </div>
@@ -223,6 +229,40 @@ Functions</h2></td></tr>
 
 </div>
 </div>
+<a id="a17cf0da8addab269d21c2c8074d85c4e" name="a17cf0da8addab269d21c2c8074d85c4e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a17cf0da8addab269d21c2c8074d85c4e">&#9670;&#160;</a></span>proxy_lib()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::pair&lt; std::filesystem::path, std::future&lt; void &gt; &gt; generate::proxy_lib </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Setup the Proxy's SOF. </p>
+<dl class="section return"><dt>Returns</dt><dd>The path to the Proxy's SOF, and a future to wait for the path to be populated. @info We run this on &ndash;dry, such that the Proxy SOF gets generated along with all the others. </dd></dl>
+<div id="dynsection-3" onclick="return dynsection.toggleVisibility(this)" class="dynheader closed" style="cursor:pointer;">
+  <img id="dynsection-3-trigger" src="closed.png" alt="+"/> Here is the call graph for this function:</div>
+<div id="dynsection-3-summary" class="dynsummary" style="display:block;">
+</div>
+<div id="dynsection-3-content" class="dyncontent" style="display:none;">
+<div class="center"><div class="zoom"><iframe scrolling="no" frameborder="0" src="namespacegenerate_a17cf0da8addab269d21c2c8074d85c4e_cgraph.svg" width="100%" height="600"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div></div>
+</div>
+<div id="dynsection-4" onclick="return dynsection.toggleVisibility(this)" class="dynheader closed" style="cursor:pointer;">
+  <img id="dynsection-4-trigger" src="closed.png" alt="+"/> Here is the caller graph for this function:</div>
+<div id="dynsection-4-summary" class="dynsummary" style="display:block;">
+</div>
+<div id="dynsection-4-content" class="dyncontent" style="display:none;">
+<div class="center"><iframe scrolling="no" frameborder="0" src="namespacegenerate_a17cf0da8addab269d21c2c8074d85c4e_icgraph.svg" width="326" height="54"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
 <a id="a67b94cdd53f264ff45e467ce97cd44d4" name="a67b94cdd53f264ff45e467ce97cd44d4"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a67b94cdd53f264ff45e467ce97cd44d4">&#9670;&#160;</a></span>script()</h2>
 
@@ -245,18 +285,18 @@ Functions</h2></td></tr>
   </table>
   </dd>
 </dl>
-<div id="dynsection-3" onclick="return dynsection.toggleVisibility(this)" class="dynheader closed" style="cursor:pointer;">
-  <img id="dynsection-3-trigger" src="closed.png" alt="+"/> Here is the call graph for this function:</div>
-<div id="dynsection-3-summary" class="dynsummary" style="display:block;">
+<div id="dynsection-5" onclick="return dynsection.toggleVisibility(this)" class="dynheader closed" style="cursor:pointer;">
+  <img id="dynsection-5-trigger" src="closed.png" alt="+"/> Here is the call graph for this function:</div>
+<div id="dynsection-5-summary" class="dynsummary" style="display:block;">
 </div>
-<div id="dynsection-3-content" class="dyncontent" style="display:none;">
+<div id="dynsection-5-content" class="dyncontent" style="display:none;">
 <div class="center"><iframe scrolling="no" frameborder="0" src="namespacegenerate_a67b94cdd53f264ff45e467ce97cd44d4_cgraph.svg" width="267" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
-<div id="dynsection-4" onclick="return dynsection.toggleVisibility(this)" class="dynheader closed" style="cursor:pointer;">
-  <img id="dynsection-4-trigger" src="closed.png" alt="+"/> Here is the caller graph for this function:</div>
-<div id="dynsection-4-summary" class="dynsummary" style="display:block;">
+<div id="dynsection-6" onclick="return dynsection.toggleVisibility(this)" class="dynheader closed" style="cursor:pointer;">
+  <img id="dynsection-6-trigger" src="closed.png" alt="+"/> Here is the caller graph for this function:</div>
+<div id="dynsection-6-summary" class="dynsummary" style="display:block;">
 </div>
-<div id="dynsection-4-content" class="dyncontent" style="display:none;">
+<div id="dynsection-6-content" class="dyncontent" style="display:none;">
 <div class="center"><iframe scrolling="no" frameborder="0" src="namespacegenerate_a67b94cdd53f264ff45e467ce97cd44d4_icgraph.svg" width="332" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
@@ -290,11 +330,11 @@ Functions</h2></td></tr>
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>A pair, including the wd to wait for the bus, and a future to return the pid of the proxy. </dd></dl>
-<div id="dynsection-5" onclick="return dynsection.toggleVisibility(this)" class="dynheader closed" style="cursor:pointer;">
-  <img id="dynsection-5-trigger" src="closed.png" alt="+"/> Here is the call graph for this function:</div>
-<div id="dynsection-5-summary" class="dynsummary" style="display:block;">
+<div id="dynsection-7" onclick="return dynsection.toggleVisibility(this)" class="dynheader closed" style="cursor:pointer;">
+  <img id="dynsection-7-trigger" src="closed.png" alt="+"/> Here is the call graph for this function:</div>
+<div id="dynsection-7-summary" class="dynsummary" style="display:block;">
 </div>
-<div id="dynsection-5-content" class="dyncontent" style="display:none;">
+<div id="dynsection-7-content" class="dyncontent" style="display:none;">
 <div class="center"><div class="zoom"><iframe scrolling="no" frameborder="0" src="namespacegenerate_a5c0026523dd30f942c55ad25f1b607b4_cgraph.svg" width="100%" height="600"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div></div>
 </div>
 

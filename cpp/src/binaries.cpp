@@ -149,7 +149,7 @@ namespace binaries {
             auto base = std::filesystem::path(binary).filename();
             if (discovered.contains(base)) return;
             discovered.emplace(base);
-            auto parsed = rinit<binaries::bin_t>(parse, binary, libraries);
+            auto parsed = init<bin_t>(parse, binary, libraries);
 
             local.emplace(binary);
             required.merge(parsed);

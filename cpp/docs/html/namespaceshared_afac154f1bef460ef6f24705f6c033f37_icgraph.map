@@ -1,26 +1,28 @@
 <map id="shared::read_file" name="shared::read_file">
-<area shape="rect" id="Node000001" title="Read a file." alt="" coords="552,236,670,262"/>
-<area shape="rect" id="Node000002" href="$namespacegenerate.html#a38dcdfdf9293b8aafe77392021d65019" title="Generate the bulk of the main program command." alt="" coords="21,58,125,85"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="597,222,583,190,562,152,536,115,503,83,462,55,425,34,390,20,356,11,320,8,281,10,189,25,141,40,100,60,97,55,139,35,188,20,281,5,320,3,356,6,392,15,428,29,465,50,506,79,540,111,567,149,588,187,602,220"/>
-<area shape="rect" id="Node000003" href="$namespacegenerate.html#aca905bc877bc18f8cb6a2cb1eaec6988" title="Generate a desktop file for the sandbox." alt="" coords="343,261,504,288"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="537,262,505,266,504,261,536,256"/>
-<area shape="rect" id="Node000004" href="$namespacesyscalls.html#aabdab752b02a21ab92e3af4fabba493b" title="Generate a syscall filter." alt="" coords="372,336,475,362"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="572,272,452,337,449,333,569,268"/>
-<area shape="rect" id="Node000005" href="$namespacelibraries.html#a4dfd6ab45adf8dc18ea57bc1f88eaedf" title="Recursively resolve all shared&#45;libraries needed by a library." alt="" coords="378,134,470,161"/>
-<area shape="poly" id="edge5_Node000001_Node000005" title=" " alt="" coords="570,230,449,164,451,159,573,226"/>
-<area shape="rect" id="Node000006" href="$namespacebinaries.html#ac1478c81b2eb2c4ecdba98e92c4e7651" title="Parse a binary to determine dependencies." alt="" coords="189,58,295,85"/>
-<area shape="poly" id="edge12_Node000001_Node000006" title=" " alt="" coords="593,223,556,172,531,146,503,124,451,101,396,86,342,78,295,74,296,69,343,72,397,81,453,96,506,120,535,142,560,168,597,220"/>
-<area shape="rect" id="Node000007" href="$namespacegenerate.html#a5c0026523dd30f942c55ad25f1b607b4" title="Spawn an instance of the xdg&#45;dbus&#45;proxy for the application instance." alt="" coords="5,152,141,194"/>
-<area shape="poly" id="edge15_Node000001_Node000007" title=" " alt="" coords="537,241,141,185,141,180,538,236"/>
-<area shape="rect" id="Node000008" href="$namespacearg.html#a9da86862acc776f92533ebac921afc40" title="Parse command line arguments." alt="" coords="368,386,479,413"/>
-<area shape="poly" id="edge13_Node000001_Node000008" title=" " alt="" coords="596,277,559,328,534,354,506,376,481,389,479,384,503,372,530,350,555,324,592,274"/>
-<area shape="rect" id="Node000009" href="$namespacesyscalls.html#a501461c3842033cfab85ba4b8f328ed8" title="Append an existing policy with newly discovered syscalls." alt="" coords="345,437,502,464"/>
-<area shape="poly" id="edge14_Node000001_Node000009" title=" " alt="" coords="603,278,589,312,568,352,540,392,506,427,486,439,484,434,503,423,536,389,563,349,584,310,598,276"/>
-<area shape="poly" id="edge4_Node000004_Node000004" title=" " alt="" coords="454,323,444,317,424,314,405,316,395,321,392,326,397,334,392,336,387,327,391,317,403,311,424,309,445,311,457,318"/>
-<area shape="poly" id="edge6_Node000005_Node000002" title=" " alt="" coords="362,137,188,99,125,86,126,80,189,94,363,132"/>
-<area shape="poly" id="edge7_Node000005_Node000006" title=" " alt="" coords="374,130,275,88,277,83,376,125"/>
-<area shape="poly" id="edge11_Node000005_Node000007" title=" " alt="" coords="362,155,142,171,141,165,361,149"/>
-<area shape="poly" id="edge8_Node000006_Node000002" title=" " alt="" coords="173,74,126,74,126,69,173,69"/>
-<area shape="poly" id="edge9_Node000006_Node000006" title=" " alt="" coords="270,45,260,39,242,37,224,39,215,43,213,49,217,56,213,59,208,49,211,40,223,34,242,32,262,34,273,41"/>
-<area shape="poly" id="edge10_Node000006_Node000007" title=" " alt="" coords="206,95,112,153,109,149,204,91"/>
+<area shape="rect" id="Node000001" title="Read a file." alt="" coords="732,236,849,262"/>
+<area shape="rect" id="Node000002" href="$namespacegenerate.html#a38dcdfdf9293b8aafe77392021d65019" title="Generate the bulk of the main program command." alt="" coords="202,58,306,85"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="777,222,762,190,742,152,715,115,682,83,642,55,605,34,570,20,535,11,499,8,460,10,369,25,321,41,280,60,278,56,319,36,367,20,460,5,499,3,536,6,571,15,607,29,644,51,685,79,719,111,746,149,767,187,781,220"/>
+<area shape="rect" id="Node000003" href="$namespacegenerate.html#aca905bc877bc18f8cb6a2cb1eaec6988" title="Generate a desktop file for the sandbox." alt="" coords="522,261,684,288"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="716,262,684,266,684,261,716,256"/>
+<area shape="rect" id="Node000004" href="$namespacesyscalls.html#aabdab752b02a21ab92e3af4fabba493b" title="Generate a syscall filter." alt="" coords="552,336,654,362"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="751,273,631,338,629,333,749,268"/>
+<area shape="rect" id="Node000005" href="$namespacelibraries.html#a4dfd6ab45adf8dc18ea57bc1f88eaedf" title="Recursively resolve all shared&#45;libraries needed by a library." alt="" coords="557,134,649,161"/>
+<area shape="poly" id="edge5_Node000001_Node000005" title=" " alt="" coords="749,230,628,164,631,159,752,226"/>
+<area shape="rect" id="Node000006" href="$namespacebinaries.html#ac1478c81b2eb2c4ecdba98e92c4e7651" title="Parse a binary to determine dependencies." alt="" coords="368,58,474,85"/>
+<area shape="poly" id="edge13_Node000001_Node000006" title=" " alt="" coords="772,224,736,172,711,146,682,125,630,101,575,86,521,78,475,74,475,69,522,73,576,81,632,96,685,120,714,142,740,169,776,221"/>
+<area shape="rect" id="Node000007" href="$namespacegenerate.html#a17cf0da8addab269d21c2c8074d85c4e" title="Setup the Proxy&#39;s SOF." alt="" coords="189,160,320,186"/>
+<area shape="poly" id="edge15_Node000001_Node000007" title=" " alt="" coords="716,241,320,185,321,180,717,236"/>
+<area shape="rect" id="Node000009" href="$namespacearg.html#a9da86862acc776f92533ebac921afc40" title="Parse command line arguments." alt="" coords="547,386,659,413"/>
+<area shape="poly" id="edge14_Node000001_Node000009" title=" " alt="" coords="775,277,738,328,713,354,685,377,660,389,658,384,682,372,710,350,734,324,771,274"/>
+<area shape="rect" id="Node000010" href="$namespacesyscalls.html#a501461c3842033cfab85ba4b8f328ed8" title="Append an existing policy with newly discovered syscalls." alt="" coords="524,437,682,464"/>
+<area shape="poly" id="edge16_Node000001_Node000010" title=" " alt="" coords="782,278,768,312,747,352,720,392,685,427,666,439,663,434,682,423,716,389,743,349,763,310,777,276"/>
+<area shape="poly" id="edge4_Node000004_Node000004" title=" " alt="" coords="634,323,623,317,603,314,584,316,574,321,572,327,576,334,572,337,566,327,570,317,583,311,603,309,625,312,636,318"/>
+<area shape="poly" id="edge6_Node000005_Node000002" title=" " alt="" coords="541,138,367,100,307,86,308,81,369,94,542,132"/>
+<area shape="poly" id="edge7_Node000005_Node000006" title=" " alt="" coords="554,130,454,88,456,83,556,125"/>
+<area shape="poly" id="edge12_Node000005_Node000007" title=" " alt="" coords="542,155,321,171,320,166,541,149"/>
+<area shape="poly" id="edge8_Node000006_Node000002" title=" " alt="" coords="353,74,307,74,307,69,353,69"/>
+<area shape="poly" id="edge9_Node000006_Node000006" title=" " alt="" coords="449,45,440,39,421,37,404,39,395,44,393,49,397,57,392,59,387,50,391,40,402,34,421,32,441,34,452,41"/>
+<area shape="poly" id="edge10_Node000006_Node000007" title=" " alt="" coords="386,96,279,162,276,157,383,91"/>
+<area shape="rect" id="Node000008" href="$namespacegenerate.html#a5c0026523dd30f942c55ad25f1b607b4" title="Spawn an instance of the xdg&#45;dbus&#45;proxy for the application instance." alt="" coords="5,152,141,194"/>
+<area shape="poly" id="edge11_Node000007_Node000008" title=" " alt="" coords="173,176,141,176,141,170,173,170"/>
 </map>

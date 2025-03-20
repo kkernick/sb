@@ -415,6 +415,7 @@ namespace shared {
    */
   void inotify_wait(const int& wd, const std::string_view& name = "");
 
+
   /**
    * @brief Hash a string
    * @param in: The input string.
@@ -432,16 +433,9 @@ namespace shared {
    * @param args: Additional arguments.
    * @returns The accumulated results from the function.
    */
-  template <class T, class A, class ...Args> T init(const A& fun, const Args&... args) {
+  template <class T, class A, class ...Args> T init(const A& fun, Args&&... args) {
     T ret;
     fun(ret, args...);
-    return ret;
-  }
-
-  // Modified init that takes mutable refrences after the constant references.
-  template <class T, class A, class ...Args, class ...Refs> T rinit(const A& fun, const Args&... args, Refs&... refs) {
-    T ret;
-    fun(ret, args..., refs...);
     return ret;
   }
 
@@ -457,8 +451,8 @@ namespace shared {
    * @param args: Additional arguments.
    *
    */
-  template <class T, class A, class L = list, class ...Args, class ...Refs> void single_batch(const A& fun, T& accum, const L& mem, Args... args, Refs&... refs) {
-    for (const auto& val : mem) fun(accum, val, args..., refs...);
+  template <class T, class A, class L = list, class ...Args> void single_batch(const A& fun, T& accum, const L& mem, Args&&... args) {
+    for (const auto& val : mem) fun(accum, val, args...);
   }
 
   /**
@@ -474,7 +468,7 @@ namespace shared {
    * @warning All arguments must be immutable, as instances are threaded together.
    * If the ordering matters, or residue arguments are accumulators, use single_batch
    */
-  template <class T, class A, class L = list, class ...Args> void batch(const A& fun, T& accum, const L& mem, const Args&... args) {
+  template <class T, class A, class L = list, class ...Args> void batch(const A& fun, T& accum, const L& mem, Args&&... args) {
     std::vector<std::future<T>> futures; futures.reserve(mem.size());
     for (auto& val : mem) {
       futures.emplace_back(pool.submit_task([val = std::move(val), &fun, &args...]() {return init<T>(fun, val, args...);}));

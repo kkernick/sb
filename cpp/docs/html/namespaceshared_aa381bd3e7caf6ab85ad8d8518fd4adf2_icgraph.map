@@ -1,0 +1,26 @@
+<map id="shared::exec" name="shared::exec">
+<area shape="rect" id="Node000001" title="Execute stuff." alt="" coords="896,119,992,145"/>
+<area shape="rect" id="Node000002" href="$namespacegenerate.html#a38dcdfdf9293b8aafe77392021d65019" title="Generate the bulk of the main program command." alt="" coords="202,93,306,120"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="880,119,848,113,694,102,542,99,307,106,307,101,541,94,694,96,848,108,881,113"/>
+<area shape="rect" id="Node000003" href="$namespacelibraries.html#a4dfd6ab45adf8dc18ea57bc1f88eaedf" title="Recursively resolve all shared&#45;libraries needed by a library." alt="" coords="557,144,649,171"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="881,131,809,131,732,135,650,149,649,143,731,129,809,125,881,126"/>
+<area shape="rect" id="Node000004" href="$namespacebinaries.html#ac1478c81b2eb2c4ecdba98e92c4e7651" title="Parse a binary to determine dependencies." alt="" coords="368,219,474,245"/>
+<area shape="poly" id="edge10_Node000001_Node000004" title=" " alt="" coords="911,156,881,172,849,185,747,210,644,225,549,232,475,235,475,229,549,227,643,220,746,205,847,180,879,167,908,152"/>
+<area shape="rect" id="Node000006" href="$namespacegenerate.html#a5c0026523dd30f942c55ad25f1b607b4" title="Spawn an instance of the xdg&#45;dbus&#45;proxy for the application instance." alt="" coords="5,60,141,103"/>
+<area shape="poly" id="edge15_Node000001_Node000006" title=" " alt="" coords="908,112,852,81,778,47,693,19,649,11,604,8,420,8,343,13,266,27,196,44,137,62,135,57,194,39,265,21,342,8,420,3,604,3,649,6,694,14,780,42,854,76,911,108"/>
+<area shape="rect" id="Node000007" href="$namespacegenerate.html#a67b94cdd53f264ff45e467ce97cd44d4" title="Generate a script for the sandbox." alt="" coords="734,245,846,272"/>
+<area shape="poly" id="edge11_Node000001_Node000007" title=" " alt="" coords="923,159,890,193,850,229,821,247,818,243,846,225,886,190,920,155"/>
+<area shape="rect" id="Node000009" href="$namespaceshared.html#a6955b6b671ef8b660a0d6ed018712923" title="Resolve wildcard patterns." alt="" coords="732,144,848,171"/>
+<area shape="poly" id="edge13_Node000001_Node000009" title=" " alt="" coords="881,145,849,150,848,145,880,140"/>
+<area shape="poly" id="edge3_Node000003_Node000002" title=" " alt="" coords="541,151,474,141,307,117,307,112,475,136,542,146"/>
+<area shape="poly" id="edge4_Node000003_Node000004" title=" " alt="" coords="554,179,523,192,455,221,453,216,521,187,552,174"/>
+<area shape="rect" id="Node000005" href="$namespacegenerate.html#a17cf0da8addab269d21c2c8074d85c4e" title="Setup the Proxy&#39;s SOF." alt="" coords="189,144,320,171"/>
+<area shape="poly" id="edge9_Node000003_Node000005" title=" " alt="" coords="541,160,320,160,320,155,541,155"/>
+<area shape="poly" id="edge5_Node000004_Node000002" title=" " alt="" coords="398,208,363,171,319,134,297,123,300,118,321,130,366,167,402,205"/>
+<area shape="poly" id="edge6_Node000004_Node000004" title=" " alt="" coords="449,206,440,200,421,197,404,199,395,204,393,209,397,217,392,220,387,210,391,200,402,194,421,192,441,195,452,201"/>
+<area shape="poly" id="edge7_Node000004_Node000005" title=" " alt="" coords="375,214,285,174,287,169,377,210"/>
+<area shape="poly" id="edge8_Node000005_Node000006" title=" " alt="" coords="202,140,188,134,121,106,124,101,190,130,204,135"/>
+<area shape="rect" id="Node000008" href="$namespacegenerate.html#aca905bc877bc18f8cb6a2cb1eaec6988" title="Generate a desktop file for the sandbox." alt="" coords="522,245,684,272"/>
+<area shape="poly" id="edge12_Node000007_Node000008" title=" " alt="" coords="719,261,684,261,684,256,719,256"/>
+<area shape="poly" id="edge14_Node000009_Node000003" title=" " alt="" coords="716,160,649,160,649,155,716,155"/>
+</map>

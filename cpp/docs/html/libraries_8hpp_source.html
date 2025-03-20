@@ -103,64 +103,68 @@ $(function(){ initResizable(false); });
 <div class="line"><a id="l00018" name="l00018"></a><span class="lineno">   18</span> </div>
 <div class="line"><a id="l00019" name="l00019"></a><span class="lineno">   19</span>  <span class="keyword">using </span>lib_t = shared::set;</div>
 <div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span>  <span class="keyword">extern</span> lib_t directories;</div>
-<div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span></div>
-<div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span>   <span class="keywordtype">void</span> <a class="code hl_function" href="namespacelibraries.html#a4dfd6ab45adf8dc18ea57bc1f88eaedf">get</a>(lib_t&amp; libraries, <span class="keyword">const</span> std::string_view&amp; library, std::string directory = <span class="stringliteral">&quot;&quot;</span>);</div>
-<div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span></div>
-<div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span>   <span class="keywordtype">void</span> <a class="code hl_function" href="namespacelibraries.html#adb180a16d1881d4ca1da44e7e3512cc5">setup</a>(<span class="keyword">const</span> lib_t&amp; libraries, <span class="keyword">const</span> std::string_view&amp; application);</div>
-<div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span></div>
-<div class="line"><a id="l00048" name="l00048"></a><span class="lineno">   48</span>  <span class="keywordtype">void</span> <a class="code hl_function" href="namespacelibraries.html#aaf67d1825dab30fecb532ea92077ebe3">symlink</a>(shared::vector&amp; command);</div>
-<div class="line"><a id="l00049" name="l00049"></a><span class="lineno">   49</span> </div>
-<div class="line"><a id="l00050" name="l00050"></a><span class="lineno">   50</span>  <span class="keyword">template</span> &lt;<span class="keyword">class</span> C&gt; <span class="keywordtype">void</span> resolve(</div>
-<div class="line"><a id="l00051" name="l00051"></a><span class="lineno">   51</span>    <span class="keyword">const</span> C&amp; required,</div>
-<div class="line"><a id="l00052" name="l00052"></a><span class="lineno">   52</span>    <span class="keyword">const</span> std::string_view&amp; program,</div>
-<div class="line"><a id="l00053" name="l00053"></a><span class="lineno">   53</span>    <span class="keyword">const</span> std::string&amp; lib_cache,</div>
-<div class="line"><a id="l00054" name="l00054"></a><span class="lineno">   54</span>    <span class="keyword">const</span> std::string_view&amp; hash) {</div>
-<div class="line"><a id="l00055" name="l00055"></a><span class="lineno">   55</span>    <a class="code hl_function" href="namespaceshared.html#a99724c73af55fa92ae29fee700152917">shared::log</a>({<span class="stringliteral">&quot;Resolving SOF&quot;</span>});</div>
-<div class="line"><a id="l00056" name="l00056"></a><span class="lineno">   56</span> </div>
-<div class="line"><a id="l00057" name="l00057"></a><span class="lineno">   57</span>    <span class="comment">// Generate the list of invalid entries. Because</span></div>
-<div class="line"><a id="l00058" name="l00058"></a><span class="lineno">   58</span>   <span class="comment">// we only read to the set, there is no risk in sharing it between</span></div>
-<div class="line"><a id="l00059" name="l00059"></a><span class="lineno">   59</span>   <span class="comment">// the threads, so no mutex required.</span></div>
-<div class="line"><a id="l00060" name="l00060"></a><span class="lineno">   60</span>    shared::set exclusions = {};</div>
-<div class="line"><a id="l00061" name="l00061"></a><span class="lineno">   61</span>    <span class="keywordflow">for</span> (<span class="keyword">const</span> <span class="keyword">auto</span>&amp; [lib, mod] : arg::modlist(<span class="stringliteral">&quot;libraries&quot;</span>)) {</div>
-<div class="line"><a id="l00062" name="l00062"></a><span class="lineno">   62</span>      <span class="keywordflow">if</span> (mod == <span class="stringliteral">&quot;x&quot;</span>) {</div>
-<div class="line"><a id="l00063" name="l00063"></a><span class="lineno">   63</span>        <span class="keywordflow">if</span> (lib.contains(<span class="stringliteral">&quot;*&quot;</span>))</div>
-<div class="line"><a id="l00064" name="l00064"></a><span class="lineno">   64</span>          exclusions.merge(<a class="code hl_function" href="namespaceshared.html#a6955b6b671ef8b660a0d6ed018712923">shared::wildcard</a>(lib, <span class="stringliteral">&quot;/usr/lib&quot;</span>, {<span class="stringliteral">&quot;-maxdepth&quot;</span>, <span class="stringliteral">&quot;1&quot;</span>, <span class="stringliteral">&quot;-mindepth&quot;</span>, <span class="stringliteral">&quot;1&quot;</span>, <span class="stringliteral">&quot;-type&quot;</span>, <span class="stringliteral">&quot;f,l&quot;</span>, <span class="stringliteral">&quot;-executable&quot;</span>}));</div>
-<div class="line"><a id="l00065" name="l00065"></a><span class="lineno">   65</span>        <span class="keywordflow">else</span> <span class="keywordflow">if</span> (std::filesystem::is_directory(lib) &amp;&amp; directories.contains(lib))</div>
-<div class="line"><a id="l00066" name="l00066"></a><span class="lineno">   66</span>          directories.erase(lib);</div>
-<div class="line"><a id="l00067" name="l00067"></a><span class="lineno">   67</span>        <span class="keywordflow">else</span> exclusions.emplace(lib);</div>
-<div class="line"><a id="l00068" name="l00068"></a><span class="lineno">   68</span>      }</div>
-<div class="line"><a id="l00069" name="l00069"></a><span class="lineno">   69</span>    }</div>
-<div class="line"><a id="l00070" name="l00070"></a><span class="lineno">   70</span> </div>
-<div class="line"><a id="l00071" name="l00071"></a><span class="lineno">   71</span>    lib_t trimmed = {};</div>
-<div class="line"><a id="l00072" name="l00072"></a><span class="lineno">   72</span>    <span class="keywordflow">for</span> (<span class="keyword">const</span> <span class="keyword">auto</span>&amp; lib : required) {</div>
-<div class="line"><a id="l00073" name="l00073"></a><span class="lineno">   73</span>      <span class="keywordflow">if</span> (exclusions.contains(lib)) <span class="keywordflow">continue</span>;</div>
-<div class="line"><a id="l00074" name="l00074"></a><span class="lineno">   74</span> </div>
-<div class="line"><a id="l00075" name="l00075"></a><span class="lineno">   75</span>      <span class="keywordtype">bool</span> valid = <span class="keyword">true</span>;</div>
-<div class="line"><a id="l00076" name="l00076"></a><span class="lineno">   76</span>      <span class="keywordflow">for</span> (<span class="keyword">const</span> <span class="keyword">auto</span>&amp; dir : directories) {</div>
-<div class="line"><a id="l00077" name="l00077"></a><span class="lineno">   77</span>        <span class="keywordflow">if</span> (lib.starts_with(dir)) {</div>
-<div class="line"><a id="l00078" name="l00078"></a><span class="lineno">   78</span>          valid = <span class="keyword">false</span>;</div>
-<div class="line"><a id="l00079" name="l00079"></a><span class="lineno">   79</span>          <span class="keywordflow">break</span>;</div>
-<div class="line"><a id="l00080" name="l00080"></a><span class="lineno">   80</span>        }</div>
-<div class="line"><a id="l00081" name="l00081"></a><span class="lineno">   81</span>      }</div>
-<div class="line"><a id="l00082" name="l00082"></a><span class="lineno">   82</span>      <span class="keywordflow">if</span> (valid) trimmed.emplace(lib);</div>
-<div class="line"><a id="l00083" name="l00083"></a><span class="lineno">   83</span>    }</div>
-<div class="line"><a id="l00084" name="l00084"></a><span class="lineno">   84</span> </div>
-<div class="line"><a id="l00085" name="l00085"></a><span class="lineno">   85</span>    <a class="code hl_function" href="namespacelibraries.html#adb180a16d1881d4ca1da44e7e3512cc5">libraries::setup</a>(trimmed, program);</div>
-<div class="line"><a id="l00086" name="l00086"></a><span class="lineno">   86</span>    <span class="keyword">auto</span> lib_out = std::ofstream(lib_cache);</div>
-<div class="line"><a id="l00087" name="l00087"></a><span class="lineno">   87</span>    lib_out &lt;&lt; <a class="code hl_function" href="namespaceshared.html#a4a708359d4c8dbeeaa8b744eec56c0e5">hash</a> &lt;&lt; <span class="charliteral">&#39;\n&#39;</span>;</div>
-<div class="line"><a id="l00088" name="l00088"></a><span class="lineno">   88</span>    <span class="keywordflow">for</span> (<span class="keyword">const</span> <span class="keyword">auto</span>&amp; arg : trimmed) {</div>
-<div class="line"><a id="l00089" name="l00089"></a><span class="lineno">   89</span>      lib_out &lt;&lt; arg &lt;&lt; <span class="charliteral">&#39; &#39;</span>;</div>
-<div class="line"><a id="l00090" name="l00090"></a><span class="lineno">   90</span>    }</div>
-<div class="line"><a id="l00091" name="l00091"></a><span class="lineno">   91</span>    lib_out.close();</div>
-<div class="line"><a id="l00092" name="l00092"></a><span class="lineno">   92</span>  }</div>
-<div class="line"><a id="l00093" name="l00093"></a><span class="lineno">   93</span>}</div>
-<div class="ttc" id="anamespacelibraries_html"><div class="ttname"><a href="namespacelibraries.html">libraries</a></div><div class="ttdoc">Shared-Library Dependency Resolution This header contains all the relevant functions for resolving sh...</div><div class="ttdef"><b>Definition</b> libraries.cpp:13</div></div>
-<div class="ttc" id="anamespacelibraries_html_a4dfd6ab45adf8dc18ea57bc1f88eaedf"><div class="ttname"><a href="namespacelibraries.html#a4dfd6ab45adf8dc18ea57bc1f88eaedf">libraries::get</a></div><div class="ttdeci">void get(lib_t &amp;libraries, const std::string_view &amp;library, std::string directory)</div><div class="ttdoc">Recursively resolve all shared-libraries needed by a library.</div><div class="ttdef"><b>Definition</b> libraries.cpp:86</div></div>
-<div class="ttc" id="anamespacelibraries_html_aaf67d1825dab30fecb532ea92077ebe3"><div class="ttname"><a href="namespacelibraries.html#aaf67d1825dab30fecb532ea92077ebe3">libraries::symlink</a></div><div class="ttdeci">void symlink(vector &amp;command)</div><div class="ttdoc">Add symlink commands.</div><div class="ttdef"><b>Definition</b> libraries.cpp:197</div></div>
-<div class="ttc" id="anamespacelibraries_html_adb180a16d1881d4ca1da44e7e3512cc5"><div class="ttname"><a href="namespacelibraries.html#adb180a16d1881d4ca1da44e7e3512cc5">libraries::setup</a></div><div class="ttdeci">void setup(const lib_t &amp;libraries, const std::string_view &amp;application)</div><div class="ttdoc">Setup an SOF directory.</div><div class="ttdef"><b>Definition</b> libraries.cpp:127</div></div>
-<div class="ttc" id="anamespaceshared_html_a4a708359d4c8dbeeaa8b744eec56c0e5"><div class="ttname"><a href="namespaceshared.html#a4a708359d4c8dbeeaa8b744eec56c0e5">shared::hash</a></div><div class="ttdeci">std::string hash(const std::string_view &amp;in)</div><div class="ttdoc">Hash a string.</div><div class="ttdef"><b>Definition</b> shared.cpp:269</div></div>
-<div class="ttc" id="anamespaceshared_html_a6955b6b671ef8b660a0d6ed018712923"><div class="ttname"><a href="namespaceshared.html#a6955b6b671ef8b660a0d6ed018712923">shared::wildcard</a></div><div class="ttdeci">set wildcard(const std::string_view &amp;pattern, const std::string_view &amp;path, const list &amp;args)</div><div class="ttdoc">Resolve wildcard patterns.</div><div class="ttdef"><b>Definition</b> shared.cpp:202</div></div>
-<div class="ttc" id="anamespaceshared_html_a99724c73af55fa92ae29fee700152917"><div class="ttname"><a href="namespaceshared.html#a99724c73af55fa92ae29fee700152917">shared::log</a></div><div class="ttdeci">void log(const list &amp;msg, const std::string &amp;level)</div><div class="ttdoc">Log output to console, if verbose.</div><div class="ttdef"><b>Definition</b> shared.cpp:39</div></div>
+<div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span> </div>
+<div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span>  <span class="keyword">inline</span> std::filesystem::path hash_cache(<span class="keyword">const</span> std::string_view&amp; program, <span class="keyword">const</span> std::string&amp; hash) {</div>
+<div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span>    <span class="keywordflow">return</span> std::filesystem::path(std::filesystem::path(shared::data)) / <span class="stringliteral">&quot;sb&quot;</span> / program / <span class="stringliteral">&quot;cache&quot;</span> / (hash + <span class="stringliteral">&quot;.lib.cache&quot;</span>);</div>
+<div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span>  }</div>
+<div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span>  <span class="keyword">inline</span> std::filesystem::path hash_sof(<span class="keyword">const</span> std::string_view&amp; program, <span class="keyword">const</span> std::string&amp; hash) {</div>
+<div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span>    <span class="keywordflow">return</span> std::filesystem::path(arg::get(<span class="stringliteral">&quot;sof&quot;</span>)) / program / <span class="stringliteral">&quot;lib&quot;</span> / hash;</div>
+<div class="line"><a id="l00027" name="l00027"></a><span class="lineno">   27</span>  }</div>
+<div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span></div>
+<div class="line"><a id="l00037" name="l00037"></a><span class="lineno">   37</span>   <span class="keywordtype">void</span> <a class="code hl_function" href="namespacelibraries.html#a4dfd6ab45adf8dc18ea57bc1f88eaedf">get</a>(lib_t&amp; libraries, <span class="keyword">const</span> std::string_view&amp; library, std::string directory = <span class="stringliteral">&quot;&quot;</span>);</div>
+<div class="line"><a id="l00038" name="l00038"></a><span class="lineno">   38</span></div>
+<div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span>   <span class="keywordtype">void</span> setup(<span class="keyword">const</span> shared::set&amp; libraries, <span class="keyword">const</span> std::string_view&amp; application, <span class="keyword">const</span> std::filesystem::path&amp; app_sof);</div>
+<div class="line"><a id="l00047" name="l00047"></a><span class="lineno">   47</span>   <span class="keywordtype">void</span> setup(<span class="keyword">const</span> shared::vector&amp; libraries, <span class="keyword">const</span> std::string_view&amp; application, <span class="keyword">const</span> std::filesystem::path&amp; app_sof);</div>
+<div class="line"><a id="l00048" name="l00048"></a><span class="lineno">   48</span></div>
+<div class="line"><a id="l00056" name="l00056"></a><span class="lineno">   56</span>  <span class="keywordtype">void</span> <a class="code hl_function" href="namespacelibraries.html#aaf67d1825dab30fecb532ea92077ebe3">symlink</a>(shared::vector&amp; command);</div>
+<div class="line"><a id="l00057" name="l00057"></a><span class="lineno">   57</span> </div>
+<div class="line"><a id="l00058" name="l00058"></a><span class="lineno">   58</span>  <span class="keyword">template</span> &lt;<span class="keyword">class</span> C&gt; <span class="keywordtype">void</span> resolve(<span class="keyword">const</span> C&amp; required, <span class="keyword">const</span> std::string_view&amp; program, <span class="keyword">const</span> std::string&amp; l_hash, <span class="keyword">const</span> <span class="keywordtype">bool</span>&amp; exclude = <span class="keyword">true</span>) {</div>
+<div class="line"><a id="l00059" name="l00059"></a><span class="lineno">   59</span>    <a class="code hl_function" href="namespaceshared.html#a99724c73af55fa92ae29fee700152917">shared::log</a>({<span class="stringliteral">&quot;Resolving SOF&quot;</span>});</div>
+<div class="line"><a id="l00060" name="l00060"></a><span class="lineno">   60</span> </div>
+<div class="line"><a id="l00061" name="l00061"></a><span class="lineno">   61</span>    <span class="keyword">auto</span> get_trimmed = [&amp;required]() {</div>
+<div class="line"><a id="l00062" name="l00062"></a><span class="lineno">   62</span>      <span class="comment">// Generate the list of invalid entries. Because</span></div>
+<div class="line"><a id="l00063" name="l00063"></a><span class="lineno">   63</span>      <span class="comment">// we only read to the set, there is no risk in sharing it between</span></div>
+<div class="line"><a id="l00064" name="l00064"></a><span class="lineno">   64</span>      <span class="comment">// the threads, so no mutex required.</span></div>
+<div class="line"><a id="l00065" name="l00065"></a><span class="lineno">   65</span>      shared::set exclusions = {};</div>
+<div class="line"><a id="l00066" name="l00066"></a><span class="lineno">   66</span>      <span class="keywordflow">for</span> (<span class="keyword">const</span> <span class="keyword">auto</span>&amp; [lib, mod] : arg::modlist(<span class="stringliteral">&quot;libraries&quot;</span>)) {</div>
+<div class="line"><a id="l00067" name="l00067"></a><span class="lineno">   67</span>        <span class="keywordflow">if</span> (mod == <span class="stringliteral">&quot;x&quot;</span>) {</div>
+<div class="line"><a id="l00068" name="l00068"></a><span class="lineno">   68</span>          <span class="keywordflow">if</span> (lib.contains(<span class="stringliteral">&quot;*&quot;</span>))</div>
+<div class="line"><a id="l00069" name="l00069"></a><span class="lineno">   69</span>            exclusions.merge(<a class="code hl_function" href="namespaceshared.html#a6955b6b671ef8b660a0d6ed018712923">shared::wildcard</a>(lib, <span class="stringliteral">&quot;/usr/lib&quot;</span>, {<span class="stringliteral">&quot;-maxdepth&quot;</span>, <span class="stringliteral">&quot;1&quot;</span>, <span class="stringliteral">&quot;-mindepth&quot;</span>, <span class="stringliteral">&quot;1&quot;</span>, <span class="stringliteral">&quot;-type&quot;</span>, <span class="stringliteral">&quot;f,l&quot;</span>, <span class="stringliteral">&quot;-executable&quot;</span>}));</div>
+<div class="line"><a id="l00070" name="l00070"></a><span class="lineno">   70</span>          <span class="keywordflow">else</span> <span class="keywordflow">if</span> (std::filesystem::is_directory(lib) &amp;&amp; directories.contains(lib))</div>
+<div class="line"><a id="l00071" name="l00071"></a><span class="lineno">   71</span>            directories.erase(lib);</div>
+<div class="line"><a id="l00072" name="l00072"></a><span class="lineno">   72</span>          <span class="keywordflow">else</span> exclusions.emplace(lib);</div>
+<div class="line"><a id="l00073" name="l00073"></a><span class="lineno">   73</span>        }</div>
+<div class="line"><a id="l00074" name="l00074"></a><span class="lineno">   74</span>      }</div>
+<div class="line"><a id="l00075" name="l00075"></a><span class="lineno">   75</span> </div>
+<div class="line"><a id="l00076" name="l00076"></a><span class="lineno">   76</span>      C trimmed = {};</div>
+<div class="line"><a id="l00077" name="l00077"></a><span class="lineno">   77</span>      <span class="keywordflow">for</span> (<span class="keyword">const</span> <span class="keyword">auto</span>&amp; lib : required) {</div>
+<div class="line"><a id="l00078" name="l00078"></a><span class="lineno">   78</span>        <span class="keywordflow">if</span> (exclusions.contains(lib)) <span class="keywordflow">continue</span>;</div>
+<div class="line"><a id="l00079" name="l00079"></a><span class="lineno">   79</span>        <span class="keywordtype">bool</span> valid = <span class="keyword">true</span>;</div>
+<div class="line"><a id="l00080" name="l00080"></a><span class="lineno">   80</span>        <span class="keywordflow">for</span> (<span class="keyword">const</span> <span class="keyword">auto</span>&amp; dir : directories) {</div>
+<div class="line"><a id="l00081" name="l00081"></a><span class="lineno">   81</span>          <span class="keywordflow">if</span> (lib.starts_with(dir)) {</div>
+<div class="line"><a id="l00082" name="l00082"></a><span class="lineno">   82</span>            valid = <span class="keyword">false</span>;</div>
+<div class="line"><a id="l00083" name="l00083"></a><span class="lineno">   83</span>            <span class="keywordflow">break</span>;</div>
+<div class="line"><a id="l00084" name="l00084"></a><span class="lineno">   84</span>          }</div>
+<div class="line"><a id="l00085" name="l00085"></a><span class="lineno">   85</span>        }</div>
+<div class="line"><a id="l00086" name="l00086"></a><span class="lineno">   86</span>        <span class="keywordflow">if</span> (valid) shared::emplace(trimmed, lib);</div>
+<div class="line"><a id="l00087" name="l00087"></a><span class="lineno">   87</span>      }</div>
+<div class="line"><a id="l00088" name="l00088"></a><span class="lineno">   88</span>      <span class="keywordflow">return</span> trimmed;</div>
+<div class="line"><a id="l00089" name="l00089"></a><span class="lineno">   89</span>    };</div>
+<div class="line"><a id="l00090" name="l00090"></a><span class="lineno">   90</span> </div>
+<div class="line"><a id="l00091" name="l00091"></a><span class="lineno">   91</span>    <span class="keyword">const</span> <span class="keyword">auto</span>&amp; reduced = exclude ? get_trimmed() : required;</div>
+<div class="line"><a id="l00092" name="l00092"></a><span class="lineno">   92</span>    libraries::setup(reduced, program, hash_sof(program, l_hash));</div>
+<div class="line"><a id="l00093" name="l00093"></a><span class="lineno">   93</span>    <span class="keyword">auto</span> lib_out = std::ofstream(hash_cache(program, l_hash));</div>
+<div class="line"><a id="l00094" name="l00094"></a><span class="lineno">   94</span>    <span class="keywordflow">for</span> (<span class="keyword">const</span> <span class="keyword">auto</span>&amp; arg : reduced) {</div>
+<div class="line"><a id="l00095" name="l00095"></a><span class="lineno">   95</span>      lib_out &lt;&lt; arg &lt;&lt; <span class="charliteral">&#39; &#39;</span>;</div>
+<div class="line"><a id="l00096" name="l00096"></a><span class="lineno">   96</span>    }</div>
+<div class="line"><a id="l00097" name="l00097"></a><span class="lineno">   97</span>    lib_out.close();</div>
+<div class="line"><a id="l00098" name="l00098"></a><span class="lineno">   98</span>  }</div>
+<div class="line"><a id="l00099" name="l00099"></a><span class="lineno">   99</span>}</div>
+<div class="ttc" id="anamespacelibraries_html"><div class="ttname"><a href="namespacelibraries.html">libraries</a></div><div class="ttdoc">Shared-Library Dependency Resolution This header contains all the relevant functions for resolving sh...</div><div class="ttdef"><b>Definition</b> libraries.cpp:15</div></div>
+<div class="ttc" id="anamespacelibraries_html_a4dfd6ab45adf8dc18ea57bc1f88eaedf"><div class="ttname"><a href="namespacelibraries.html#a4dfd6ab45adf8dc18ea57bc1f88eaedf">libraries::get</a></div><div class="ttdeci">void get(lib_t &amp;libraries, const std::string_view &amp;library, std::string directory)</div><div class="ttdoc">Recursively resolve all shared-libraries needed by a library.</div><div class="ttdef"><b>Definition</b> libraries.cpp:87</div></div>
+<div class="ttc" id="anamespacelibraries_html_aaf67d1825dab30fecb532ea92077ebe3"><div class="ttname"><a href="namespacelibraries.html#aaf67d1825dab30fecb532ea92077ebe3">libraries::symlink</a></div><div class="ttdeci">void symlink(vector &amp;command)</div><div class="ttdoc">Add symlink commands.</div><div class="ttdef"><b>Definition</b> libraries.cpp:213</div></div>
+<div class="ttc" id="anamespaceshared_html_a6955b6b671ef8b660a0d6ed018712923"><div class="ttname"><a href="namespaceshared.html#a6955b6b671ef8b660a0d6ed018712923">shared::wildcard</a></div><div class="ttdeci">set wildcard(const std::string_view &amp;pattern, const std::string_view &amp;path, const list &amp;args)</div><div class="ttdoc">Resolve wildcard patterns.</div><div class="ttdef"><b>Definition</b> shared.cpp:203</div></div>
+<div class="ttc" id="anamespaceshared_html_a99724c73af55fa92ae29fee700152917"><div class="ttname"><a href="namespaceshared.html#a99724c73af55fa92ae29fee700152917">shared::log</a></div><div class="ttdeci">void log(const list &amp;msg, const std::string &amp;level)</div><div class="ttdoc">Log output to console, if verbose.</div><div class="ttdef"><b>Definition</b> shared.cpp:40</div></div>
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>

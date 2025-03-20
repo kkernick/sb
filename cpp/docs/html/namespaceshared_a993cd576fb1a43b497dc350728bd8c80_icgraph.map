@@ -1,0 +1,17 @@
+<map id="shared::batch" name="shared::batch">
+<area shape="rect" id="Node000001" title="Batch multiple iterations of an accumulator function together, threaded." alt="" coords="663,17,763,44"/>
+<area shape="rect" id="Node000002" href="$namespacegenerate.html#a38dcdfdf9293b8aafe77392021d65019" title="Generate the bulk of the main program command." alt="" coords="202,5,306,32"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="647,29,474,21,307,21,307,15,474,16,647,24"/>
+<area shape="rect" id="Node000003" href="$namespacelibraries.html#a4dfd6ab45adf8dc18ea57bc1f88eaedf" title="Recursively resolve all shared&#45;libraries needed by a library." alt="" coords="522,43,615,69"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="648,45,616,51,615,45,647,40"/>
+<area shape="poly" id="edge3_Node000003_Node000002" title=" " alt="" coords="507,51,474,47,307,27,307,22,475,41,507,45"/>
+<area shape="rect" id="Node000004" href="$namespacebinaries.html#ac1478c81b2eb2c4ecdba98e92c4e7651" title="Parse a binary to determine dependencies." alt="" coords="368,80,474,107"/>
+<area shape="poly" id="edge4_Node000003_Node000004" title=" " alt="" coords="508,74,475,82,474,77,506,69"/>
+<area shape="rect" id="Node000005" href="$namespacegenerate.html#a17cf0da8addab269d21c2c8074d85c4e" title="Setup the Proxy&#39;s SOF." alt="" coords="189,105,320,132"/>
+<area shape="poly" id="edge9_Node000003_Node000005" title=" " alt="" coords="543,82,512,104,475,121,436,130,395,134,320,131,320,126,395,128,435,125,473,116,509,99,540,77"/>
+<area shape="poly" id="edge5_Node000004_Node000002" title=" " alt="" coords="375,76,285,35,287,30,377,71"/>
+<area shape="poly" id="edge6_Node000004_Node000004" title=" " alt="" coords="446,67,437,61,421,59,406,61,398,65,396,71,400,78,395,81,391,71,394,62,404,56,421,53,439,56,449,63"/>
+<area shape="poly" id="edge7_Node000004_Node000005" title=" " alt="" coords="353,106,321,111,320,106,352,101"/>
+<area shape="rect" id="Node000006" href="$namespacegenerate.html#a5c0026523dd30f942c55ad25f1b607b4" title="Spawn an instance of the xdg&#45;dbus&#45;proxy for the application instance." alt="" coords="5,97,141,140"/>
+<area shape="poly" id="edge8_Node000005_Node000006" title=" " alt="" coords="173,121,141,121,141,116,173,116"/>
+</map>

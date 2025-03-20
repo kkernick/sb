@@ -1,6 +1,6 @@
 <map id="shared::genv" name="shared::genv">
 <area shape="rect" id="Node000001" title="Attach an environment variable to the sandbox." alt="" coords="5,31,102,57"/>
-<area shape="rect" id="Node000002" href="$namespaceshared.html#ab11bf98c12a2bf0ae3adca902e57befd" title="Extend a container in place." alt="" coords="150,5,257,32"/>
+<area shape="rect" id="Node000002" href="$namespaceshared.html#a1636cc0cb46e6be8f452dbc1e92a1e28" title="Extend a container in place." alt="" coords="150,5,257,32"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="102,33,134,28,135,33,103,38"/>
 <area shape="rect" id="Node000003" href="$namespaceshared.html#a99724c73af55fa92ae29fee700152917" title="Log output to console, if verbose." alt="" coords="161,56,246,83"/>
 <area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="103,50,146,57,145,62,102,55"/>

@@ -88,7 +88,7 @@ $(function(){ initResizable(false); });
   <div class="headertitle"><div class="title">Improvement</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md2"></a></p>
+<div class="textblock"><p><a class="anchor" id="autotoc_md1"></a></p>
 <p>This file tracks performance between various versions of SB++, based on commit. It should be noted that decreases in performance comes with new features, a simplification of the codebase, or other changes, and as such it not necessarily desirable to have a consistently downward slope; that said, periodic testing can illustrate regressions.</p>
 <p>If you use Obsidian, you can visualize these tables directly via <em>Obsidian Charts</em>. All tests were done on the Chromium profile available in <code>examples</code>, and profiled via the <code>benchmark.sh</code> script using the <code>cpp</code> recipe or its equivalent at the time. To repeat any of these benchmarks, simply run <code>./benchmark.sh cpp COMMIT chromium.desktop.sb cpp</code> for the desired commit, not that the Python benchmarks will not work with this as the folder structure does not support it, and will instead require manual checkout.</p>
 <p>The following table shows the speed of Python-SB at its last update before SB++ was introduced. The values skew the charts too much for them the be useful, so they're included here for reference and comparison</p>
@@ -138,7 +138,11 @@ $(function(){ initResizable(false); });
 <tr class="markdownTableRowEven">
 <td class="markdownTableBodyNone">18   </td><td class="markdownTableBodyNone">22074db   </td><td class="markdownTableBodyNone">275.6   </td><td class="markdownTableBodyNone">4.0   </td><td class="markdownTableBodyNone">18.4   </td><td class="markdownTableBodyNone">265.1   </td><td class="markdownTableBodyNone">LDD Corrections.    </td></tr>
 <tr class="markdownTableRowOdd">
-<td class="markdownTableBodyNone">19   </td><td class="markdownTableBodyNone">0a01c31   </td><td class="markdownTableBodyNone">212.7   </td><td class="markdownTableBodyNone">3.8   </td><td class="markdownTableBodyNone">10.2   </td><td class="markdownTableBodyNone">200.8   </td><td class="markdownTableBodyNone">Cleanup switches   </td></tr>
+<td class="markdownTableBodyNone">19   </td><td class="markdownTableBodyNone">0a01c31   </td><td class="markdownTableBodyNone">212.7   </td><td class="markdownTableBodyNone">3.8   </td><td class="markdownTableBodyNone">10.2   </td><td class="markdownTableBodyNone">200.8   </td><td class="markdownTableBodyNone">Cleanup switches    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone">20   </td><td class="markdownTableBodyNone">8f4af8c2   </td><td class="markdownTableBodyNone">223.8   </td><td class="markdownTableBodyNone">3.7   </td><td class="markdownTableBodyNone">10.2   </td><td class="markdownTableBodyNone">211.0   </td><td class="markdownTableBodyNone">Per-Config SOF    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone">21   </td><td class="markdownTableBodyNone">3f5f5b33   </td><td class="markdownTableBodyNone">221.8   </td><td class="markdownTableBodyNone">3.5   </td><td class="markdownTableBodyNone">9.9   </td><td class="markdownTableBodyNone">204   </td><td class="markdownTableBodyNone">Early SOF Generation   </td></tr>
 </table>
 <p>^times</p>
 <div class="fragment"><div class="line">type: line</div>

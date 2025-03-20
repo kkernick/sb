@@ -29,45 +29,44 @@ arg::Arg \- A command-line argument\&.
 .br
 .RI "Get the help text for the argument\&. "
 .ti -1c
-.RI "std::string & \fBget\fP ()"
+.RI "auto && \fBget\fP (this auto &&self)"
 .br
 .RI "Get a mutable reference to the stored value\&. "
 .ti -1c
-.RI "const std::string & \fBget\fP () const"
+.RI "void \fBemplace\fP (const std::string &val)"
 .br
+.RI "Emplace a value\&. "
 .ti -1c
-.RI "std::string & \fBmod\fP ()"
+.RI "auto && \fBmod\fP (this auto &&self)"
 .br
 .RI "Get a mutable reference to the stored modifier\&. "
-.ti -1c
-.RI "const std::string & \fBmod\fP () const"
-.br
 .ti -1c
 .RI "const bool & \fBis_list\fP () const"
 .br
 .RI "Return whether the argument is a list\&. "
 .ti -1c
+.RI "const bool & \fBis_flagset\fP () const"
+.br
+.RI "Return whether the argument is a flagset\&. "
+.ti -1c
 .RI "uint_fast8_t \fBlevel\fP () const"
 .br
 .RI "Return the current level of the argument\&. "
 .ti -1c
-.RI "shared::set & \fBget_list\fP ()"
+.RI "auto && \fBget_list\fP (this auto &&self)"
 .br
 .RI "Return a mutable reference to each unique value passed to the argument\&. "
 .ti -1c
-.RI "const shared::set & \fBget_list\fP () const"
-.br
-.ti -1c
-.RI "shared::set & \fBget_valid\fP ()"
+.RI "auto && \fBget_valid\fP (this auto &&self)"
 .br
 .RI "Return a set of all valid values\&. "
-.ti -1c
-.RI "const shared::set & \fBget_valid\fP () const"
-.br
 .ti -1c
 .RI "std::vector< std::pair< std::string, std::string > > \fBget_modlist\fP () const"
 .br
 .RI "Return all values paired with their modifiers\&. "
+.ti -1c
+.RI "const bool & \fBupdates_sof\fP () const"
+.br
 .ti -1c
 .RI "const uint_fast8_t & \fBposition\fP () const"
 .br
@@ -125,7 +124,28 @@ Digest arguments\&.
 .RE
 .PP
 
-.SS "std::string & arg::Arg::get ()\fR [inline]\fP"
+.SS "void arg::Arg::emplace (const std::string & val)\fR [inline]\fP"
+
+.PP
+Emplace a value\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIval\fP The value to emplace\&. 
+.RE
+.PP
+\fBExceptions\fP
+.RS 4
+\fIstd::runtime_error\fP if the valid is invalid\&. @info For single value arguments, this overwrites the stored value\&. For lists, it emplaces to the back of the list if its valid\&. 
+.RE
+.PP
+\fBWarning\fP
+.RS 4
+This function uses the same parsing logic as initial argument parsing, which means invalid values will throw exceptions\&. 
+.RE
+.PP
+
+.SS "auto && arg::Arg::get (this auto && self)\fR [inline]\fP"
 
 .PP
 Get a mutable reference to the stored value\&. 
@@ -152,7 +172,7 @@ The string\&.
 .RE
 .PP
 
-.SS "shared::set & arg::Arg::get_list ()\fR [inline]\fP"
+.SS "auto && arg::Arg::get_list (this auto && self)\fR [inline]\fP"
 
 .PP
 Return a mutable reference to each unique value passed to the argument\&. 
@@ -184,7 +204,7 @@ A vector of pairs\&.
 .RE
 .PP
 
-.SS "shared::set & arg::Arg::get_valid ()\fR [inline]\fP"
+.SS "auto && arg::Arg::get_valid (this auto && self)\fR [inline]\fP"
 
 .PP
 Return a set of all valid values\&. 
@@ -192,6 +212,17 @@ Return a set of all valid values\&.
 \fBReturns\fP
 .RS 4
 The set\&. 
+.RE
+.PP
+
+.SS "const bool & arg::Arg::is_flagset () const\fR [inline]\fP"
+
+.PP
+Return whether the argument is a flagset\&. 
+.PP
+\fBReturns\fP
+.RS 4
+Whether the argument is a true/false with a list of flags 
 .RE
 .PP
 
@@ -217,7 +248,7 @@ The current level\&.
 .RE
 .PP
 
-.SS "std::string & arg::Arg::mod ()\fR [inline]\fP"
+.SS "auto && arg::Arg::mod (this auto && self)\fR [inline]\fP"
 
 .PP
 Get a mutable reference to the stored modifier\&. 

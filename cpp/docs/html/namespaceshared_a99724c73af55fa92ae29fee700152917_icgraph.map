@@ -1,25 +1,26 @@
 <map id="shared::log" name="shared::log">
-<area shape="rect" id="Node000001" title="Log output to console, if verbose." alt="" coords="493,186,579,212"/>
-<area shape="rect" id="Node000002" href="$namespacegenerate.html#a38dcdfdf9293b8aafe77392021d65019" title="Generate the bulk of the main program command." alt="" coords="21,10,125,36"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="522,172,492,116,471,87,444,63,406,41,365,26,322,16,278,10,195,9,126,16,126,11,195,4,278,5,323,11,366,21,408,36,447,58,474,83,497,113,527,170"/>
-<area shape="rect" id="Node000003" href="$namespacesyscalls.html#aabdab752b02a21ab92e3af4fabba493b" title="Generate a syscall filter." alt="" coords="343,311,445,338"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="510,225,413,312,409,308,506,221"/>
-<area shape="rect" id="Node000004" href="$namespaceshared.html#a00b81f070735db096bbcd00c9d87188e" title="Attach an environment variable to the sandbox." alt="" coords="346,362,442,388"/>
-<area shape="poly" id="edge4_Node000001_Node000004" title=" " alt="" coords="526,228,496,289,474,322,447,352,431,363,428,359,444,348,469,319,491,286,522,225"/>
-<area shape="rect" id="Node000005" href="$namespacelibraries.html#a4dfd6ab45adf8dc18ea57bc1f88eaedf" title="Recursively resolve all shared&#45;libraries needed by a library." alt="" coords="348,72,440,99"/>
-<area shape="poly" id="edge5_Node000001_Node000005" title=" " alt="" coords="504,178,411,101,414,97,507,173"/>
-<area shape="rect" id="Node000006" href="$namespacebinaries.html#ac1478c81b2eb2c4ecdba98e92c4e7651" title="Parse a binary to determine dependencies." alt="" coords="189,135,295,162"/>
-<area shape="poly" id="edge12_Node000001_Node000006" title=" " alt="" coords="478,189,445,183,295,159,296,153,446,178,479,184"/>
-<area shape="rect" id="Node000007" href="$namespacegenerate.html#a5c0026523dd30f942c55ad25f1b607b4" title="Spawn an instance of the xdg&#45;dbus&#45;proxy for the application instance." alt="" coords="5,152,141,195"/>
-<area shape="poly" id="edge15_Node000001_Node000007" title=" " alt="" coords="479,215,419,226,346,235,267,236,188,227,148,214,112,198,114,193,150,209,189,222,267,231,345,229,418,221,478,210"/>
-<area shape="rect" id="Node000008" href="$namespacelibraries.html#adb180a16d1881d4ca1da44e7e3512cc5" title="Setup an SOF directory." alt="" coords="189,186,295,212"/>
-<area shape="poly" id="edge13_Node000001_Node000008" title=" " alt="" coords="478,202,295,202,295,196,478,196"/>
-<area shape="poly" id="edge3_Node000003_Node000003" title=" " alt="" coords="418,298,410,292,394,290,380,292,372,296,370,302,374,309,369,312,365,302,368,293,378,287,394,284,412,287,421,294"/>
-<area shape="poly" id="edge6_Node000005_Node000002" title=" " alt="" coords="338,70,294,58,205,41,125,31,126,25,206,36,296,52,340,65"/>
-<area shape="poly" id="edge7_Node000005_Node000006" title=" " alt="" coords="347,108,277,137,275,132,344,103"/>
-<area shape="poly" id="edge11_Node000005_Node000007" title=" " alt="" coords="332,84,263,87,225,92,190,102,141,125,101,154,98,150,138,121,188,97,224,87,262,82,332,79"/>
-<area shape="poly" id="edge8_Node000006_Node000002" title=" " alt="" coords="208,128,91,39,94,35,212,123"/>
-<area shape="poly" id="edge9_Node000006_Node000006" title=" " alt="" coords="267,122,258,116,242,114,226,116,218,120,216,126,220,133,215,136,211,126,214,117,225,111,242,108,260,111,270,118"/>
-<area shape="poly" id="edge10_Node000006_Node000007" title=" " alt="" coords="174,161,141,166,141,161,173,156"/>
-<area shape="poly" id="edge14_Node000008_Node000007" title=" " alt="" coords="173,191,141,187,141,181,174,186"/>
+<area shape="rect" id="Node000001" title="Log output to console, if verbose." alt="" coords="728,190,813,216"/>
+<area shape="rect" id="Node000002" href="$namespacegenerate.html#a38dcdfdf9293b8aafe77392021d65019" title="Generate the bulk of the main program command." alt="" coords="202,14,306,40"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="757,176,728,119,705,90,678,66,633,42,584,26,533,15,482,10,385,11,307,20,307,14,385,5,482,5,534,10,585,21,635,38,681,62,709,86,732,116,762,174"/>
+<area shape="rect" id="Node000003" href="$namespacesyscalls.html#aabdab752b02a21ab92e3af4fabba493b" title="Generate a syscall filter." alt="" coords="550,264,652,291"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="725,225,634,266,632,261,723,220"/>
+<area shape="rect" id="Node000004" href="$namespaceshared.html#a00b81f070735db096bbcd00c9d87188e" title="Attach an environment variable to the sandbox." alt="" coords="553,315,649,342"/>
+<area shape="poly" id="edge4_Node000001_Node000004" title=" " alt="" coords="754,230,723,269,681,305,651,319,648,315,678,301,719,265,750,227"/>
+<area shape="rect" id="Node000005" href="$namespacelibraries.html#a4dfd6ab45adf8dc18ea57bc1f88eaedf" title="Recursively resolve all shared&#45;libraries needed by a library." alt="" coords="555,76,647,103"/>
+<area shape="poly" id="edge5_Node000001_Node000005" title=" " alt="" coords="740,182,678,136,628,106,630,101,681,131,743,178"/>
+<area shape="rect" id="Node000006" href="$namespacebinaries.html#ac1478c81b2eb2c4ecdba98e92c4e7651" title="Parse a binary to determine dependencies." alt="" coords="368,139,474,166"/>
+<area shape="poly" id="edge13_Node000001_Node000006" title=" " alt="" coords="712,193,679,187,475,160,475,155,680,182,713,188"/>
+<area shape="rect" id="Node000007" href="$namespacegenerate.html#a17cf0da8addab269d21c2c8074d85c4e" title="Setup the Proxy&#39;s SOF." alt="" coords="189,139,320,166"/>
+<area shape="poly" id="edge14_Node000001_Node000007" title=" " alt="" coords="712,205,556,198,462,191,368,180,309,169,310,164,368,175,462,186,557,193,712,199"/>
+<area shape="rect" id="Node000009" href="$namespacesyscalls.html#a501461c3842033cfab85ba4b8f328ed8" title="Append an existing policy with newly discovered syscalls." alt="" coords="522,366,680,392"/>
+<area shape="poly" id="edge15_Node000001_Node000009" title=" " alt="" coords="762,232,732,294,709,327,681,356,662,367,659,363,678,351,705,324,728,291,757,230"/>
+<area shape="poly" id="edge3_Node000003_Node000003" title=" " alt="" coords="630,251,620,245,601,243,584,245,574,249,572,255,576,262,572,265,567,255,570,246,582,240,601,238,621,240,632,247"/>
+<area shape="poly" id="edge6_Node000005_Node000002" title=" " alt="" coords="540,76,474,61,307,36,308,30,475,56,541,71"/>
+<area shape="poly" id="edge7_Node000005_Node000006" title=" " alt="" coords="547,111,463,141,461,136,545,106"/>
+<area shape="poly" id="edge12_Node000005_Node000007" title=" " alt="" coords="539,90,458,92,369,105,322,122,281,141,279,136,320,117,367,100,457,87,539,84"/>
+<area shape="poly" id="edge8_Node000006_Node000002" title=" " alt="" coords="388,131,272,43,276,39,391,127"/>
+<area shape="poly" id="edge9_Node000006_Node000006" title=" " alt="" coords="449,126,440,120,421,118,404,119,395,124,393,130,397,137,392,140,387,130,391,121,402,114,421,112,441,115,452,121"/>
+<area shape="poly" id="edge10_Node000006_Node000007" title=" " alt="" coords="352,155,320,155,320,150,352,150"/>
+<area shape="rect" id="Node000008" href="$namespacegenerate.html#a5c0026523dd30f942c55ad25f1b607b4" title="Spawn an instance of the xdg&#45;dbus&#45;proxy for the application instance." alt="" coords="5,131,141,174"/>
+<area shape="poly" id="edge11_Node000007_Node000008" title=" " alt="" coords="173,155,141,155,141,150,173,150"/>
 </map>

@@ -335,9 +335,9 @@ namespace arg {
        * @returns The reference.
        * @throws std::runtime_error if the argument is a list, use get_list() instead.
        */
-      const std::string& get() const {
-        if (list) throw std::runtime_error("Not a discrete value: " + long_name);
-        return value;
+      auto&& get(this auto&& self) {
+        if (self.list) throw std::runtime_error("Not a discrete value: " + self.long_name);
+        return self.value;
       }
 
 
@@ -357,7 +357,7 @@ namespace arg {
        * @returns The modifier.
        * @info This function returns an empty string if a modifier does not exist or is allowed.
        */
-      const std::string& mod() const {return modifier;}
+      auto&& mod(this auto&& self) {return self.modifier;}
 
 
       /**
@@ -386,16 +386,16 @@ namespace arg {
        * @returns The set.
        * @throws std::runtime_error if the argument is not a list.
        */
-      const shared::set& get_list() const {
-        if (!list && !flag) throw std::runtime_error("Argument must be a list: " + long_name);
-        return list_val;
+      auto&& get_list(this auto&& self) {
+        if (!self.list && !self.flag) throw std::runtime_error("Argument must be a list: " + self.long_name);
+        return self.list_val;
       }
 
       /**
        * @brief Return a set of all valid values.
        * @returns The set.
        */
-      const shared::set& get_valid() const {return valid;}
+      auto&& get_valid(this auto&& self) {return self.valid;}
 
       /**
        * @brief Return all values paired with their modifiers.

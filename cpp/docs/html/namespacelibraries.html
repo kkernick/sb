@@ -93,7 +93,7 @@ $(function(){ initResizable(false); });
 </div><!--header-->
 <div class="contents">
 
-<p>Shared-Library Dependency Resolution This header contains all the relevant functions for resolving shared-libraries needed by ELF binaries. It does this through through threaded calls to LDD. Unlike Python-SB, SB++ computes dependencies in one shot, including both wildcards and directories. Therefore, there is no need for additional computation upon calling <a class="el" href="#adb180a16d1881d4ca1da44e7e3512cc5" title="Setup an SOF directory.">setup()</a>, it can simply copy the found files to the SOF. LDD is the major bottle neck for speed, and thus the two implementations are comparable on speed on library resolution.  
+<p>Shared-Library Dependency Resolution This header contains all the relevant functions for resolving shared-libraries needed by ELF binaries. It does this through through threaded calls to LDD. Unlike Python-SB, SB++ computes dependencies in one shot, including both wildcards and directories. Therefore, there is no need for additional computation upon calling setup(), it can simply copy the found files to the SOF. LDD is the major bottle neck for speed, and thus the two implementations are comparable on speed on library resolution.  
 <a href="#details">More...</a></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="typedef-members" name="typedef-members"></a>
@@ -113,16 +113,25 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>parse_ldd</b> (lib_t 
 <tr class="memitem:a4dfd6ab45adf8dc18ea57bc1f88eaedf" id="r_a4dfd6ab45adf8dc18ea57bc1f88eaedf"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a4dfd6ab45adf8dc18ea57bc1f88eaedf">get</a> (lib_t &amp;libraries, const std::string_view &amp;library, std::string directory=&quot;&quot;)</td></tr>
 <tr class="memdesc:a4dfd6ab45adf8dc18ea57bc1f88eaedf"><td class="mdescLeft">&#160;</td><td class="mdescRight">Recursively resolve all shared-libraries needed by a library.  <br /></td></tr>
 <tr class="separator:a4dfd6ab45adf8dc18ea57bc1f88eaedf"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:adb180a16d1881d4ca1da44e7e3512cc5" id="r_adb180a16d1881d4ca1da44e7e3512cc5"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#adb180a16d1881d4ca1da44e7e3512cc5">setup</a> (const lib_t &amp;libraries, const std::string_view &amp;application)</td></tr>
-<tr class="memdesc:adb180a16d1881d4ca1da44e7e3512cc5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Setup an SOF directory.  <br /></td></tr>
-<tr class="separator:adb180a16d1881d4ca1da44e7e3512cc5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a56081a6e917a2fc1bc9c7ac39afa6d24" id="r_a56081a6e917a2fc1bc9c7ac39afa6d24"><td class="memItemLeft" align="right" valign="top"><a id="a56081a6e917a2fc1bc9c7ac39afa6d24" name="a56081a6e917a2fc1bc9c7ac39afa6d24"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>setup</b> (const vector &amp;libraries, const std::string_view &amp;application, const std::filesystem::path &amp;app_sof)</td></tr>
+<tr class="separator:a56081a6e917a2fc1bc9c7ac39afa6d24"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9affc02f29ad4f0bde43365771acd6f4" id="r_a9affc02f29ad4f0bde43365771acd6f4"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a9affc02f29ad4f0bde43365771acd6f4">setup</a> (const shared::set &amp;libraries, const std::string_view &amp;application, const std::filesystem::path &amp;app_sof)</td></tr>
+<tr class="memdesc:a9affc02f29ad4f0bde43365771acd6f4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Setup an SOF directory.  <br /></td></tr>
+<tr class="separator:a9affc02f29ad4f0bde43365771acd6f4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aaf67d1825dab30fecb532ea92077ebe3" id="r_aaf67d1825dab30fecb532ea92077ebe3"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aaf67d1825dab30fecb532ea92077ebe3">symlink</a> (shared::vector &amp;command)</td></tr>
 <tr class="memdesc:aaf67d1825dab30fecb532ea92077ebe3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Add symlink commands.  <br /></td></tr>
 <tr class="separator:aaf67d1825dab30fecb532ea92077ebe3"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a367e666af320d4fc634cd701bcd78c17" id="r_a367e666af320d4fc634cd701bcd78c17"><td class="memTemplParams" colspan="2"><a id="a367e666af320d4fc634cd701bcd78c17" name="a367e666af320d4fc634cd701bcd78c17"></a>
+<tr class="memitem:a1ce75fed165f4553d7206572dc8d6bdd" id="r_a1ce75fed165f4553d7206572dc8d6bdd"><td class="memItemLeft" align="right" valign="top"><a id="a1ce75fed165f4553d7206572dc8d6bdd" name="a1ce75fed165f4553d7206572dc8d6bdd"></a>
+std::filesystem::path&#160;</td><td class="memItemRight" valign="bottom"><b>hash_cache</b> (const std::string_view &amp;program, const std::string &amp;hash)</td></tr>
+<tr class="separator:a1ce75fed165f4553d7206572dc8d6bdd"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abfeb4f40a0d443fc21285f982fa2a85e" id="r_abfeb4f40a0d443fc21285f982fa2a85e"><td class="memItemLeft" align="right" valign="top"><a id="abfeb4f40a0d443fc21285f982fa2a85e" name="abfeb4f40a0d443fc21285f982fa2a85e"></a>
+std::filesystem::path&#160;</td><td class="memItemRight" valign="bottom"><b>hash_sof</b> (const std::string_view &amp;program, const std::string &amp;hash)</td></tr>
+<tr class="separator:abfeb4f40a0d443fc21285f982fa2a85e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa77a2fba961118e280b58c24314eb826" id="r_aa77a2fba961118e280b58c24314eb826"><td class="memTemplParams" colspan="2"><a id="aa77a2fba961118e280b58c24314eb826" name="aa77a2fba961118e280b58c24314eb826"></a>
 template&lt;class C&gt; </td></tr>
-<tr class="memitem:a367e666af320d4fc634cd701bcd78c17"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><b>resolve</b> (const C &amp;required, const std::string_view &amp;program, const std::string &amp;lib_cache, const std::string_view &amp;hash)</td></tr>
-<tr class="separator:a367e666af320d4fc634cd701bcd78c17"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa77a2fba961118e280b58c24314eb826"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><b>resolve</b> (const C &amp;required, const std::string_view &amp;program, const std::string &amp;l_hash, const bool &amp;exclude=true)</td></tr>
+<tr class="separator:aa77a2fba961118e280b58c24314eb826"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="var-members" name="var-members"></a>
 Variables</h2></td></tr>
@@ -131,7 +140,7 @@ lib_t&#160;</td><td class="memItemRight" valign="bottom"><b>directories</b> = {}
 <tr class="separator:ab14c3a834c0496e5f76e78dd8a08fb8e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>Shared-Library Dependency Resolution This header contains all the relevant functions for resolving shared-libraries needed by ELF binaries. It does this through through threaded calls to LDD. Unlike Python-SB, SB++ computes dependencies in one shot, including both wildcards and directories. Therefore, there is no need for additional computation upon calling <a class="el" href="#adb180a16d1881d4ca1da44e7e3512cc5" title="Setup an SOF directory.">setup()</a>, it can simply copy the found files to the SOF. LDD is the major bottle neck for speed, and thus the two implementations are comparable on speed on library resolution. </p>
+<div class="textblock"><p>Shared-Library Dependency Resolution This header contains all the relevant functions for resolving shared-libraries needed by ELF binaries. It does this through through threaded calls to LDD. Unlike Python-SB, SB++ computes dependencies in one shot, including both wildcards and directories. Therefore, there is no need for additional computation upon calling setup(), it can simply copy the found files to the SOF. LDD is the major bottle neck for speed, and thus the two implementations are comparable on speed on library resolution. </p>
 </div><h2 class="groupheader">Function Documentation</h2>
 <a id="a4dfd6ab45adf8dc18ea57bc1f88eaedf" name="a4dfd6ab45adf8dc18ea57bc1f88eaedf"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a4dfd6ab45adf8dc18ea57bc1f88eaedf">&#9670;&#160;</a></span>get()</h2>
@@ -165,8 +174,7 @@ lib_t&#160;</td><td class="memItemRight" valign="bottom"><b>directories</b> = {}
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>: A set of all shared libraries used by the program and its dependencies. </dd></dl>
-<dl class="section note"><dt>Note</dt><dd>library can be any executable file, such as binaries in /usr/bin, but only shared-libraries in /usr/lib will be included in the return. </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>: A set of all shared libraries used by the program and its dependencies. @info library can be any executable file, such as binaries in /usr/bin, but only shared-libraries in /usr/lib will be included in the return. </dd></dl>
 <div id="dynsection-0" onclick="return dynsection.toggleVisibility(this)" class="dynheader closed" style="cursor:pointer;">
   <img id="dynsection-0-trigger" src="closed.png" alt="+"/> Here is the call graph for this function:</div>
 <div id="dynsection-0-summary" class="dynsummary" style="display:block;">
@@ -179,13 +187,13 @@ lib_t&#160;</td><td class="memItemRight" valign="bottom"><b>directories</b> = {}
 <div id="dynsection-1-summary" class="dynsummary" style="display:block;">
 </div>
 <div id="dynsection-1-content" class="dyncontent" style="display:none;">
-<div class="center"><iframe scrolling="no" frameborder="0" src="namespacelibraries_a4dfd6ab45adf8dc18ea57bc1f88eaedf_icgraph.svg" width="442" height="124"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="namespacelibraries_a4dfd6ab45adf8dc18ea57bc1f88eaedf_icgraph.svg" width="620" height="126"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
 </div>
-<a id="adb180a16d1881d4ca1da44e7e3512cc5" name="adb180a16d1881d4ca1da44e7e3512cc5"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#adb180a16d1881d4ca1da44e7e3512cc5">&#9670;&#160;</a></span>setup()</h2>
+<a id="a9affc02f29ad4f0bde43365771acd6f4" name="a9affc02f29ad4f0bde43365771acd6f4"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9affc02f29ad4f0bde43365771acd6f4">&#9670;&#160;</a></span>setup()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -193,12 +201,17 @@ lib_t&#160;</td><td class="memItemRight" valign="bottom"><b>directories</b> = {}
         <tr>
           <td class="memname">void libraries::setup </td>
           <td>(</td>
-          <td class="paramtype">const lib_t &amp;</td>          <td class="paramname"><span class="paramname"><em>libraries</em></span>, </td>
+          <td class="paramtype">const shared::set &amp;</td>          <td class="paramname"><span class="paramname"><em>libraries</em></span>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">const std::string_view &amp;</td>          <td class="paramname"><span class="paramname"><em>application</em></span>&#160;)</td>
+          <td class="paramtype">const std::string_view &amp;</td>          <td class="paramname"><span class="paramname"><em>application</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::filesystem::path &amp;</td>          <td class="paramname"><span class="paramname"><em>app_sof</em></span>&#160;)</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -213,20 +226,6 @@ lib_t&#160;</td><td class="memItemRight" valign="bottom"><b>directories</b> = {}
   </table>
   </dd>
 </dl>
-<div id="dynsection-2" onclick="return dynsection.toggleVisibility(this)" class="dynheader closed" style="cursor:pointer;">
-  <img id="dynsection-2-trigger" src="closed.png" alt="+"/> Here is the call graph for this function:</div>
-<div id="dynsection-2-summary" class="dynsummary" style="display:block;">
-</div>
-<div id="dynsection-2-content" class="dyncontent" style="display:none;">
-<div class="center"><iframe scrolling="no" frameborder="0" src="namespacelibraries_adb180a16d1881d4ca1da44e7e3512cc5_cgraph.svg" width="300" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-<div id="dynsection-3" onclick="return dynsection.toggleVisibility(this)" class="dynheader closed" style="cursor:pointer;">
-  <img id="dynsection-3-trigger" src="closed.png" alt="+"/> Here is the caller graph for this function:</div>
-<div id="dynsection-3-summary" class="dynsummary" style="display:block;">
-</div>
-<div id="dynsection-3-content" class="dyncontent" style="display:none;">
-<div class="center"><iframe scrolling="no" frameborder="0" src="namespacelibraries_adb180a16d1881d4ca1da44e7e3512cc5_icgraph.svg" width="300" height="54"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
 
 </div>
 </div>
@@ -253,18 +252,18 @@ lib_t&#160;</td><td class="memItemRight" valign="bottom"><b>directories</b> = {}
   </table>
   </dd>
 </dl>
-<div id="dynsection-4" onclick="return dynsection.toggleVisibility(this)" class="dynheader closed" style="cursor:pointer;">
-  <img id="dynsection-4-trigger" src="closed.png" alt="+"/> Here is the call graph for this function:</div>
-<div id="dynsection-4-summary" class="dynsummary" style="display:block;">
+<div id="dynsection-2" onclick="return dynsection.toggleVisibility(this)" class="dynheader closed" style="cursor:pointer;">
+  <img id="dynsection-2-trigger" src="closed.png" alt="+"/> Here is the call graph for this function:</div>
+<div id="dynsection-2-summary" class="dynsummary" style="display:block;">
 </div>
-<div id="dynsection-4-content" class="dyncontent" style="display:none;">
+<div id="dynsection-2-content" class="dyncontent" style="display:none;">
 <div class="center"><iframe scrolling="no" frameborder="0" src="namespacelibraries_aaf67d1825dab30fecb532ea92077ebe3_cgraph.svg" width="286" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
-<div id="dynsection-5" onclick="return dynsection.toggleVisibility(this)" class="dynheader closed" style="cursor:pointer;">
-  <img id="dynsection-5-trigger" src="closed.png" alt="+"/> Here is the caller graph for this function:</div>
-<div id="dynsection-5-summary" class="dynsummary" style="display:block;">
+<div id="dynsection-3" onclick="return dynsection.toggleVisibility(this)" class="dynheader closed" style="cursor:pointer;">
+  <img id="dynsection-3-trigger" src="closed.png" alt="+"/> Here is the caller graph for this function:</div>
+<div id="dynsection-3-summary" class="dynsummary" style="display:block;">
 </div>
-<div id="dynsection-5-content" class="dyncontent" style="display:none;">
+<div id="dynsection-3-content" class="dyncontent" style="display:none;">
 <div class="center"><iframe scrolling="no" frameborder="0" src="namespacelibraries_aaf67d1825dab30fecb532ea92077ebe3_icgraph.svg" width="314" height="104"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 

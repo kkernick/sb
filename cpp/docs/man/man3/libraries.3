@@ -2,7 +2,7 @@
 .ad l
 .nh
 .SH NAME
-libraries \- Shared-Library Dependency Resolution This header contains all the relevant functions for resolving shared-libraries needed by ELF binaries\&. It does this through through threaded calls to LDD\&. Unlike Python-SB, SB++ computes dependencies in one shot, including both wildcards and directories\&. Therefore, there is no need for additional computation upon calling \fBsetup()\fP, it can simply copy the found files to the SOF\&. LDD is the major bottle neck for speed, and thus the two implementations are comparable on speed on library resolution\&.  
+libraries \- Shared-Library Dependency Resolution This header contains all the relevant functions for resolving shared-libraries needed by ELF binaries\&. It does this through through threaded calls to LDD\&. Unlike Python-SB, SB++ computes dependencies in one shot, including both wildcards and directories\&. Therefore, there is no need for additional computation upon calling setup(), it can simply copy the found files to the SOF\&. LDD is the major bottle neck for speed, and thus the two implementations are comparable on speed on library resolution\&.  
 
 .SH SYNOPSIS
 .br
@@ -28,7 +28,10 @@ libraries \- Shared-Library Dependency Resolution This header contains all the r
 .br
 .RI "Recursively resolve all shared-libraries needed by a library\&. "
 .ti -1c
-.RI "void \fBsetup\fP (const lib_t &libraries, const std::string_view &application)"
+.RI "void \fBsetup\fP (const vector &libraries, const std::string_view &application, const std::filesystem::path &app_sof)"
+.br
+.ti -1c
+.RI "void \fBsetup\fP (const shared::set &libraries, const std::string_view &application, const std::filesystem::path &app_sof)"
 .br
 .RI "Setup an SOF directory\&. "
 .ti -1c
@@ -36,7 +39,13 @@ libraries \- Shared-Library Dependency Resolution This header contains all the r
 .br
 .RI "Add symlink commands\&. "
 .ti -1c
-.RI "template<class C> void \fBresolve\fP (const C &required, const std::string_view &program, const std::string &lib_cache, const std::string_view &hash)"
+.RI "std::filesystem::path \fBhash_cache\fP (const std::string_view &program, const std::string &hash)"
+.br
+.ti -1c
+.RI "std::filesystem::path \fBhash_sof\fP (const std::string_view &program, const std::string &hash)"
+.br
+.ti -1c
+.RI "template<class C> void \fBresolve\fP (const C &required, const std::string_view &program, const std::string &l_hash, const bool &exclude=true)"
 .br
 .in -1c
 .SS "Variables"
@@ -48,7 +57,7 @@ libraries \- Shared-Library Dependency Resolution This header contains all the r
 .in -1c
 .SH "Detailed Description"
 .PP 
-Shared-Library Dependency Resolution This header contains all the relevant functions for resolving shared-libraries needed by ELF binaries\&. It does this through through threaded calls to LDD\&. Unlike Python-SB, SB++ computes dependencies in one shot, including both wildcards and directories\&. Therefore, there is no need for additional computation upon calling \fBsetup()\fP, it can simply copy the found files to the SOF\&. LDD is the major bottle neck for speed, and thus the two implementations are comparable on speed on library resolution\&. 
+Shared-Library Dependency Resolution This header contains all the relevant functions for resolving shared-libraries needed by ELF binaries\&. It does this through through threaded calls to LDD\&. Unlike Python-SB, SB++ computes dependencies in one shot, including both wildcards and directories\&. Therefore, there is no need for additional computation upon calling setup(), it can simply copy the found files to the SOF\&. LDD is the major bottle neck for speed, and thus the two implementations are comparable on speed on library resolution\&. 
 .SH "Function Documentation"
 .PP 
 .SS "void libraries::get (lib_t & libraries, const std::string_view & library, std::string directory = \fR''\fP)"
@@ -65,16 +74,11 @@ Recursively resolve all shared-libraries needed by a library\&.
 .PP
 \fBReturns\fP
 .RS 4
-: A set of all shared libraries used by the program and its dependencies\&. 
-.RE
-.PP
-\fBNote\fP
-.RS 4
-library can be any executable file, such as binaries in /usr/bin, but only shared-libraries in /usr/lib will be included in the return\&. 
+: A set of all shared libraries used by the program and its dependencies\&. @info library can be any executable file, such as binaries in /usr/bin, but only shared-libraries in /usr/lib will be included in the return\&. 
 .RE
 .PP
 
-.SS "void libraries::setup (const lib_t & libraries, const std::string_view & application)"
+.SS "void libraries::setup (const shared::set & libraries, const std::string_view & application, const std::filesystem::path & app_sof)"
 
 .PP
 Setup an SOF directory\&. 

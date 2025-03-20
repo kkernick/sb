@@ -31,7 +31,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="namespaceshared.html#a565b1c521d1f0509c5ec0f237a727f8e" target="_top" xlink:title="Compose a return value from an accumulator function.">
+<g id="a_Node000002"><a xlink:href="namespaceshared.html#a48902b7bb96ff218057c3b363b43ea8a" target="_top" xlink:title="Compose a return value from an accumulator function.">
 <polygon fill="white" stroke="#666666" points="182.75,-20 118.75,-20 118.75,0 182.75,0 182.75,-20"/>
 <text text-anchor="middle" x="150.75" y="-6.5" font-family="Helvetica,sans-Serif" font-size="10.00">shared::init</text>
 </a>

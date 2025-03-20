@@ -20,7 +20,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="namespaceshared.html#ab11bf98c12a2bf0ae3adca902e57befd" target="_top" xlink:title="Extend a container in place.">
+<g id="a_Node000002"><a xlink:href="namespaceshared.html#a1636cc0cb46e6be8f452dbc1e92a1e28" target="_top" xlink:title="Extend a container in place.">
 <polygon fill="white" stroke="#666666" points="206,-20 125.5,-20 125.5,0 206,0 206,-20"/>
 <text text-anchor="middle" x="165.75" y="-6.5" font-family="Helvetica,sans-Serif" font-size="10.00">shared::extend</text>
 </a>

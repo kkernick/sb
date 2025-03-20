@@ -1,8 +1,10 @@
 <map id="binaries::parse" name="binaries::parse">
-<area shape="rect" id="Node000001" title="Parse a binary to determine dependencies." alt="" coords="189,35,295,61"/>
-<area shape="poly" id="edge2_Node000001_Node000001" title=" " alt="" coords="270,22,260,16,242,13,224,15,215,20,213,25,217,33,213,36,208,26,211,16,223,10,242,8,262,11,273,17"/>
-<area shape="rect" id="Node000002" href="$namespacegenerate.html#a38dcdfdf9293b8aafe77392021d65019" title="Generate the bulk of the main program command." alt="" coords="21,5,125,32"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="173,39,125,30,126,25,174,34"/>
-<area shape="rect" id="Node000003" href="$namespacegenerate.html#a5c0026523dd30f942c55ad25f1b607b4" title="Spawn an instance of the xdg&#45;dbus&#45;proxy for the application instance." alt="" coords="5,56,141,99"/>
-<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="174,62,141,68,140,63,173,57"/>
+<area shape="rect" id="Node000001" title="Parse a binary to determine dependencies." alt="" coords="368,31,474,57"/>
+<area shape="poly" id="edge2_Node000001_Node000001" title=" " alt="" coords="449,18,440,12,421,9,404,11,395,16,393,21,397,29,392,32,387,22,391,12,402,6,421,4,441,7,452,13"/>
+<area shape="rect" id="Node000002" href="$namespacegenerate.html#a38dcdfdf9293b8aafe77392021d65019" title="Generate the bulk of the main program command." alt="" coords="202,5,306,32"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="352,36,307,29,307,24,353,31"/>
+<area shape="rect" id="Node000003" href="$namespacegenerate.html#a17cf0da8addab269d21c2c8074d85c4e" title="Setup the Proxy&#39;s SOF." alt="" coords="189,56,320,83"/>
+<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="353,57,321,62,320,57,352,52"/>
+<area shape="rect" id="Node000004" href="$namespacegenerate.html#a5c0026523dd30f942c55ad25f1b607b4" title="Spawn an instance of the xdg&#45;dbus&#45;proxy for the application instance." alt="" coords="5,48,141,91"/>
+<area shape="poly" id="edge4_Node000003_Node000004" title=" " alt="" coords="173,72,141,72,141,67,173,67"/>
 </map>

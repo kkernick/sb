@@ -54,6 +54,8 @@ Some lists, such as \fRlibraries\fP, support modifier semantics: \fR--libraries 
 \fRlib\fP provides \fR/usr/lib/app\fP
 .IP "  \(bu" 4
 \fRshare\fP provides \fR/usr/share/app\fP
+.IP "  \(bu" 4
+\fRopt\fP provides \fR/opt/app\fP
 .PP
 
 .IP "\(bu" 2
@@ -67,7 +69,7 @@ Some lists, such as \fRlibraries\fP, support modifier semantics: \fR--libraries 
 .IP "\(bu" 2
 \fR--dry-startup\fP marks a profile as eligible to run by \fRsb\&.service\fP, which allows its SOF to be populated immediately\&. This remove the cold start penalty\&.
 .IP "\(bu" 2
-\fR--electron\fP specifies the application as an Electron app, giving it access to GTK and NSS libraries, the ability to create user namespaces, and more\&. It can be provided with an explicit version if the app uses a system electron, such as \fR--electron 33 *\fP--env\fRprovides a list of\fPKEY=VAL\fRenvironment variables to pass into the sandbox\&. *\fP--file-passthrough\fRdefines the default mode for files passed into the sandbox, either as unknown arguments (particularly when attached to a desktop file), or provided via\fP--files\fR: *\fPro\fRmounts the files as read-only *\fPrw\fRmounts the files as read-write\&. Note that files are attached via bind-mounts, which means that the file cannot be moved or deleted\&. Some KDE applications update configuration files by creating a copy, then moving it into the original\&. If you use\fP--fs\fRinstead of attaching host configurations, this isn't a problem\&. *\fPdiscard\fRonly applies to directories, and uses an overlay to allow seamless, real read-write to the directory and its files, but to which writes are actually done to a temporary copy that is discarded upon program termination\&. *\fP--files\fRprovides a list of files to provide in the sandbox at\fP/enclave/path\fR\&. Modifier semantics allows for granular control over permissions, defaulting to the value of\fP--file-passthrough\fR(Which defaults to\fPfalse\fR, hence if\fP--file-passthrough\fRis not defined all files will need an explicit policy) such as\fP--files test\&.txt:ro test\&.csv:rw dir:discard`
+\fR--electron\fP specifies the application as an Electron app, giving it access to GTK and NSS libraries, the ability to create user namespaces, and more\&. It can be provided with an explicit version if the app uses a system electron, such as \fR--electron 33 *\fP--env\fRprovides a list of\fPKEY=VAL\fRenvironment variables to pass into the sandbox\&. *\fP--file-passthrough\fRdefines the default mode for files passed into the sandbox, either as unknown arguments (particularly when attached to a desktop file), or provided via\fP--files\fR: *\fPro\fRmounts the files as read-only *\fPrw\fRmounts the files as read-write\&. Note that files are attached via bind-mounts, which means that the file cannot be moved or deleted\&. Some KDE applications update configuration files by creating a copy, then moving it into the original\&. If you use\fP--fs\fRinstead of attaching host configurations, this isn't a problem\&. *\fPdiscard\fRonly applies to directories, and uses an overlay to allow seamless, real read-write to the directory and its files, but to which writes are actually done to a temporary copy that is discarded upon program termination\&. *\fP--files\fRprovides a list of files to provide in the sandbox at\fP/enclave/path\fR\&. Modifier semantics allows for granular control over permissions, defaulting to the value of\fP--file-passthrough\fR(Which defaults to\fPfalse\fR, hence if\fP--file-passthrough\fRis not defined all files will need an explicit policy) such as\fP--files test\&.txt:ro test\&.csv:rw dir:discard\fR\&. You can also provide the unique modifiers\fPdo\fRand\fPdw` for Direct Read-Only and Direct Read-Write, which will be exposed in the sandbox in the exact same path they appear on the host\&.
 .PP
 
 .PP
@@ -198,17 +200,19 @@ You will never need to scour logs or manually enter syscalls into \fRsyscalls\&.
 .IP "\(bu" 2
 \fR--sof\fP specifies the location for the SOF folder that contains libraries mounted to \fR/usr/lib\fP within the sandbox\&.
 .IP "  \(bu" 4
-\fRtmp\fP will create the SOF at \fR/tmp/sb/app\fP, and is recommended if cold boot time isn't an issue since it keeps libraries up to date with system as they are cycled every boot\&.
+\fRtmp\fP will create the SOF at \fR/tmp/sb/app\fP, which is backed by ram\&.
 .IP "  \(bu" 4
 \fRdata\fP will create the SOF at \fR$XDG_DATA_HOME/sb/app/lib\fP\&. The libraries are persistent on disk, which means you'll need to occasional refresh it\&. However, since the SOF is self contained, this also allows you to run different versions of an app, irrespective of the hosts files\&.
 .IP "  \(bu" 4
-\fRzram\fP will create the SOF at \fR/run/sb\fP, which should be a \fRzram\fP device mounted by the \fRsb\&.conf\fP zram generator service\&. This uses less RAM than \fRtmp\fP, and has comparable or better performance:
+\fRzram\fP will create the SOF at \fR/run/sb\fP, which should be a \fRzram\fP device mounted by the \fRsb\&.conf\fP zram generator service\&. This uses less RAM than \fRtmp\fP, and has comparable or better performance
+.IP "  \(bu" 4
+\fRusr\fP will create the SOF at \fR/usr/share/sb\fP, which--being on the same file system as the host library folder, allows for direct hard-linking and thus zero storage overhead for storing the SOF\&. Additionally, this avoid the need to copy files to another system, which can dramatically increase cold boot speed:
 .PP
 
 .PP
 
 .PP
-Profile   \fRdata\fP   \fRtmp\fP   \fRzram\fP    Chromium Cold   258\&.4ms   266\&.8ms   258\&.1ms    Chromium Hot   3\&.2ms   3\&.0ms   3\&.0ms    Storage Usage   535\&.8M (Disk)   535\&.8M (RAM)   309\&.5 MB (RAM)   
+Profile (ms/MB)   \fRdata\fP   \fRtmp\fP   \fRzram\fP   \fRusr\fP    Chromium Cold   184\&.8   191\&.3   183\&.5   169\&.6    Chromium Hot   3\&.2   2\&.9   3\&.0   3\&.1    Chromium Update   180\&.8   176\&.5   173\&.5   176\&.2    Storage Usage   373   373   172   0M    Backing   Disk   RAM   RAM   Disk   
 
 .PP
 \fBWarning\fP

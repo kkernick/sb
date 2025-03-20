@@ -1,0 +1,22 @@
+<map id="shared::init" name="shared::init">
+<area shape="rect" id="Node000001" title="Compose a return value from an accumulator function." alt="" coords="558,168,644,195"/>
+<area shape="rect" id="Node000002" href="$classarg_1_1Arg.html#af2111fcb064aca3efb8642f09d9d5c2f" title="Digest arguments." alt="" coords="384,5,494,32"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="586,155,556,100,534,71,509,46,490,35,492,30,512,42,538,67,560,97,591,152"/>
+<area shape="rect" id="Node000003" href="$namespacesyscalls.html#aabdab752b02a21ab92e3af4fabba493b" title="Generate a syscall filter." alt="" coords="388,80,490,107"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="569,160,509,121,483,110,486,105,512,116,572,156"/>
+<area shape="rect" id="Node000004" href="$classarg_1_1Arg.html#a244007ab0c913b151b5a59e39149daea" title="Return all values paired with their modifiers." alt="" coords="368,131,510,157"/>
+<area shape="poly" id="edge4_Node000001_Node000004" title=" " alt="" coords="543,171,499,161,501,155,544,165"/>
+<area shape="rect" id="Node000005" href="$namespacebinaries.html#ac1478c81b2eb2c4ecdba98e92c4e7651" title="Parse a binary to determine dependencies." alt="" coords="386,205,492,232"/>
+<area shape="poly" id="edge5_Node000001_Node000005" title=" " alt="" coords="544,197,493,209,492,204,543,192"/>
+<area shape="rect" id="Node000007" href="$namespacegenerate.html#a17cf0da8addab269d21c2c8074d85c4e" title="Setup the Proxy&#39;s SOF." alt="" coords="189,256,320,283"/>
+<area shape="poly" id="edge11_Node000001_Node000007" title=" " alt="" coords="575,207,546,229,511,246,463,261,412,269,321,274,320,269,412,264,461,255,509,242,543,224,572,203"/>
+<area shape="rect" id="Node000009" href="$namespacearg.html#a9da86862acc776f92533ebac921afc40" title="Parse command line arguments." alt="" coords="384,307,495,333"/>
+<area shape="poly" id="edge10_Node000001_Node000009" title=" " alt="" coords="585,209,554,250,512,290,480,308,478,304,509,286,550,246,581,206"/>
+<area shape="poly" id="edge3_Node000003_Node000003" title=" " alt="" coords="466,67,457,61,439,59,423,61,414,65,412,71,416,78,411,81,406,71,410,62,421,56,439,53,459,56,469,62"/>
+<area shape="poly" id="edge7_Node000005_Node000005" title=" " alt="" coords="466,192,457,186,439,184,423,186,414,191,412,196,416,204,411,206,406,197,410,187,421,181,439,179,459,181,469,188"/>
+<area shape="rect" id="Node000006" href="$namespacegenerate.html#a38dcdfdf9293b8aafe77392021d65019" title="Generate the bulk of the main program command." alt="" coords="202,205,306,232"/>
+<area shape="poly" id="edge6_Node000005_Node000006" title=" " alt="" coords="371,221,307,221,307,216,371,216"/>
+<area shape="poly" id="edge8_Node000005_Node000007" title=" " alt="" coords="374,239,306,258,305,253,373,234"/>
+<area shape="rect" id="Node000008" href="$namespacegenerate.html#a5c0026523dd30f942c55ad25f1b607b4" title="Spawn an instance of the xdg&#45;dbus&#45;proxy for the application instance." alt="" coords="5,248,141,291"/>
+<area shape="poly" id="edge9_Node000007_Node000008" title=" " alt="" coords="173,272,141,272,141,267,173,267"/>
+</map>
