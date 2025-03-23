@@ -1,11 +1,10 @@
 pkgbase = sb++-git
 	pkgdesc = Sandbox Applications
-	pkgver = r397.606cc82
+	pkgver = r399.83455aa
 	pkgrel = 1
 	arch = any
 	makedepends = git
 	makedepends = lld
-	makedepends = libb2
 	makedepends = clang
 	makedepends = llvm
 	makedepends = doxygen
@@ -13,6 +12,8 @@ pkgbase = sb++-git
 	depends = glibc
 	depends = which
 	depends = bubblewrap
+	depends = libb2
+	depends = libseccomp
 	optdepends = strace: for --strace, useful for debugging
 	optdepends = hardened_malloc: for --hardened-malloc
 	optdepends = zram-generator: for --sof=zram
