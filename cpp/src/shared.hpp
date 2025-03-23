@@ -10,13 +10,13 @@
 #include <random>
 #include <fcntl.h>
 #include <csignal>
+#include <exec.hpp>
 
 #ifdef PROFILE
 #include <map>
 #endif
 
-// https://github.com/bshoshany/thread-pool
-#include "third_party/BS_thread_pool.hpp"
+#include "third_party/thread-pool/include/BS_thread_pool.hpp"
 
 namespace shared {
 
@@ -30,11 +30,6 @@ namespace shared {
 
   // Our inotify watch
   extern int inotify;
-
-  /**
-   * @brief policy for the executor, describing what should be captured.
-   */
-  typedef enum {NONE, STDOUT, STDERR, ALL} exec_policy;
 
   // Definitions.
   using set = std::set<std::string>;
@@ -135,6 +130,7 @@ namespace shared {
    */
   void log(const list& msg, const std::string& level="log");
 
+
   /**
    * @brief Extend a container in place.
    * @tparam T: The container type for both dest and source.
@@ -144,192 +140,6 @@ namespace shared {
   template <class T = list> void extend(vector& dest, T source);
   template <class T = list> void extend(set& dest, T source);
   void extend(set& dest, set source);
-
-  /**
-   * @brief Split a string
-   * @tparam C: The accumulator container type.
-   * @tparam T: The delimiter type, can either be a single character, or a string of characters.
-   * @param working: The accumulator.
-   * @param str: The string to split.
-   * @param delim: The delimiter to split on
-   * @param escape: Ignore delimiters bound in quotes.
-   */
-  template <typename C, typename T> void splitter(C& working, const std::string_view& str, const T& delim, const bool& escape);
-  void split(vector& working, const std::string_view& str, const char& delim, const bool& escape = false);
-  void splits(vector& working, const std::string_view& str, const std::string_view& delim, const bool& escape = false);
-  void usplit(set& working, const std::string_view& str, const char& delim, const bool& escape = true);
-  void usplits(set& working, const std::string_view& str, const std::string_view& delim, const bool& escape = true);
-
-  // Compat definitions.
-  bool contains(const char& v, const char& d);
-  bool contains(const char& v, const std::string_view& d);
-  void emplace(set& working, const std::string_view& val);
-  void emplace(vector& working, const std::string_view& val);
-
-  /**
-   * @brief Zip a container for exec.
-   * @param cmd: The container to zip.
-   * @returns The zipped contents.
-   */
-  template <class T> std::vector<const char*> zip(const T& cmd);
-
-  /*
-   * Parsers are used in exec and read_file, where the latter discards
-   * the PID.
-   */
-
-  /**
-   * @brief A Blocking Parser that waits for the PID to exit.
-   * @param fd: The FD on the attached pipe.
-   * @param pid: The PID of the process.
-   */
-  void wait_for(const int& fd, const int& pid = -1);
-
-  /**
-   * @brief A Non-Blocking Parser that returns the PID.
-   * @param fd: The FD on the attached pipe.
-   * @param pid: The PID of the process.
-   * @returns: The PID
-   */
-  int get_pid(const int& fd, const int& pid = -1);
-
-  /**
-   * @brief A Blocking Parser that splits the output into a vector
-   * @param fd: The FD on the attached pipe.
-   * @param pid: The PID of the process.
-   * @returns The output, split on newlines.
-   * @info If you need to split on something other than '\n', use fd_splitter
-   */
-  vector vectorize(const int& fd, const int& pid = -1);
-
-  /**
-   * @brief A Blocking Parser that splits the output into a set
-   * @param fd: The FD on the attached pipe.
-   * @param pid: The PID of the process.
-   * @returns The output, split on spaces.
-   * @info If you need to split on something other than ' ', use fd_splitter
-   */
-  set setorize(const int& fd, const int& pid = -1);
-
-  /**
-   * @brief A Blocking Parser that returns the output in a single string.
-   * @param fd: The FD on the attached pipe.
-   * @param pid: The PID of the process.
-   * @returns: The output
-   */
-  std::string dump(const int& fd, const int& pid = -1);
-
-  /**
-   * @brief A Blocking Parser that returns the first line of output.
-   * @param fd: The FD on the attached pipe.
-   * @param pid: The PID of the process.
-   * @returns: The first line.
-   */
-  std::string one_line(const int& fd, const int& pid = -1);
-
-  /**
-   * @brief A Blocking Parser that returns the first count of the output.
-   * @tparam count: The amount of characters to return.
-   * @param fd: The FD on the attached pipe.
-   * @param pid: The PID of the process.
-   * @returns: The output.
-   */
-  template <uint_fast8_t count> std::string head(const int& fd, const int& pid) {
-    std::array<char, count> buffer;
-    if (read(fd, buffer.data(), count) != count)
-      throw std::runtime_error("Failed to read file!");
-    close(fd);
-    if (pid > 0) kill(pid, SIGTERM);
-    return std::string(buffer.data(), count);
-  }
-
-  /**
-   * @brief Execute stuff.
-   * @tparam R: What to return from the child.
-   * @tparam T: The container holding the command.
-   * @param cmd: The command to run.
-   * @param parser: The Parser to use on the output.
-   * @param policy: What to capture.
-   * @returns The selected output from the parser.
-   */
-  template <class R = void, class T = list> R exec(
-      const T& cmd,
-      const std::function<R(const int&, const int&)>& parser = [](const int& fd, const int& pid) {close(fd);},
-      const exec_policy& policy = NONE,
-      const std::string& in = ""
-  )  {
-
-    // Open a pipe for communication.
-    int output[2];
-    if (pipe(output) == -1) throw std::runtime_error("Failed to setup pipe");
-
-    int input[2] = {-1, -1};
-    if (!in.empty()) {
-      if (pipe(input) == -1) throw std::runtime_error("Failed to setup pipe");
-    }
-
-    auto pid = fork();
-    if (pid < 0) throw std::runtime_error("Failed to fork");
-    else if (pid == 0) {
-      // Zip the command, open our standard files to the pipe.
-      auto argv = zip(cmd);
-
-      close(output[0]);
-      switch (policy) {
-        case STDOUT: dup2(output[1], STDOUT_FILENO); break;
-        case STDERR: dup2(output[1], STDERR_FILENO); break;
-        case ALL:  dup2(output[1], STDOUT_FILENO); dup2(output[1], STDERR_FILENO); break;
-        default: break;
-      }
-
-      if (!in.empty()) {
-        close(input[1]);
-        dup2(input[0], STDIN_FILENO);
-        close(input[1]);
-      }
-
-      // Close the pipe and execute.
-      close(output[1]);
-      execvp(argv[0], const_cast<char* const*>(argv.data()));
-    }
-
-    if (!in.empty()) {
-      close(input[0]);
-      write(input[1], in.c_str(), in.length());
-      close(input[1]);
-    }
-
-    // Close the pipe and parser the other side.
-    close(output[1]);
-    return parser(output[0], pid);
-  }
-
-  /**
-   * @brief Split the contents of an FD.
-   * @tparam C: The container to return.
-   * @tparam delim: The delimiter to use.
-   * @param fd: The FD of the file/process.
-   * @param pid: The PID of the process.
-   * @returns The split output/contents.
-   */
-  template <class C, char delim, bool escape = false> C fd_splitter(const int& fd, const int& pid) {
-    C result;
-    auto contents = dump(fd, pid);
-    splitter<C, char>(result, contents, delim, escape);
-    return result;
-  }
-
-
-  /**
-   * @brief Read a file
-   * @tparam R: The return type.
-   * @param path: The path to the file.
-   * @param parser: The parser to use on the file.
-   * @returns The contents.
-   */
-  template <class R> R read_file(const std::filesystem::path& path, const std::function<R(const int&, const int&)>& parser) {
-    return parser(open(path.c_str(), O_RDONLY), -1);
-  }
 
 
   /**
@@ -423,22 +233,6 @@ namespace shared {
    */
   std::string hash(const std::string_view& in);
 
-
-  /**
-   * @brief Compose a return value from an accumulator function.
-   * @tparam T The return type (IE the accumulator type).
-   * @tparam A The function to wrap.
-   * @tparam ...Args Additional arguments to the function.
-   * @param fun: The function.
-   * @param args: Additional arguments.
-   * @returns The accumulated results from the function.
-   */
-  template <class T, class A, class ...Args> T init(const A& fun, Args&&... args) {
-    T ret;
-    fun(ret, args...);
-    return ret;
-  }
-
   /**
    * @brief Batch multiple iterations of an accumulator function together.
    * @tparam T The accumulator type.
@@ -471,7 +265,7 @@ namespace shared {
   template <class T, class A, class L = list, class ...Args> void batch(const A& fun, T& accum, const L& mem, Args&&... args) {
     std::vector<std::future<T>> futures; futures.reserve(mem.size());
     for (auto& val : mem) {
-      futures.emplace_back(pool.submit_task([val = std::move(val), &fun, &args...]() {return init<T>(fun, val, args...);}));
+      futures.emplace_back(pool.submit_task([val = std::move(val), &fun, &args...]() {return container::init<T>(fun, val, args...);}));
     }
     for (auto& future : futures) extend(accum, future.get());
   }

@@ -6,6 +6,7 @@
 #endif
 
 using namespace shared;
+using namespace exec;
 
 namespace arg {
 
@@ -262,12 +263,12 @@ namespace arg {
     // Parse a .conf file. They set defaults.
     auto c = std::filesystem::path(shared::config) / "sb" / "sb.conf";
     if (std::filesystem::exists(c)) {
-      for (const auto& conf : read_file<vector>(c, vectorize)) {
+      for (const auto& conf : file::parse<vector>(c, vectorize)) {
         if (!conf.contains("=")) {
           std::cout << "Invalid configuration: " << conf << std::endl;
         }
         else {
-          auto s = init<vector>(split, conf, '=', false);
+          auto s = container::init<vector>(container::split<vector, char>, conf, '=', false);
           auto k = s[0], v = s[1];
           std::transform(k.begin(), k.end(), k.begin(), ::tolower);
 

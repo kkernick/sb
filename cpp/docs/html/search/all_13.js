@@ -1,6 +1,4 @@
 var searchData=
 [
-  ['wait_5ffor_0',['wait_for',['../namespaceshared.html#a2bf95a904a7f3cf5fed5722296ef016c',1,'shared']]],
-  ['why_1',['Why?',['../md_README.html#autotoc_md8',1,'']]],
-  ['wildcard_2',['wildcard',['../namespaceshared.html#a6955b6b671ef8b660a0d6ed018712923',1,'shared']]]
+  ['xdg_5fdbus_5fproxy_0',['xdg_dbus_proxy',['../namespacegenerate.html#a5c0026523dd30f942c55ad25f1b607b4',1,'generate']]]
 ];

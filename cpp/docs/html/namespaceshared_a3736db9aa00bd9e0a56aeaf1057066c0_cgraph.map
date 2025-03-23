@@ -1,9 +1,0 @@
-<map id="shared::fd_splitter" name="shared::fd_splitter">
-<area shape="rect" id="Node000001" title="Split the contents of an FD." alt="" coords="5,31,131,57"/>
-<area shape="rect" id="Node000002" href="$namespaceshared.html#a80f3b59804700742a5a0c6ea15bf24f9" title="A Blocking Parser that returns the output in a single string." alt="" coords="182,5,282,32"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="131,32,166,26,167,31,131,37"/>
-<area shape="rect" id="Node000003" href="$namespaceshared.html#a690cc836408825d804377522d9d99a07" title="Split a string." alt="" coords="179,56,286,83"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="131,51,164,56,163,61,131,56"/>
-<area shape="rect" id="Node000004" href="$namespaceshared.html#a6282d0d8d2ab3f70038d7428729c15ca" title="Escape a string." alt="" coords="334,56,444,83"/>
-<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="286,67,318,67,318,72,286,72"/>
-</map>

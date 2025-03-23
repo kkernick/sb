@@ -1,5 +1,5 @@
 var searchData=
 [
-  ['temporarydirectory_0',['TemporaryDirectory',['../classshared_1_1TemporaryDirectory.html#a0889b458a68fcf8498c22d8f5c0b3929',1,'shared::TemporaryDirectory']]],
-  ['trim_1',['trim',['../namespaceshared.html#a77e45bc6735a35fbc38891b166e40a7b',1,'shared']]]
+  ['update_0',['update',['../classarg_1_1Arg.html#a02786be8c27ddd983b18ba299f11ef65',1,'arg::Arg']]],
+  ['update_5fpolicy_1',['update_policy',['../namespacesyscalls.html#a501461c3842033cfab85ba4b8f328ed8',1,'syscalls']]]
 ];

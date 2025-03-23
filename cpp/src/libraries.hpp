@@ -83,7 +83,7 @@ namespace libraries {
             break;
           }
         }
-        if (valid) shared::emplace(trimmed, lib);
+        if (valid) container::emplace(trimmed, lib);
       }
       return trimmed;
     };

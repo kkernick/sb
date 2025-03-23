@@ -1,52 +1,24 @@
 <map id="binaries::parse" name="binaries::parse">
-<area shape="rect" id="Node000001" title="Parse a binary to determine dependencies." alt="" coords="5,445,112,472"/>
-<area shape="poly" id="edge25_Node000001_Node000001" title=" " alt="" coords="29,446,24,436,27,427,39,420,59,418,79,421,90,427,88,432,77,426,58,424,41,426,31,430,29,436,34,443"/>
-<area shape="rect" id="Node000002" href="$namespaceshared.html#a80f3b59804700742a5a0c6ea15bf24f9" title="A Blocking Parser that returns the output in a single string." alt="" coords="691,14,792,41"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="58,444,66,393,82,317,112,231,132,190,158,151,200,102,240,69,286,46,348,25,391,14,435,8,524,3,607,6,676,14,675,19,607,11,524,8,436,13,392,20,350,30,288,51,242,73,203,105,162,155,137,192,117,233,88,318,71,394,64,445"/>
-<area shape="rect" id="Node000003" href="$namespaceshared.html#aa381bd3e7caf6ab85ad8d8518fd4adf2" title="Execute stuff." alt="" coords="529,192,625,218"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="112,460,201,464,306,464,402,454,439,445,465,431,484,409,493,385,494,361,492,336,489,310,489,283,495,256,512,229,514,226,518,230,516,232,500,258,494,284,494,309,497,335,499,361,498,387,489,411,468,435,441,450,403,460,306,469,201,469,112,465"/>
-<area shape="rect" id="Node000004" href="$namespacelibraries.html#a4dfd6ab45adf8dc18ea57bc1f88eaedf" title="Recursively resolve all shared&#45;libraries needed by a library." alt="" coords="184,242,276,269"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="62,443,95,370,123,326,158,286,173,275,176,279,161,290,127,329,100,373,67,446"/>
-<area shape="rect" id="Node000010" href="$namespaceshared.html#a2f7cb04abbe01ba7193f2d2a6d520355" title="Join a vector into a string." alt="" coords="364,293,452,320"/>
-<area shape="poly" id="edge22_Node000001_Node000010" title=" " alt="" coords="70,443,107,408,158,372,206,350,257,334,348,312,349,318,258,339,208,355,161,377,111,412,74,447"/>
-<area shape="rect" id="Node000011" href="$namespaceshared.html#a99724c73af55fa92ae29fee700152917" title="Log output to console, if verbose." alt="" coords="365,344,450,370"/>
-<area shape="poly" id="edge23_Node000001_Node000011" title=" " alt="" coords="84,442,159,409,259,381,349,363,350,368,260,387,161,414,87,447"/>
-<area shape="rect" id="Node000012" href="$namespaceshared.html#afac154f1bef460ef6f24705f6c033f37" title="Read a file." alt="" coords="349,394,466,421"/>
-<area shape="poly" id="edge26_Node000001_Node000012" title=" " alt="" coords="112,445,159,437,333,413,334,419,160,442,113,451"/>
-<area shape="rect" id="Node000013" href="$namespaceshared.html#a219683cbcfb575bb29797638cadafb7b" title="A Blocking Parser that splits the output into a set." alt="" coords="350,40,465,66"/>
-<area shape="poly" id="edge27_Node000001_Node000013" title=" " alt="" coords="61,444,72,404,92,349,120,287,158,229,206,178,262,134,316,98,363,71,366,76,319,103,265,138,210,182,162,232,125,289,96,351,77,406,66,445"/>
-<area shape="rect" id="Node000015" href="$namespaceshared.html#ad05481a6e28afc976d57ddcba12e8a4d" title="A Blocking Parser that returns the first count of the output." alt="" coords="182,496,278,522"/>
-<area shape="poly" id="edge20_Node000001_Node000015" title=" " alt="" coords="107,470,169,488,167,493,106,475"/>
-<area shape="rect" id="Node000016" href="$namespaceshared.html#a48902b7bb96ff218057c3b363b43ea8a" title="Compose a return value from an accumulator function." alt="" coords="188,546,273,573"/>
-<area shape="poly" id="edge21_Node000001_Node000016" title=" " alt="" coords="77,470,114,501,161,532,174,538,172,543,158,537,111,505,73,474"/>
-<area shape="rect" id="Node000017" href="$namespaceshared.html#a4ddc24b4d99e824f9b941fa905fb0a81" title="A Blocking Parser that returns the first line of output." alt="" coords="172,597,288,624"/>
-<area shape="poly" id="edge24_Node000001_Node000017" title=" " alt="" coords="70,471,105,525,131,556,161,583,168,587,166,592,158,587,127,559,100,528,65,474"/>
-<area shape="rect" id="Node000018" href="$namespaceshared.html#a8d237bf1ea1e2a6fb5c7d30bcb51f593" title="Batch multiple iterations of an accumulator function together." alt="" coords="160,648,301,674"/>
-<area shape="poly" id="edge28_Node000001_Node000018" title=" " alt="" coords="66,471,78,504,98,547,125,593,161,634,167,638,163,642,158,638,121,597,93,550,73,506,61,473"/>
-<area shape="rect" id="Node000019" href="$namespaceshared.html#ae0ec3e8d4de79340eda47eabfd075feb" title="Strip all instance of character from a string." alt="" coords="184,698,277,725"/>
-<area shape="poly" id="edge29_Node000001_Node000019" title=" " alt="" coords="65,472,74,513,91,570,120,631,139,659,161,684,171,692,168,696,158,688,135,663,115,634,86,572,68,514,59,473"/>
-<area shape="rect" id="Node000020" href="$namespaceshared.html#a77e45bc6735a35fbc38891b166e40a7b" title="Trim characters from the front and end of a string." alt="" coords="185,749,276,776"/>
-<area shape="poly" id="edge30_Node000001_Node000020" title=" " alt="" coords="63,472,70,521,85,591,98,630,114,668,135,703,162,735,173,744,169,748,158,739,131,707,110,670,93,632,80,593,64,522,58,472"/>
-<area shape="poly" id="edge6_Node000004_Node000003" title=" " alt="" coords="277,242,349,228,513,207,514,213,349,233,278,247"/>
-<area shape="rect" id="Node000005" href="$namespaceshared.html#a993cd576fb1a43b497dc350728bd8c80" title="Batch multiple iterations of an accumulator function together, threaded." alt="" coords="358,242,458,269"/>
-<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="277,253,342,253,342,258,277,258"/>
-<area shape="rect" id="Node000007" href="$namespaceshared.html#a9ed709af90ab0108e5c3a8afdd3e7042" title="Split the contents of an FD." alt="" coords="514,65,640,92"/>
-<area shape="poly" id="edge7_Node000004_Node000007" title=" " alt="" coords="238,240,280,184,312,153,348,127,384,109,423,96,498,81,499,87,424,101,386,114,350,131,315,157,284,188,243,243"/>
-<area shape="poly" id="edge12_Node000004_Node000010" title=" " alt="" coords="278,266,349,287,347,292,276,271"/>
-<area shape="poly" id="edge13_Node000004_Node000011" title=" " alt="" coords="253,267,297,297,350,329,360,334,358,339,348,334,294,302,250,272"/>
-<area shape="poly" id="edge14_Node000004_Node000012" title=" " alt="" coords="244,268,287,321,317,352,351,380,357,384,354,389,347,384,313,356,283,325,239,271"/>
-<area shape="poly" id="edge15_Node000004_Node000013" title=" " alt="" coords="238,240,297,152,347,83,361,72,364,77,351,87,301,155,243,243"/>
-<area shape="rect" id="Node000014" href="$namespaceshared.html#a6955b6b671ef8b660a0d6ed018712923" title="Resolve wildcard patterns." alt="" coords="350,141,466,168"/>
-<area shape="poly" id="edge17_Node000004_Node000014" title=" " alt="" coords="254,239,348,184,366,173,369,178,350,189,256,244"/>
-<area shape="rect" id="Node000006" href="$namespaceshared.html#a1636cc0cb46e6be8f452dbc1e92a1e28" title="Extend a container in place." alt="" coords="523,242,631,269"/>
-<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="458,253,508,253,508,258,458,258"/>
-<area shape="poly" id="edge8_Node000007_Node000002" title=" " alt="" coords="622,62,680,43,682,49,624,67"/>
-<area shape="rect" id="Node000008" href="$namespaceshared.html#a6282d0d8d2ab3f70038d7428729c15ca" title="Escape a string." alt="" coords="843,90,953,117"/>
-<area shape="poly" id="edge9_Node000007_Node000008" title=" " alt="" coords="628,90,688,101,760,105,827,105,827,110,760,111,687,106,627,95"/>
-<area shape="rect" id="Node000009" href="$namespaceshared.html#a690cc836408825d804377522d9d99a07" title="Split a string." alt="" coords="688,65,795,92"/>
-<area shape="poly" id="edge10_Node000007_Node000009" title=" " alt="" coords="640,76,672,76,672,81,640,81"/>
-<area shape="poly" id="edge11_Node000009_Node000008" title=" " alt="" coords="796,84,828,90,827,95,795,90"/>
-<area shape="poly" id="edge16_Node000013_Node000007" title=" " alt="" coords="466,59,500,64,499,69,465,64"/>
-<area shape="poly" id="edge18_Node000014_Node000003" title=" " alt="" coords="456,166,516,184,515,189,454,171"/>
-<area shape="poly" id="edge19_Node000014_Node000007" title=" " alt="" coords="438,138,530,96,533,101,441,143"/>
+<area shape="rect" id="Node000001" title="Parse a binary to determine dependencies." alt="" coords="5,169,112,196"/>
+<area shape="poly" id="edge9_Node000001_Node000001" title=" " alt="" coords="29,170,24,161,27,151,39,145,59,143,79,145,90,152,88,156,77,150,58,148,41,150,31,155,29,160,34,168"/>
+<area shape="rect" id="Node000002" href="$namespacelibraries.html#a4dfd6ab45adf8dc18ea57bc1f88eaedf" title="Recursively resolve all shared&#45;libraries needed by a library." alt="" coords="184,93,276,120"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="90,166,183,124,186,129,92,171"/>
+<area shape="rect" id="Node000005" href="$namespaceshared.html#a2f7cb04abbe01ba7193f2d2a6d520355" title="Join a vector into a string." alt="" coords="363,5,451,32"/>
+<area shape="poly" id="edge7_Node000001_Node000005" title=" " alt="" coords="67,167,104,124,129,99,158,79,206,57,256,40,347,22,348,27,257,46,208,62,161,84,133,104,108,127,72,171"/>
+<area shape="rect" id="Node000006" href="$namespaceshared.html#a99724c73af55fa92ae29fee700152917" title="Log output to console, if verbose." alt="" coords="364,157,450,184"/>
+<area shape="poly" id="edge8_Node000001_Node000006" title=" " alt="" coords="112,178,349,170,349,175,112,184"/>
+<area shape="rect" id="Node000008" href="$namespaceshared.html#a8d237bf1ea1e2a6fb5c7d30bcb51f593" title="Batch multiple iterations of an accumulator function together." alt="" coords="160,195,301,221"/>
+<area shape="poly" id="edge10_Node000001_Node000008" title=" " alt="" coords="112,188,145,193,144,198,112,193"/>
+<area shape="rect" id="Node000009" href="$namespaceshared.html#ae0ec3e8d4de79340eda47eabfd075feb" title="Strip all instance of character from a string." alt="" coords="184,245,277,272"/>
+<area shape="poly" id="edge11_Node000001_Node000009" title=" " alt="" coords="86,194,161,231,175,237,173,242,159,236,84,199"/>
+<area shape="rect" id="Node000010" href="$namespaceshared.html#a77e45bc6735a35fbc38891b166e40a7b" title="Trim characters from the front and end of a string." alt="" coords="185,296,276,323"/>
+<area shape="poly" id="edge12_Node000001_Node000010" title=" " alt="" coords="72,195,109,237,134,261,161,282,172,288,170,293,158,286,130,265,105,241,68,198"/>
+<area shape="rect" id="Node000003" href="$namespaceshared.html#a993cd576fb1a43b497dc350728bd8c80" title="Batch multiple iterations of an accumulator function together, threaded." alt="" coords="357,56,457,83"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="276,94,341,80,343,86,278,100"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="255,90,348,42,359,36,361,41,350,46,258,95"/>
+<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="270,118,355,149,353,154,269,123"/>
+<area shape="rect" id="Node000007" href="$namespaceshared.html#a6955b6b671ef8b660a0d6ed018712923" title="Resolve wildcard patterns." alt="" coords="349,107,465,133"/>
+<area shape="poly" id="edge6_Node000002_Node000007" title=" " alt="" coords="277,107,334,112,334,117,277,113"/>
+<area shape="rect" id="Node000004" href="$namespaceshared.html#a1636cc0cb46e6be8f452dbc1e92a1e28" title="Extend a container in place." alt="" coords="513,56,621,83"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="458,67,498,67,498,72,458,72"/>
 </map>

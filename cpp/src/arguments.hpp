@@ -91,7 +91,7 @@ namespace arg {
         if (!list && custom == custom_policy::MODIFIABLE && val.contains(':')) {
 
           // Split on colons.
-          auto s = shared::init<shared::vector>(shared::split, val, ':', false);
+          auto s = container::init<shared::vector>(container::split<shared::vector, char>, val, ':', false);
           if (s.size() < 2) throw std::runtime_error("Invalid modifier: " + std::string(val));
 
           // Grab the modifier keypair.
@@ -123,7 +123,7 @@ namespace arg {
             if (list || flag) {
               // If our key already has multiple values, split and handle separately.
               if (val.contains(',')) {
-                for (const auto& x : shared::init<shared::vector>(shared::split, val, ',', false))
+                for (const auto& x : container::init<shared::vector>(container::split<shared::vector, char>, val, ',', false))
                   digest_keypair(key, x, pos);
               }
 
@@ -232,7 +232,7 @@ namespace arg {
 
         // If we have an equal, it's `key=value`
         if (key.contains("=")) {
-          auto keypair = shared::init<shared::vector>(shared::split, key, '=', false);
+          auto keypair = container::init<shared::vector>(container::split<shared::vector, char>, key, '=', false);
           ret = digest_keypair(keypair[0], keypair[1], x);
         }
 
@@ -409,7 +409,7 @@ namespace arg {
         std::vector<std::pair<std::string, std::string>> ret;
         for (const auto& val : list_val) {
           if (val.contains(':')) {
-            auto s = shared::init<shared::vector>(shared::split, val, ':', false);
+            auto s = container::init<shared::vector>(container::split<shared::vector, char>, val, ':', false);
             ret.emplace_back(std::pair{s[0], s[1]});
           }
           else ret.emplace_back(std::pair{val, ""});
@@ -459,8 +459,8 @@ namespace arg {
   extern shared::vector args;
 
   extern std::string hash;
-  
-  
+
+
   // Helper functions.
   inline Arg& at(const std::string& key) {
     if (!switches.contains(key)) throw std::runtime_error("Invalid argument" + key);

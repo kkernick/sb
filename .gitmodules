@@ -1,0 +1,6 @@
+[submodule "cpp/src/third_party/libexec"]
+	path = cpp/src/third_party/libexec
+	url = https://github.com/kkernick/libexec
+[submodule "cpp/src/third_party/thread-pool"]
+	path = cpp/src/third_party/thread-pool
+	url = https://github.com/bshoshany/thread-pool

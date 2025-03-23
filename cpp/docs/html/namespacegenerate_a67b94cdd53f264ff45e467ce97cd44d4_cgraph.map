@@ -1,7 +1,5 @@
 <map id="generate::script" name="generate::script">
-<area shape="rect" id="Node000001" title="Generate a script for the sandbox." alt="" coords="5,31,117,57"/>
-<area shape="rect" id="Node000002" href="$namespaceshared.html#aa381bd3e7caf6ab85ad8d8518fd4adf2" title="Execute stuff." alt="" coords="165,5,261,32"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="117,32,149,27,150,32,117,37"/>
-<area shape="rect" id="Node000003" href="$namespaceshared.html#a2f7cb04abbe01ba7193f2d2a6d520355" title="Join a vector into a string." alt="" coords="169,56,257,83"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="117,51,153,57,152,62,117,56"/>
+<area shape="rect" id="Node000001" title="Generate a script for the sandbox." alt="" coords="5,5,117,32"/>
+<area shape="rect" id="Node000002" href="$namespaceshared.html#a2f7cb04abbe01ba7193f2d2a6d520355" title="Join a vector into a string." alt="" coords="165,5,253,32"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="117,16,149,16,149,21,117,21"/>
 </map>

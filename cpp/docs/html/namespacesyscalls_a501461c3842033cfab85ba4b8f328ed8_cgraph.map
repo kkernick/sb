@@ -1,23 +1,10 @@
 <map id="syscalls::update_policy" name="syscalls::update_policy">
-<area shape="rect" id="Node000001" title="Append an existing policy with newly discovered syscalls." alt="" coords="5,131,163,157"/>
-<area shape="rect" id="Node000002" href="$namespaceshared.html#a4a708359d4c8dbeeaa8b744eec56c0e5" title="Hash a string." alt="" coords="223,29,320,56"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="105,128,209,66,220,60,222,65,212,70,107,132"/>
-<area shape="rect" id="Node000003" href="$namespaceshared.html#a2f7cb04abbe01ba7193f2d2a6d520355" title="Join a vector into a string." alt="" coords="227,80,316,107"/>
-<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="136,127,211,107,213,112,137,133"/>
-<area shape="rect" id="Node000004" href="$namespaceshared.html#a99724c73af55fa92ae29fee700152917" title="Log output to console, if verbose." alt="" coords="229,131,314,157"/>
-<area shape="poly" id="edge4_Node000001_Node000004" title=" " alt="" coords="163,141,213,141,213,147,163,147"/>
-<area shape="rect" id="Node000005" href="$namespaceshared.html#afac154f1bef460ef6f24705f6c033f37" title="Read a file." alt="" coords="213,181,330,208"/>
-<area shape="poly" id="edge5_Node000001_Node000005" title=" " alt="" coords="137,155,206,174,204,179,136,161"/>
-<area shape="rect" id="Node000006" href="$namespaceshared.html#ae5d42a7f6819f149991304227a611c78" title="A Blocking Parser that splits the output into a vector." alt="" coords="211,232,332,259"/>
-<area shape="poly" id="edge6_Node000001_Node000006" title=" " alt="" coords="107,156,212,218,222,223,220,228,209,222,105,160"/>
-<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="242,30,237,21,240,11,252,5,271,3,292,5,303,12,300,16,290,10,271,8,254,10,244,15,242,20,246,28"/>
-<area shape="rect" id="Node000007" href="$namespaceshared.html#a9ed709af90ab0108e5c3a8afdd3e7042" title="Split the contents of an FD." alt="" coords="380,232,505,259"/>
-<area shape="poly" id="edge7_Node000006_Node000007" title=" " alt="" coords="333,243,365,243,365,248,333,248"/>
-<area shape="rect" id="Node000008" href="$namespaceshared.html#a80f3b59804700742a5a0c6ea15bf24f9" title="A Blocking Parser that returns the output in a single string." alt="" coords="557,181,657,208"/>
-<area shape="poly" id="edge8_Node000007_Node000008" title=" " alt="" coords="488,229,546,211,548,216,489,234"/>
-<area shape="rect" id="Node000009" href="$namespaceshared.html#a6282d0d8d2ab3f70038d7428729c15ca" title="Escape a string." alt="" coords="709,257,819,284"/>
-<area shape="poly" id="edge9_Node000007_Node000009" title=" " alt="" coords="506,248,693,262,693,268,506,253"/>
-<area shape="rect" id="Node000010" href="$namespaceshared.html#a690cc836408825d804377522d9d99a07" title="Split a string." alt="" coords="553,283,661,309"/>
-<area shape="poly" id="edge10_Node000007_Node000010" title=" " alt="" coords="489,257,548,275,546,280,488,262"/>
-<area shape="poly" id="edge11_Node000010_Node000009" title=" " alt="" coords="661,285,693,279,693,285,661,290"/>
+<area shape="rect" id="Node000001" title="Append an existing policy with newly discovered syscalls." alt="" coords="5,80,163,107"/>
+<area shape="rect" id="Node000002" href="$namespaceshared.html#a4a708359d4c8dbeeaa8b744eec56c0e5" title="Hash a string." alt="" coords="211,29,307,56"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="132,77,195,58,196,63,134,82"/>
+<area shape="rect" id="Node000003" href="$namespaceshared.html#a2f7cb04abbe01ba7193f2d2a6d520355" title="Join a vector into a string." alt="" coords="215,80,303,107"/>
+<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="163,91,199,91,199,96,163,96"/>
+<area shape="rect" id="Node000004" href="$namespaceshared.html#a99724c73af55fa92ae29fee700152917" title="Log output to console, if verbose." alt="" coords="216,131,302,157"/>
+<area shape="poly" id="edge4_Node000001_Node000004" title=" " alt="" coords="134,105,203,125,201,130,132,110"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="229,30,223,21,227,11,239,5,259,3,280,5,291,12,288,16,278,10,259,8,241,10,231,15,229,20,233,28"/>
 </map>

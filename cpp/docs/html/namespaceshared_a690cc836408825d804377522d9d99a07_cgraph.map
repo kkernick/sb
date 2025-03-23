@@ -1,5 +1,0 @@
-<map id="shared::splitter" name="shared::splitter">
-<area shape="rect" id="Node000001" title="Split a string." alt="" coords="5,5,113,32"/>
-<area shape="rect" id="Node000002" href="$namespaceshared.html#a6282d0d8d2ab3f70038d7428729c15ca" title="Escape a string." alt="" coords="161,5,271,32"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="113,16,145,16,145,21,113,21"/>
-</map>

@@ -5,6 +5,7 @@
 #include <fstream>
 
 using namespace shared;
+using namespace exec;
 
 namespace binaries {
 
@@ -43,7 +44,7 @@ namespace binaries {
     local.emplace(path);
 
     // Grab the header, so we don't ready the whole library if it's an ELF.
-    auto header = read_file<std::string>(path, head<5>);
+    auto header = file::parse<std::string>(path, head<5>);
     if (header.empty()) return;
 
     // Shell script
@@ -59,7 +60,7 @@ namespace binaries {
     if (header.starts_with("#!")) {
 
       // Now dump the entire file.
-      auto contents = read_file<std::string>(path, dump);
+      auto contents = file::parse<std::string>(path, dump);
 
       // Check whether we've cached it.
       std::string name = path;
@@ -69,7 +70,7 @@ namespace binaries {
 
       // If the cache exists, and we don't need to update, use it.
       if (std::filesystem::exists(cache) && arg::at("update") < "cache" &&  !std::filesystem::is_empty(cache)) {
-        local = read_file<bin_t>(cache, setorize);
+        local = file::parse<bin_t>(cache, setorize);
         single_batch(parse, local, local, libraries);
       }
       else {
@@ -121,7 +122,7 @@ namespace binaries {
           ) return value;
 
           // Let the shell resolve the nuances.
-          return exec<std::string>({"echo", value}, one_line, STDOUT);
+          return execute<std::string>({"echo", value}, one_line, {.cap = STDOUT, .verbose = arg::at("verbose") >= "debug"});
         };
 
         vector tokens;
@@ -149,7 +150,7 @@ namespace binaries {
             auto base = std::filesystem::path(binary).filename();
             if (discovered.contains(base)) return;
             discovered.emplace(base);
-            auto parsed = init<bin_t>(parse, binary, libraries);
+            auto parsed = container::init<bin_t>(parse, binary, libraries);
 
             local.emplace(binary);
             required.merge(parsed);
@@ -159,7 +160,7 @@ namespace binaries {
 
 
         // Get the shebang from the top.
-        auto lines = init<vector>(split, contents, '\n', false);
+        auto lines = container::init<vector>(container::split<vector, char>, contents, '\n', false);
         auto shebang = strip<std::string_view>(lines[0], "#! \t\n");
         local.emplace(shebang);
 
@@ -178,13 +179,13 @@ namespace binaries {
           // If we have a variable declaration, parse and store it so we can resolve
           // future use.
           if (line.contains('=')) {
-            auto keypair = init<vector>(split, line, '=', false);
+            auto keypair = container::init<vector>(container::split<vector, char>, line, '=', false);
             const auto& key = keypair[0], val = keypair[1];
             if (!key.contains(' ') && !val.contains(' ')  && val != "()") variables[key] = resolve_environment(val);
           }
 
           // Tokenize the string
-          tokens = init<vector>(splits, line, " \t()=;\"", false);
+          tokens = container::init<vector>(container::split<vector, std::string_view>, line, " \t()=;\"", false);
           auto future = pool.submit_loop(0, tokens.size(), tokenize);
           future.wait();
         }

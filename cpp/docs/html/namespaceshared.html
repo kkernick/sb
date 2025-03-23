@@ -88,7 +88,6 @@ $(function(){ initResizable(false); });
   <div class="summary">
 <a href="#nested-classes">Data Structures</a> &#124;
 <a href="#typedef-members">Typedefs</a> &#124;
-<a href="#enum-members">Enumerations</a> &#124;
 <a href="#func-members">Functions</a> &#124;
 <a href="#var-members">Variables</a>  </div>
   <div class="headertitle"><div class="title">shared Namespace Reference</div></div>
@@ -116,16 +115,6 @@ using&#160;</td><td class="memItemRight" valign="bottom"><b>vector</b> = std::ve
 using&#160;</td><td class="memItemRight" valign="bottom"><b>list</b> = std::initializer_list&lt;std::string_view&gt;</td></tr>
 <tr class="separator:ae4110209dba2305a33bde03bd1962d26"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="enum-members" name="enum-members"></a>
-Enumerations</h2></td></tr>
-<tr class="memitem:adcb21f379e46f702cabe7238755cf858" id="r_adcb21f379e46f702cabe7238755cf858"><td class="memItemLeft" align="right" valign="top"><a id="adcb21f379e46f702cabe7238755cf858" name="adcb21f379e46f702cabe7238755cf858"></a>enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#adcb21f379e46f702cabe7238755cf858">exec_policy</a> { <b>NONE</b>
-, <b>STDOUT</b>
-, <b>STDERR</b>
-, <b>ALL</b>
- }</td></tr>
-<tr class="memdesc:adcb21f379e46f702cabe7238755cf858"><td class="mdescLeft">&#160;</td><td class="mdescRight">policy for the executor, describing what should be captured. <br /></td></tr>
-<tr class="separator:adcb21f379e46f702cabe7238755cf858"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
 <tr class="memitem:a99724c73af55fa92ae29fee700152917" id="r_a99724c73af55fa92ae29fee700152917"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a99724c73af55fa92ae29fee700152917">log</a> (const list &amp;msg, const std::string &amp;level=&quot;log&quot;)</td></tr>
@@ -137,68 +126,12 @@ bool&#160;</td><td class="memItemRight" valign="bottom"><b>contains</b> (const c
 <tr class="memitem:a54974acca2c2ec8d3f4481064716d7c5" id="r_a54974acca2c2ec8d3f4481064716d7c5"><td class="memItemLeft" align="right" valign="top"><a id="a54974acca2c2ec8d3f4481064716d7c5" name="a54974acca2c2ec8d3f4481064716d7c5"></a>
 bool&#160;</td><td class="memItemRight" valign="bottom"><b>contains</b> (const char &amp;v, const std::string_view &amp;d)</td></tr>
 <tr class="separator:a54974acca2c2ec8d3f4481064716d7c5"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8464a2e80d08bd875d4600ad6c429174" id="r_a8464a2e80d08bd875d4600ad6c429174"><td class="memItemLeft" align="right" valign="top"><a id="a8464a2e80d08bd875d4600ad6c429174" name="a8464a2e80d08bd875d4600ad6c429174"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>emplace</b> (set &amp;working, const std::string_view &amp;val)</td></tr>
-<tr class="separator:a8464a2e80d08bd875d4600ad6c429174"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a48f805a5a726375326044b2b03803901" id="r_a48f805a5a726375326044b2b03803901"><td class="memItemLeft" align="right" valign="top"><a id="a48f805a5a726375326044b2b03803901" name="a48f805a5a726375326044b2b03803901"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>emplace</b> (vector &amp;working, const std::string_view &amp;val)</td></tr>
-<tr class="separator:a48f805a5a726375326044b2b03803901"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a381814a41c1c1ca61c1436527cc08116" id="r_a381814a41c1c1ca61c1436527cc08116"><td class="memTemplParams" colspan="2">template&lt;class T&gt; </td></tr>
-<tr class="memitem:a381814a41c1c1ca61c1436527cc08116"><td class="memTemplItemLeft" align="right" valign="top">std::vector&lt; const char * &gt;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="#a381814a41c1c1ca61c1436527cc08116">zip</a> (const T &amp;cmd)</td></tr>
-<tr class="memdesc:a381814a41c1c1ca61c1436527cc08116"><td class="mdescLeft">&#160;</td><td class="mdescRight">Zip a container for exec.  <br /></td></tr>
-<tr class="separator:a381814a41c1c1ca61c1436527cc08116"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa26471d72a545660c8fbd05e7e265df6" id="r_aa26471d72a545660c8fbd05e7e265df6"><td class="memItemLeft" align="right" valign="top"><a id="aa26471d72a545660c8fbd05e7e265df6" name="aa26471d72a545660c8fbd05e7e265df6"></a>
-template std::vector&lt; const char * &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>zip</b> (const list &amp;)</td></tr>
-<tr class="separator:aa26471d72a545660c8fbd05e7e265df6"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a69a9bb1618839e8a6c899252335f687d" id="r_a69a9bb1618839e8a6c899252335f687d"><td class="memItemLeft" align="right" valign="top"><a id="a69a9bb1618839e8a6c899252335f687d" name="a69a9bb1618839e8a6c899252335f687d"></a>
-template std::vector&lt; const char * &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>zip</b> (const vector &amp;)</td></tr>
-<tr class="separator:a69a9bb1618839e8a6c899252335f687d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a2bf95a904a7f3cf5fed5722296ef016c" id="r_a2bf95a904a7f3cf5fed5722296ef016c"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a2bf95a904a7f3cf5fed5722296ef016c">wait_for</a> (const int &amp;fd, const int &amp;pid=-1)</td></tr>
-<tr class="memdesc:a2bf95a904a7f3cf5fed5722296ef016c"><td class="mdescLeft">&#160;</td><td class="mdescRight">A Blocking Parser that waits for the PID to exit.  <br /></td></tr>
-<tr class="separator:a2bf95a904a7f3cf5fed5722296ef016c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a1f0e43f0520bfb104be776b21ea446ad" id="r_a1f0e43f0520bfb104be776b21ea446ad"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a1f0e43f0520bfb104be776b21ea446ad">get_pid</a> (const int &amp;fd, const int &amp;pid=-1)</td></tr>
-<tr class="memdesc:a1f0e43f0520bfb104be776b21ea446ad"><td class="mdescLeft">&#160;</td><td class="mdescRight">A Non-Blocking Parser that returns the PID.  <br /></td></tr>
-<tr class="separator:a1f0e43f0520bfb104be776b21ea446ad"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae5d42a7f6819f149991304227a611c78" id="r_ae5d42a7f6819f149991304227a611c78"><td class="memItemLeft" align="right" valign="top">vector&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ae5d42a7f6819f149991304227a611c78">vectorize</a> (const int &amp;fd, const int &amp;pid=-1)</td></tr>
-<tr class="memdesc:ae5d42a7f6819f149991304227a611c78"><td class="mdescLeft">&#160;</td><td class="mdescRight">A Blocking Parser that splits the output into a vector.  <br /></td></tr>
-<tr class="separator:ae5d42a7f6819f149991304227a611c78"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a219683cbcfb575bb29797638cadafb7b" id="r_a219683cbcfb575bb29797638cadafb7b"><td class="memItemLeft" align="right" valign="top">set&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a219683cbcfb575bb29797638cadafb7b">setorize</a> (const int &amp;fd, const int &amp;pid=-1)</td></tr>
-<tr class="memdesc:a219683cbcfb575bb29797638cadafb7b"><td class="mdescLeft">&#160;</td><td class="mdescRight">A Blocking Parser that splits the output into a set.  <br /></td></tr>
-<tr class="separator:a219683cbcfb575bb29797638cadafb7b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a80f3b59804700742a5a0c6ea15bf24f9" id="r_a80f3b59804700742a5a0c6ea15bf24f9"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a80f3b59804700742a5a0c6ea15bf24f9">dump</a> (const int &amp;fd, const int &amp;pid=-1)</td></tr>
-<tr class="memdesc:a80f3b59804700742a5a0c6ea15bf24f9"><td class="mdescLeft">&#160;</td><td class="mdescRight">A Blocking Parser that returns the output in a single string.  <br /></td></tr>
-<tr class="separator:a80f3b59804700742a5a0c6ea15bf24f9"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a4ddc24b4d99e824f9b941fa905fb0a81" id="r_a4ddc24b4d99e824f9b941fa905fb0a81"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a4ddc24b4d99e824f9b941fa905fb0a81">one_line</a> (const int &amp;fd, const int &amp;pid=-1)</td></tr>
-<tr class="memdesc:a4ddc24b4d99e824f9b941fa905fb0a81"><td class="mdescLeft">&#160;</td><td class="mdescRight">A Blocking Parser that returns the first line of output.  <br /></td></tr>
-<tr class="separator:a4ddc24b4d99e824f9b941fa905fb0a81"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a690cc836408825d804377522d9d99a07" id="r_a690cc836408825d804377522d9d99a07"><td class="memTemplParams" colspan="2">template&lt;typename C, typename T&gt; </td></tr>
-<tr class="memitem:a690cc836408825d804377522d9d99a07"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="#a690cc836408825d804377522d9d99a07">splitter</a> (C &amp;working, const std::string_view &amp;str, const T &amp;delim, const bool &amp;<a class="el" href="#a6282d0d8d2ab3f70038d7428729c15ca">escape</a>)</td></tr>
-<tr class="memdesc:a690cc836408825d804377522d9d99a07"><td class="mdescLeft">&#160;</td><td class="mdescRight">Split a string.  <br /></td></tr>
-<tr class="separator:a690cc836408825d804377522d9d99a07"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af8353619ce3e7a2147c67fde02c14812" id="r_af8353619ce3e7a2147c67fde02c14812"><td class="memItemLeft" align="right" valign="top"><a id="af8353619ce3e7a2147c67fde02c14812" name="af8353619ce3e7a2147c67fde02c14812"></a>
-template void&#160;</td><td class="memItemRight" valign="bottom"><b>splitter</b> (vector &amp;, const std::string_view &amp;, const char &amp;, const bool &amp;)</td></tr>
-<tr class="separator:af8353619ce3e7a2147c67fde02c14812"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a83b2d158cb7e5a023a282446e81d49d4" id="r_a83b2d158cb7e5a023a282446e81d49d4"><td class="memItemLeft" align="right" valign="top"><a id="a83b2d158cb7e5a023a282446e81d49d4" name="a83b2d158cb7e5a023a282446e81d49d4"></a>
-template void&#160;</td><td class="memItemRight" valign="bottom"><b>splitter</b> (vector &amp;, const std::string_view &amp;, const std::string_view &amp;, const bool &amp;)</td></tr>
-<tr class="separator:a83b2d158cb7e5a023a282446e81d49d4"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a5698cb2b36313c90ae61b31423e9ea8f" id="r_a5698cb2b36313c90ae61b31423e9ea8f"><td class="memItemLeft" align="right" valign="top"><a id="a5698cb2b36313c90ae61b31423e9ea8f" name="a5698cb2b36313c90ae61b31423e9ea8f"></a>
-template void&#160;</td><td class="memItemRight" valign="bottom"><b>splitter</b> (set &amp;, const std::string_view &amp;, const char &amp;, const bool &amp;)</td></tr>
-<tr class="separator:a5698cb2b36313c90ae61b31423e9ea8f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a6a5fc9b531dea608be57268fe4d826e1" id="r_a6a5fc9b531dea608be57268fe4d826e1"><td class="memItemLeft" align="right" valign="top"><a id="a6a5fc9b531dea608be57268fe4d826e1" name="a6a5fc9b531dea608be57268fe4d826e1"></a>
-template void&#160;</td><td class="memItemRight" valign="bottom"><b>splitter</b> (set &amp;, const std::string_view &amp;, const std::string_view &amp;, const bool &amp;)</td></tr>
-<tr class="separator:a6a5fc9b531dea608be57268fe4d826e1"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a083616065b83e2691f630e0886ad58d1" id="r_a083616065b83e2691f630e0886ad58d1"><td class="memItemLeft" align="right" valign="top"><a id="a083616065b83e2691f630e0886ad58d1" name="a083616065b83e2691f630e0886ad58d1"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>split</b> (vector &amp;working, const std::string_view &amp;str, const char &amp;delim, const bool &amp;<a class="el" href="#a6282d0d8d2ab3f70038d7428729c15ca">escape</a>)</td></tr>
-<tr class="separator:a083616065b83e2691f630e0886ad58d1"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a413fd315a323feb6dc8f61c8c4b1292f" id="r_a413fd315a323feb6dc8f61c8c4b1292f"><td class="memItemLeft" align="right" valign="top"><a id="a413fd315a323feb6dc8f61c8c4b1292f" name="a413fd315a323feb6dc8f61c8c4b1292f"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>splits</b> (vector &amp;working, const std::string_view &amp;str, const std::string_view &amp;delim, const bool &amp;<a class="el" href="#a6282d0d8d2ab3f70038d7428729c15ca">escape</a>)</td></tr>
-<tr class="separator:a413fd315a323feb6dc8f61c8c4b1292f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a91017a77fdf141abbbce60328909da76" id="r_a91017a77fdf141abbbce60328909da76"><td class="memItemLeft" align="right" valign="top"><a id="a91017a77fdf141abbbce60328909da76" name="a91017a77fdf141abbbce60328909da76"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>usplit</b> (set &amp;working, const std::string_view &amp;str, const char &amp;delim, const bool &amp;<a class="el" href="#a6282d0d8d2ab3f70038d7428729c15ca">escape</a>)</td></tr>
-<tr class="separator:a91017a77fdf141abbbce60328909da76"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a5c9d99aaf90594a56404875aa65ceef2" id="r_a5c9d99aaf90594a56404875aa65ceef2"><td class="memItemLeft" align="right" valign="top"><a id="a5c9d99aaf90594a56404875aa65ceef2" name="a5c9d99aaf90594a56404875aa65ceef2"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>usplits</b> (set &amp;working, const std::string_view &amp;str, const std::string_view &amp;delim, const bool &amp;<a class="el" href="#a6282d0d8d2ab3f70038d7428729c15ca">escape</a>)</td></tr>
-<tr class="separator:a5c9d99aaf90594a56404875aa65ceef2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a70ac47e8498c495b3b9d1f88fb0ef982" id="r_a70ac47e8498c495b3b9d1f88fb0ef982"><td class="memItemLeft" align="right" valign="top"><a id="a70ac47e8498c495b3b9d1f88fb0ef982" name="a70ac47e8498c495b3b9d1f88fb0ef982"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>emplace</b> (std::set&lt; std::string &gt; &amp;working, const std::string_view &amp;val)</td></tr>
+<tr class="separator:a70ac47e8498c495b3b9d1f88fb0ef982"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1e8f2295bdc756317d044d8cc4d6e08d" id="r_a1e8f2295bdc756317d044d8cc4d6e08d"><td class="memItemLeft" align="right" valign="top"><a id="a1e8f2295bdc756317d044d8cc4d6e08d" name="a1e8f2295bdc756317d044d8cc4d6e08d"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>emplace</b> (std::vector&lt; std::string &gt; &amp;working, const std::string_view &amp;val)</td></tr>
+<tr class="separator:a1e8f2295bdc756317d044d8cc4d6e08d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2f7cb04abbe01ba7193f2d2a6d520355" id="r_a2f7cb04abbe01ba7193f2d2a6d520355"><td class="memTemplParams" colspan="2">template&lt;class T&gt; </td></tr>
 <tr class="memitem:a2f7cb04abbe01ba7193f2d2a6d520355"><td class="memTemplItemLeft" align="right" valign="top">std::string&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="#a2f7cb04abbe01ba7193f2d2a6d520355">join</a> (const T &amp;list, const char &amp;joiner=' ')</td></tr>
 <tr class="memdesc:a2f7cb04abbe01ba7193f2d2a6d520355"><td class="mdescLeft">&#160;</td><td class="mdescRight">Join a vector into a string.  <br /></td></tr>
@@ -270,32 +203,12 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>extend</b> (set &amp;
 <tr class="memitem:a4a708359d4c8dbeeaa8b744eec56c0e5" id="r_a4a708359d4c8dbeeaa8b744eec56c0e5"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a4a708359d4c8dbeeaa8b744eec56c0e5">hash</a> (const std::string_view &amp;in)</td></tr>
 <tr class="memdesc:a4a708359d4c8dbeeaa8b744eec56c0e5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Hash a string.  <br /></td></tr>
 <tr class="separator:a4a708359d4c8dbeeaa8b744eec56c0e5"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad05481a6e28afc976d57ddcba12e8a4d" id="r_ad05481a6e28afc976d57ddcba12e8a4d"><td class="memTemplParams" colspan="2">template&lt;uint_fast8_t count&gt; </td></tr>
-<tr class="memitem:ad05481a6e28afc976d57ddcba12e8a4d"><td class="memTemplItemLeft" align="right" valign="top">std::string&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="#ad05481a6e28afc976d57ddcba12e8a4d">head</a> (const int &amp;fd, const int &amp;pid)</td></tr>
-<tr class="memdesc:ad05481a6e28afc976d57ddcba12e8a4d"><td class="mdescLeft">&#160;</td><td class="mdescRight">A Blocking Parser that returns the first count of the output.  <br /></td></tr>
-<tr class="separator:ad05481a6e28afc976d57ddcba12e8a4d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa381bd3e7caf6ab85ad8d8518fd4adf2" id="r_aa381bd3e7caf6ab85ad8d8518fd4adf2"><td class="memTemplParams" colspan="2">template&lt;class R = void, class T = list&gt; </td></tr>
-<tr class="memitem:aa381bd3e7caf6ab85ad8d8518fd4adf2"><td class="memTemplItemLeft" align="right" valign="top">R&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="#aa381bd3e7caf6ab85ad8d8518fd4adf2">exec</a> (const T &amp;cmd, const std::function&lt; R(const int &amp;, const int &amp;)&gt; &amp;parser=[](const int &amp;fd, const int &amp;pid) {close(fd);}, const <a class="el" href="#adcb21f379e46f702cabe7238755cf858">exec_policy</a> &amp;policy=NONE, const std::string &amp;in=&quot;&quot;)</td></tr>
-<tr class="memdesc:aa381bd3e7caf6ab85ad8d8518fd4adf2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Execute stuff.  <br /></td></tr>
-<tr class="separator:aa381bd3e7caf6ab85ad8d8518fd4adf2"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a9ed709af90ab0108e5c3a8afdd3e7042" id="r_a9ed709af90ab0108e5c3a8afdd3e7042"><td class="memTemplParams" colspan="2">template&lt;class C, char delim, bool escape = false&gt; </td></tr>
-<tr class="memitem:a9ed709af90ab0108e5c3a8afdd3e7042"><td class="memTemplItemLeft" align="right" valign="top">C&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="#a9ed709af90ab0108e5c3a8afdd3e7042">fd_splitter</a> (const int &amp;fd, const int &amp;pid)</td></tr>
-<tr class="memdesc:a9ed709af90ab0108e5c3a8afdd3e7042"><td class="mdescLeft">&#160;</td><td class="mdescRight">Split the contents of an FD.  <br /></td></tr>
-<tr class="separator:a9ed709af90ab0108e5c3a8afdd3e7042"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:afac154f1bef460ef6f24705f6c033f37" id="r_afac154f1bef460ef6f24705f6c033f37"><td class="memTemplParams" colspan="2">template&lt;class R&gt; </td></tr>
-<tr class="memitem:afac154f1bef460ef6f24705f6c033f37"><td class="memTemplItemLeft" align="right" valign="top">R&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="#afac154f1bef460ef6f24705f6c033f37">read_file</a> (const std::filesystem::path &amp;path, const std::function&lt; R(const int &amp;, const int &amp;)&gt; &amp;parser)</td></tr>
-<tr class="memdesc:afac154f1bef460ef6f24705f6c033f37"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read a file.  <br /></td></tr>
-<tr class="separator:afac154f1bef460ef6f24705f6c033f37"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6282d0d8d2ab3f70038d7428729c15ca" id="r_a6282d0d8d2ab3f70038d7428729c15ca"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a6282d0d8d2ab3f70038d7428729c15ca">escape</a> (const std::string &amp;in)</td></tr>
 <tr class="memdesc:a6282d0d8d2ab3f70038d7428729c15ca"><td class="mdescLeft">&#160;</td><td class="mdescRight">Escape a string.  <br /></td></tr>
 <tr class="separator:a6282d0d8d2ab3f70038d7428729c15ca"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aad280665c9c9fd0c7c4335cae487598a" id="r_aad280665c9c9fd0c7c4335cae487598a"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aad280665c9c9fd0c7c4335cae487598a">merge</a> (set &amp;command, set path)</td></tr>
 <tr class="memdesc:aad280665c9c9fd0c7c4335cae487598a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Merge two sets together.  <br /></td></tr>
 <tr class="separator:aad280665c9c9fd0c7c4335cae487598a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a48902b7bb96ff218057c3b363b43ea8a" id="r_a48902b7bb96ff218057c3b363b43ea8a"><td class="memTemplParams" colspan="2">template&lt;class T, class A, class ... Args&gt; </td></tr>
-<tr class="memitem:a48902b7bb96ff218057c3b363b43ea8a"><td class="memTemplItemLeft" align="right" valign="top">T&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="#a48902b7bb96ff218057c3b363b43ea8a">init</a> (const A &amp;fun, Args &amp;&amp;... args)</td></tr>
-<tr class="memdesc:a48902b7bb96ff218057c3b363b43ea8a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compose a return value from an accumulator function.  <br /></td></tr>
-<tr class="separator:a48902b7bb96ff218057c3b363b43ea8a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8d237bf1ea1e2a6fb5c7d30bcb51f593" id="r_a8d237bf1ea1e2a6fb5c7d30bcb51f593"><td class="memTemplParams" colspan="2">template&lt;class T, class A, class L = list, class ... Args&gt; </td></tr>
 <tr class="memitem:a8d237bf1ea1e2a6fb5c7d30bcb51f593"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="#a8d237bf1ea1e2a6fb5c7d30bcb51f593">single_batch</a> (const A &amp;fun, T &amp;accum, const L &amp;mem, Args &amp;&amp;... args)</td></tr>
 <tr class="memdesc:a8d237bf1ea1e2a6fb5c7d30bcb51f593"><td class="mdescLeft">&#160;</td><td class="mdescRight">Batch multiple iterations of an accumulator function together.  <br /></td></tr>
@@ -316,9 +229,6 @@ BS::thread_pool&lt; BS::tp::wait_deadlock_checks &gt;&#160;</td><td class="memIt
 <tr class="memitem:a61690d1a6c76019205797f8117a97d37" id="r_a61690d1a6c76019205797f8117a97d37"><td class="memItemLeft" align="right" valign="top"><a id="a61690d1a6c76019205797f8117a97d37" name="a61690d1a6c76019205797f8117a97d37"></a>
 int&#160;</td><td class="memItemRight" valign="bottom"><b>inotify</b> = -1</td></tr>
 <tr class="separator:a61690d1a6c76019205797f8117a97d37"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a99d88e8aced6582fdcb3490951b3057c" id="r_a99d88e8aced6582fdcb3490951b3057c"><td class="memItemLeft" align="right" valign="top"><a id="a99d88e8aced6582fdcb3490951b3057c" name="a99d88e8aced6582fdcb3490951b3057c"></a>
-constexpr uint_fast16_t&#160;</td><td class="memItemRight" valign="bottom"><b>buffer_size</b> = 1024</td></tr>
-<tr class="separator:a99d88e8aced6582fdcb3490951b3057c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3343b2a02dd72d73e44ca297adec17ff" id="r_a3343b2a02dd72d73e44ca297adec17ff"><td class="memItemLeft" align="right" valign="top"><a id="a3343b2a02dd72d73e44ca297adec17ff" name="a3343b2a02dd72d73e44ca297adec17ff"></a>
 const std::string&#160;</td><td class="memItemRight" valign="bottom"><b>home</b> = std::getenv(&quot;HOME&quot;)</td></tr>
 <tr class="separator:a3343b2a02dd72d73e44ca297adec17ff"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -421,44 +331,6 @@ template&lt;class T, class A, class L = list, class ... Args&gt; </div>
 
 </div>
 </div>
-<a id="a80f3b59804700742a5a0c6ea15bf24f9" name="a80f3b59804700742a5a0c6ea15bf24f9"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a80f3b59804700742a5a0c6ea15bf24f9">&#9670;&#160;</a></span>dump()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">std::string shared::dump </td>
-          <td>(</td>
-          <td class="paramtype">const int &amp;</td>          <td class="paramname"><span class="paramname"><em>fd</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const int &amp;</td>          <td class="paramname"><span class="paramname"><em>pid</em></span><span class="paramdefsep"> = </span><span class="paramdefval">-1</span>&#160;)</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>A Blocking Parser that returns the output in a single string. </p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">fd</td><td>The FD on the attached pipe. </td></tr>
-    <tr><td class="paramname">pid</td><td>The PID of the process. </td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="section return"><dt>Returns</dt><dd>: The output </dd></dl>
-<div id="dynsection-2" onclick="return dynsection.toggleVisibility(this)" class="dynheader closed" style="cursor:pointer;">
-  <img id="dynsection-2-trigger" src="closed.png" alt="+"/> Here is the caller graph for this function:</div>
-<div id="dynsection-2-summary" class="dynsummary" style="display:block;">
-</div>
-<div id="dynsection-2-content" class="dyncontent" style="display:none;">
-<div class="center"><div class="zoom"><iframe scrolling="no" frameborder="0" src="namespaceshared_a80f3b59804700742a5a0c6ea15bf24f9_icgraph.svg" width="100%" height="600"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div></div>
-</div>
-
-</div>
-</div>
 <a id="a6282d0d8d2ab3f70038d7428729c15ca" name="a6282d0d8d2ab3f70038d7428729c15ca"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a6282d0d8d2ab3f70038d7428729c15ca">&#9670;&#160;</a></span>escape()</h2>
 
@@ -482,71 +354,6 @@ template&lt;class T, class A, class L = list, class ... Args&gt; </div>
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>: The escaped string. </dd></dl>
-<div id="dynsection-3" onclick="return dynsection.toggleVisibility(this)" class="dynheader closed" style="cursor:pointer;">
-  <img id="dynsection-3-trigger" src="closed.png" alt="+"/> Here is the caller graph for this function:</div>
-<div id="dynsection-3-summary" class="dynsummary" style="display:block;">
-</div>
-<div id="dynsection-3-content" class="dyncontent" style="display:none;">
-<div class="center"><div class="zoom"><iframe scrolling="no" frameborder="0" src="namespaceshared_a6282d0d8d2ab3f70038d7428729c15ca_icgraph.svg" width="100%" height="600"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div></div>
-</div>
-
-</div>
-</div>
-<a id="aa381bd3e7caf6ab85ad8d8518fd4adf2" name="aa381bd3e7caf6ab85ad8d8518fd4adf2"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aa381bd3e7caf6ab85ad8d8518fd4adf2">&#9670;&#160;</a></span>exec()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;class R = void, class T = list&gt; </div>
-      <table class="memname">
-        <tr>
-          <td class="memname">R shared::exec </td>
-          <td>(</td>
-          <td class="paramtype">const T &amp;</td>          <td class="paramname"><span class="paramname"><em>cmd</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const std::function&lt; R(const int &amp;, const int &amp;)&gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>parser</em></span><span class="paramdefsep"> = </span><span class="paramdefval">[](const&#160;int&amp;&#160;fd,&#160;const&#160;int&amp;&#160;pid)&#160;{close(fd);}</span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const <a class="el" href="#adcb21f379e46f702cabe7238755cf858">exec_policy</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>policy</em></span><span class="paramdefsep"> = </span><span class="paramdefval">NONE</span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const std::string &amp;</td>          <td class="paramname"><span class="paramname"><em>in</em></span><span class="paramdefsep"> = </span><span class="paramdefval">&quot;&quot;</span>&#160;)</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Execute stuff. </p>
-<dl class="tparams"><dt>Template Parameters</dt><dd>
-  <table class="tparams">
-    <tr><td class="paramname">R</td><td>What to return from the child. </td></tr>
-    <tr><td class="paramname">T</td><td>The container holding the command. </td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">cmd</td><td>The command to run. </td></tr>
-    <tr><td class="paramname">parser</td><td>The Parser to use on the output. </td></tr>
-    <tr><td class="paramname">policy</td><td>What to capture. </td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="section return"><dt>Returns</dt><dd>The selected output from the parser. </dd></dl>
-<div id="dynsection-4" onclick="return dynsection.toggleVisibility(this)" class="dynheader closed" style="cursor:pointer;">
-  <img id="dynsection-4-trigger" src="closed.png" alt="+"/> Here is the caller graph for this function:</div>
-<div id="dynsection-4-summary" class="dynsummary" style="display:block;">
-</div>
-<div id="dynsection-4-content" class="dyncontent" style="display:none;">
-<div class="center"><div class="zoom"><iframe scrolling="no" frameborder="0" src="namespaceshared_aa381bd3e7caf6ab85ad8d8518fd4adf2_icgraph.svg" width="100%" height="508"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div></div>
-</div>
 
 </div>
 </div>
@@ -621,66 +428,12 @@ template&lt;class T&gt; </div>
   </table>
   </dd>
 </dl>
-<div id="dynsection-5" onclick="return dynsection.toggleVisibility(this)" class="dynheader closed" style="cursor:pointer;">
-  <img id="dynsection-5-trigger" src="closed.png" alt="+"/> Here is the caller graph for this function:</div>
-<div id="dynsection-5-summary" class="dynsummary" style="display:block;">
+<div id="dynsection-2" onclick="return dynsection.toggleVisibility(this)" class="dynheader closed" style="cursor:pointer;">
+  <img id="dynsection-2-trigger" src="closed.png" alt="+"/> Here is the caller graph for this function:</div>
+<div id="dynsection-2-summary" class="dynsummary" style="display:block;">
 </div>
-<div id="dynsection-5-content" class="dyncontent" style="display:none;">
+<div id="dynsection-2-content" class="dyncontent" style="display:none;">
 <div class="center"><div class="zoom"><iframe scrolling="no" frameborder="0" src="namespaceshared_a1636cc0cb46e6be8f452dbc1e92a1e28_icgraph.svg" width="100%" height="600"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div></div>
-</div>
-
-</div>
-</div>
-<a id="a9ed709af90ab0108e5c3a8afdd3e7042" name="a9ed709af90ab0108e5c3a8afdd3e7042"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a9ed709af90ab0108e5c3a8afdd3e7042">&#9670;&#160;</a></span>fd_splitter()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;class C, char delim, bool escape = false&gt; </div>
-      <table class="memname">
-        <tr>
-          <td class="memname">C shared::fd_splitter </td>
-          <td>(</td>
-          <td class="paramtype">const int &amp;</td>          <td class="paramname"><span class="paramname"><em>fd</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const int &amp;</td>          <td class="paramname"><span class="paramname"><em>pid</em></span>&#160;)</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Split the contents of an FD. </p>
-<dl class="tparams"><dt>Template Parameters</dt><dd>
-  <table class="tparams">
-    <tr><td class="paramname">C</td><td>The container to return. </td></tr>
-    <tr><td class="paramname">delim</td><td>The delimiter to use. </td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">fd</td><td>The FD of the file/process. </td></tr>
-    <tr><td class="paramname">pid</td><td>The PID of the process. </td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="section return"><dt>Returns</dt><dd>The split output/contents. </dd></dl>
-<div id="dynsection-6" onclick="return dynsection.toggleVisibility(this)" class="dynheader closed" style="cursor:pointer;">
-  <img id="dynsection-6-trigger" src="closed.png" alt="+"/> Here is the call graph for this function:</div>
-<div id="dynsection-6-summary" class="dynsummary" style="display:block;">
-</div>
-<div id="dynsection-6-content" class="dyncontent" style="display:none;">
-<div class="center"><iframe scrolling="no" frameborder="0" src="namespaceshared_a9ed709af90ab0108e5c3a8afdd3e7042_cgraph.svg" width="450" height="139"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-<div id="dynsection-7" onclick="return dynsection.toggleVisibility(this)" class="dynheader closed" style="cursor:pointer;">
-  <img id="dynsection-7-trigger" src="closed.png" alt="+"/> Here is the caller graph for this function:</div>
-<div id="dynsection-7-summary" class="dynsummary" style="display:block;">
-</div>
-<div id="dynsection-7-content" class="dyncontent" style="display:none;">
-<div class="center"><div class="zoom"><iframe scrolling="no" frameborder="0" src="namespaceshared_a9ed709af90ab0108e5c3a8afdd3e7042_icgraph.svg" width="100%" height="600"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div></div>
 </div>
 
 </div>
@@ -712,50 +465,12 @@ template&lt;class C, char delim, bool escape = false&gt; </div>
   </table>
   </dd>
 </dl>
-<div id="dynsection-8" onclick="return dynsection.toggleVisibility(this)" class="dynheader closed" style="cursor:pointer;">
-  <img id="dynsection-8-trigger" src="closed.png" alt="+"/> Here is the call graph for this function:</div>
-<div id="dynsection-8-summary" class="dynsummary" style="display:block;">
+<div id="dynsection-3" onclick="return dynsection.toggleVisibility(this)" class="dynheader closed" style="cursor:pointer;">
+  <img id="dynsection-3-trigger" src="closed.png" alt="+"/> Here is the call graph for this function:</div>
+<div id="dynsection-3-summary" class="dynsummary" style="display:block;">
 </div>
-<div id="dynsection-8-content" class="dyncontent" style="display:none;">
+<div id="dynsection-3-content" class="dyncontent" style="display:none;">
 <div class="center"><iframe scrolling="no" frameborder="0" src="namespaceshared_a00b81f070735db096bbcd00c9d87188e_cgraph.svg" width="263" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-
-</div>
-</div>
-<a id="a1f0e43f0520bfb104be776b21ea446ad" name="a1f0e43f0520bfb104be776b21ea446ad"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a1f0e43f0520bfb104be776b21ea446ad">&#9670;&#160;</a></span>get_pid()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">int shared::get_pid </td>
-          <td>(</td>
-          <td class="paramtype">const int &amp;</td>          <td class="paramname"><span class="paramname"><em>fd</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const int &amp;</td>          <td class="paramname"><span class="paramname"><em>pid</em></span><span class="paramdefsep"> = </span><span class="paramdefval">-1</span>&#160;)</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>A Non-Blocking Parser that returns the PID. </p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">fd</td><td>The FD on the attached pipe. </td></tr>
-    <tr><td class="paramname">pid</td><td>The PID of the process. </td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="section return"><dt>Returns</dt><dd>: The PID </dd></dl>
-<div id="dynsection-9" onclick="return dynsection.toggleVisibility(this)" class="dynheader closed" style="cursor:pointer;">
-  <img id="dynsection-9-trigger" src="closed.png" alt="+"/> Here is the caller graph for this function:</div>
-<div id="dynsection-9-summary" class="dynsummary" style="display:block;">
-</div>
-<div id="dynsection-9-content" class="dyncontent" style="display:none;">
-<div class="center"><iframe scrolling="no" frameborder="0" src="namespaceshared_a1f0e43f0520bfb104be776b21ea446ad_icgraph.svg" width="304" height="54"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -783,113 +498,19 @@ template&lt;class C, char delim, bool escape = false&gt; </div>
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>The hex digest. </dd></dl>
-<div id="dynsection-10" onclick="return dynsection.toggleVisibility(this)" class="dynheader closed" style="cursor:pointer;">
-  <img id="dynsection-10-trigger" src="closed.png" alt="+"/> Here is the call graph for this function:</div>
-<div id="dynsection-10-summary" class="dynsummary" style="display:block;">
+<div id="dynsection-4" onclick="return dynsection.toggleVisibility(this)" class="dynheader closed" style="cursor:pointer;">
+  <img id="dynsection-4-trigger" src="closed.png" alt="+"/> Here is the call graph for this function:</div>
+<div id="dynsection-4-summary" class="dynsummary" style="display:block;">
 </div>
-<div id="dynsection-10-content" class="dyncontent" style="display:none;">
+<div id="dynsection-4-content" class="dyncontent" style="display:none;">
 <div class="center"><iframe scrolling="no" frameborder="0" src="namespaceshared_a4a708359d4c8dbeeaa8b744eec56c0e5_cgraph.svg" width="107" height="62"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
-<div id="dynsection-11" onclick="return dynsection.toggleVisibility(this)" class="dynheader closed" style="cursor:pointer;">
-  <img id="dynsection-11-trigger" src="closed.png" alt="+"/> Here is the caller graph for this function:</div>
-<div id="dynsection-11-summary" class="dynsummary" style="display:block;">
+<div id="dynsection-5" onclick="return dynsection.toggleVisibility(this)" class="dynheader closed" style="cursor:pointer;">
+  <img id="dynsection-5-trigger" src="closed.png" alt="+"/> Here is the caller graph for this function:</div>
+<div id="dynsection-5-summary" class="dynsummary" style="display:block;">
 </div>
-<div id="dynsection-11-content" class="dyncontent" style="display:none;">
+<div id="dynsection-5-content" class="dyncontent" style="display:none;">
 <div class="center"><iframe scrolling="no" frameborder="0" src="namespaceshared_a4a708359d4c8dbeeaa8b744eec56c0e5_icgraph.svg" width="496" height="214"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-
-</div>
-</div>
-<a id="ad05481a6e28afc976d57ddcba12e8a4d" name="ad05481a6e28afc976d57ddcba12e8a4d"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ad05481a6e28afc976d57ddcba12e8a4d">&#9670;&#160;</a></span>head()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;uint_fast8_t count&gt; </div>
-      <table class="memname">
-        <tr>
-          <td class="memname">std::string shared::head </td>
-          <td>(</td>
-          <td class="paramtype">const int &amp;</td>          <td class="paramname"><span class="paramname"><em>fd</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const int &amp;</td>          <td class="paramname"><span class="paramname"><em>pid</em></span>&#160;)</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>A Blocking Parser that returns the first count of the output. </p>
-<dl class="tparams"><dt>Template Parameters</dt><dd>
-  <table class="tparams">
-    <tr><td class="paramname">count</td><td>The amount of characters to return. </td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">fd</td><td>The FD on the attached pipe. </td></tr>
-    <tr><td class="paramname">pid</td><td>The PID of the process. </td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="section return"><dt>Returns</dt><dd>: The output. </dd></dl>
-<div id="dynsection-12" onclick="return dynsection.toggleVisibility(this)" class="dynheader closed" style="cursor:pointer;">
-  <img id="dynsection-12-trigger" src="closed.png" alt="+"/> Here is the caller graph for this function:</div>
-<div id="dynsection-12-summary" class="dynsummary" style="display:block;">
-</div>
-<div id="dynsection-12-content" class="dyncontent" style="display:none;">
-<div class="center"><iframe scrolling="no" frameborder="0" src="namespaceshared_ad05481a6e28afc976d57ddcba12e8a4d_icgraph.svg" width="624" height="96"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-
-</div>
-</div>
-<a id="a48902b7bb96ff218057c3b363b43ea8a" name="a48902b7bb96ff218057c3b363b43ea8a"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a48902b7bb96ff218057c3b363b43ea8a">&#9670;&#160;</a></span>init()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;class T, class A, class ... Args&gt; </div>
-      <table class="memname">
-        <tr>
-          <td class="memname">T shared::init </td>
-          <td>(</td>
-          <td class="paramtype">const A &amp;</td>          <td class="paramname"><span class="paramname"><em>fun</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">Args &amp;&amp;...</td>          <td class="paramname"><span class="paramname"><em>args</em></span>&#160;)</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Compose a return value from an accumulator function. </p>
-<dl class="tparams"><dt>Template Parameters</dt><dd>
-  <table class="tparams">
-    <tr><td class="paramname">T</td><td>The return type (IE the accumulator type). </td></tr>
-    <tr><td class="paramname">A</td><td>The function to wrap. </td></tr>
-    <tr><td class="paramname">...Args</td><td>Additional arguments to the function. </td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">fun</td><td>The function. </td></tr>
-    <tr><td class="paramname">args</td><td>Additional arguments. </td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="section return"><dt>Returns</dt><dd>The accumulated results from the function. </dd></dl>
-<div id="dynsection-13" onclick="return dynsection.toggleVisibility(this)" class="dynheader closed" style="cursor:pointer;">
-  <img id="dynsection-13-trigger" src="closed.png" alt="+"/> Here is the caller graph for this function:</div>
-<div id="dynsection-13-summary" class="dynsummary" style="display:block;">
-</div>
-<div id="dynsection-13-content" class="dyncontent" style="display:none;">
-<div class="center"><iframe scrolling="no" frameborder="0" src="namespaceshared_a48902b7bb96ff218057c3b363b43ea8a_icgraph.svg" width="650" height="339"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -960,11 +581,11 @@ template&lt;class T&gt; </div>
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>: The joined string. </dd></dl>
-<div id="dynsection-14" onclick="return dynsection.toggleVisibility(this)" class="dynheader closed" style="cursor:pointer;">
-  <img id="dynsection-14-trigger" src="closed.png" alt="+"/> Here is the caller graph for this function:</div>
-<div id="dynsection-14-summary" class="dynsummary" style="display:block;">
+<div id="dynsection-6" onclick="return dynsection.toggleVisibility(this)" class="dynheader closed" style="cursor:pointer;">
+  <img id="dynsection-6-trigger" src="closed.png" alt="+"/> Here is the caller graph for this function:</div>
+<div id="dynsection-6-summary" class="dynsummary" style="display:block;">
 </div>
-<div id="dynsection-14-content" class="dyncontent" style="display:none;">
+<div id="dynsection-6-content" class="dyncontent" style="display:none;">
 <div class="center"><div class="zoom"><iframe scrolling="no" frameborder="0" src="namespaceshared_a2f7cb04abbe01ba7193f2d2a6d520355_icgraph.svg" width="100%" height="510"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div></div>
 </div>
 
@@ -996,11 +617,11 @@ template&lt;class T&gt; </div>
   </table>
   </dd>
 </dl>
-<div id="dynsection-15" onclick="return dynsection.toggleVisibility(this)" class="dynheader closed" style="cursor:pointer;">
-  <img id="dynsection-15-trigger" src="closed.png" alt="+"/> Here is the caller graph for this function:</div>
-<div id="dynsection-15-summary" class="dynsummary" style="display:block;">
+<div id="dynsection-7" onclick="return dynsection.toggleVisibility(this)" class="dynheader closed" style="cursor:pointer;">
+  <img id="dynsection-7-trigger" src="closed.png" alt="+"/> Here is the caller graph for this function:</div>
+<div id="dynsection-7-summary" class="dynsummary" style="display:block;">
 </div>
-<div id="dynsection-15-content" class="dyncontent" style="display:none;">
+<div id="dynsection-7-content" class="dyncontent" style="display:none;">
 <div class="center"><div class="zoom"><iframe scrolling="no" frameborder="0" src="namespaceshared_a99724c73af55fa92ae29fee700152917_icgraph.svg" width="100%" height="598"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div></div>
 </div>
 
@@ -1033,135 +654,6 @@ template&lt;class T&gt; </div>
   </table>
   </dd>
 </dl>
-
-</div>
-</div>
-<a id="a4ddc24b4d99e824f9b941fa905fb0a81" name="a4ddc24b4d99e824f9b941fa905fb0a81"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a4ddc24b4d99e824f9b941fa905fb0a81">&#9670;&#160;</a></span>one_line()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">std::string shared::one_line </td>
-          <td>(</td>
-          <td class="paramtype">const int &amp;</td>          <td class="paramname"><span class="paramname"><em>fd</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const int &amp;</td>          <td class="paramname"><span class="paramname"><em>pid</em></span><span class="paramdefsep"> = </span><span class="paramdefval">-1</span>&#160;)</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>A Blocking Parser that returns the first line of output. </p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">fd</td><td>The FD on the attached pipe. </td></tr>
-    <tr><td class="paramname">pid</td><td>The PID of the process. </td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="section return"><dt>Returns</dt><dd>: The first line. </dd></dl>
-<div id="dynsection-16" onclick="return dynsection.toggleVisibility(this)" class="dynheader closed" style="cursor:pointer;">
-  <img id="dynsection-16-trigger" src="closed.png" alt="+"/> Here is the caller graph for this function:</div>
-<div id="dynsection-16-summary" class="dynsummary" style="display:block;">
-</div>
-<div id="dynsection-16-content" class="dyncontent" style="display:none;">
-<div class="center"><iframe scrolling="no" frameborder="0" src="namespaceshared_a4ddc24b4d99e824f9b941fa905fb0a81_icgraph.svg" width="644" height="96"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-
-</div>
-</div>
-<a id="afac154f1bef460ef6f24705f6c033f37" name="afac154f1bef460ef6f24705f6c033f37"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#afac154f1bef460ef6f24705f6c033f37">&#9670;&#160;</a></span>read_file()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;class R&gt; </div>
-      <table class="memname">
-        <tr>
-          <td class="memname">R shared::read_file </td>
-          <td>(</td>
-          <td class="paramtype">const std::filesystem::path &amp;</td>          <td class="paramname"><span class="paramname"><em>path</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const std::function&lt; R(const int &amp;, const int &amp;)&gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>parser</em></span>&#160;)</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Read a file. </p>
-<dl class="tparams"><dt>Template Parameters</dt><dd>
-  <table class="tparams">
-    <tr><td class="paramname">R</td><td>The return type. </td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">path</td><td>The path to the file. </td></tr>
-    <tr><td class="paramname">parser</td><td>The parser to use on the file. </td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="section return"><dt>Returns</dt><dd>The contents. </dd></dl>
-<div id="dynsection-17" onclick="return dynsection.toggleVisibility(this)" class="dynheader closed" style="cursor:pointer;">
-  <img id="dynsection-17-trigger" src="closed.png" alt="+"/> Here is the caller graph for this function:</div>
-<div id="dynsection-17-summary" class="dynsummary" style="display:block;">
-</div>
-<div id="dynsection-17-content" class="dyncontent" style="display:none;">
-<div class="center"><div class="zoom"><iframe scrolling="no" frameborder="0" src="namespaceshared_afac154f1bef460ef6f24705f6c033f37_icgraph.svg" width="100%" height="600"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div></div>
-</div>
-
-</div>
-</div>
-<a id="a219683cbcfb575bb29797638cadafb7b" name="a219683cbcfb575bb29797638cadafb7b"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a219683cbcfb575bb29797638cadafb7b">&#9670;&#160;</a></span>setorize()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">set shared::setorize </td>
-          <td>(</td>
-          <td class="paramtype">const int &amp;</td>          <td class="paramname"><span class="paramname"><em>fd</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const int &amp;</td>          <td class="paramname"><span class="paramname"><em>pid</em></span><span class="paramdefsep"> = </span><span class="paramdefval">-1</span>&#160;)</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>A Blocking Parser that splits the output into a set. </p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">fd</td><td>The FD on the attached pipe. </td></tr>
-    <tr><td class="paramname">pid</td><td>The PID of the process. </td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="section return"><dt>Returns</dt><dd>The output, split on spaces. @info If you need to split on something other than ' ', use fd_splitter </dd></dl>
-<div id="dynsection-18" onclick="return dynsection.toggleVisibility(this)" class="dynheader closed" style="cursor:pointer;">
-  <img id="dynsection-18-trigger" src="closed.png" alt="+"/> Here is the call graph for this function:</div>
-<div id="dynsection-18-summary" class="dynsummary" style="display:block;">
-</div>
-<div id="dynsection-18-content" class="dyncontent" style="display:none;">
-<div class="center"><iframe scrolling="no" frameborder="0" src="namespaceshared_a219683cbcfb575bb29797638cadafb7b_cgraph.svg" width="612" height="139"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-<div id="dynsection-19" onclick="return dynsection.toggleVisibility(this)" class="dynheader closed" style="cursor:pointer;">
-  <img id="dynsection-19-trigger" src="closed.png" alt="+"/> Here is the caller graph for this function:</div>
-<div id="dynsection-19-summary" class="dynsummary" style="display:block;">
-</div>
-<div id="dynsection-19-content" class="dyncontent" style="display:none;">
-<div class="center"><div class="zoom"><iframe scrolling="no" frameborder="0" src="namespaceshared_a219683cbcfb575bb29797638cadafb7b_icgraph.svg" width="100%" height="403"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div></div>
-</div>
 
 </div>
 </div>
@@ -1198,18 +690,18 @@ template&lt;class R&gt; </div>
   </table>
   </dd>
 </dl>
-<div id="dynsection-20" onclick="return dynsection.toggleVisibility(this)" class="dynheader closed" style="cursor:pointer;">
-  <img id="dynsection-20-trigger" src="closed.png" alt="+"/> Here is the call graph for this function:</div>
-<div id="dynsection-20-summary" class="dynsummary" style="display:block;">
+<div id="dynsection-8" onclick="return dynsection.toggleVisibility(this)" class="dynheader closed" style="cursor:pointer;">
+  <img id="dynsection-8-trigger" src="closed.png" alt="+"/> Here is the call graph for this function:</div>
+<div id="dynsection-8-summary" class="dynsummary" style="display:block;">
 </div>
-<div id="dynsection-20-content" class="dyncontent" style="display:none;">
+<div id="dynsection-8-content" class="dyncontent" style="display:none;">
 <div class="center"><iframe scrolling="no" frameborder="0" src="namespaceshared_acf7d9b7a4de8ca12d42e2132f2f4b4e7_cgraph.svg" width="267" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
-<div id="dynsection-21" onclick="return dynsection.toggleVisibility(this)" class="dynheader closed" style="cursor:pointer;">
-  <img id="dynsection-21-trigger" src="closed.png" alt="+"/> Here is the caller graph for this function:</div>
-<div id="dynsection-21-summary" class="dynsummary" style="display:block;">
+<div id="dynsection-9" onclick="return dynsection.toggleVisibility(this)" class="dynheader closed" style="cursor:pointer;">
+  <img id="dynsection-9-trigger" src="closed.png" alt="+"/> Here is the caller graph for this function:</div>
+<div id="dynsection-9-summary" class="dynsummary" style="display:block;">
 </div>
-<div id="dynsection-21-content" class="dyncontent" style="display:none;">
+<div id="dynsection-9-content" class="dyncontent" style="display:none;">
 <div class="center"><iframe scrolling="no" frameborder="0" src="namespaceshared_acf7d9b7a4de8ca12d42e2132f2f4b4e7_icgraph.svg" width="264" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
@@ -1265,77 +757,12 @@ template&lt;class T, class A, class L = list, class ... Args&gt; </div>
   </table>
   </dd>
 </dl>
-<div id="dynsection-22" onclick="return dynsection.toggleVisibility(this)" class="dynheader closed" style="cursor:pointer;">
-  <img id="dynsection-22-trigger" src="closed.png" alt="+"/> Here is the caller graph for this function:</div>
-<div id="dynsection-22-summary" class="dynsummary" style="display:block;">
+<div id="dynsection-10" onclick="return dynsection.toggleVisibility(this)" class="dynheader closed" style="cursor:pointer;">
+  <img id="dynsection-10-trigger" src="closed.png" alt="+"/> Here is the caller graph for this function:</div>
+<div id="dynsection-10-summary" class="dynsummary" style="display:block;">
 </div>
-<div id="dynsection-22-content" class="dyncontent" style="display:none;">
+<div id="dynsection-10-content" class="dyncontent" style="display:none;">
 <div class="center"><div class="zoom"><iframe scrolling="no" frameborder="0" src="namespaceshared_a8d237bf1ea1e2a6fb5c7d30bcb51f593_icgraph.svg" width="100%" height="381"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div></div>
-</div>
-
-</div>
-</div>
-<a id="a690cc836408825d804377522d9d99a07" name="a690cc836408825d804377522d9d99a07"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a690cc836408825d804377522d9d99a07">&#9670;&#160;</a></span>splitter()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;typename C, typename T&gt; </div>
-      <table class="memname">
-        <tr>
-          <td class="memname">void shared::splitter </td>
-          <td>(</td>
-          <td class="paramtype">C &amp;</td>          <td class="paramname"><span class="paramname"><em>working</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const std::string_view &amp;</td>          <td class="paramname"><span class="paramname"><em>str</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const T &amp;</td>          <td class="paramname"><span class="paramname"><em>delim</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const bool &amp;</td>          <td class="paramname"><span class="paramname"><em>escape</em></span>&#160;)</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Split a string. </p>
-<dl class="tparams"><dt>Template Parameters</dt><dd>
-  <table class="tparams">
-    <tr><td class="paramname">C</td><td>The accumulator container type. </td></tr>
-    <tr><td class="paramname">T</td><td>The delimiter type, can either be a single character, or a string of characters. </td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">working</td><td>The accumulator. </td></tr>
-    <tr><td class="paramname">str</td><td>The string to split. </td></tr>
-    <tr><td class="paramname">delim</td><td>The delimiter to split on </td></tr>
-    <tr><td class="paramname">escape</td><td>Ignore delimiters bound in quotes. </td></tr>
-  </table>
-  </dd>
-</dl>
-<div id="dynsection-23" onclick="return dynsection.toggleVisibility(this)" class="dynheader closed" style="cursor:pointer;">
-  <img id="dynsection-23-trigger" src="closed.png" alt="+"/> Here is the call graph for this function:</div>
-<div id="dynsection-23-summary" class="dynsummary" style="display:block;">
-</div>
-<div id="dynsection-23-content" class="dyncontent" style="display:none;">
-<div class="center"><iframe scrolling="no" frameborder="0" src="namespaceshared_a690cc836408825d804377522d9d99a07_cgraph.svg" width="276" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-<div id="dynsection-24" onclick="return dynsection.toggleVisibility(this)" class="dynheader closed" style="cursor:pointer;">
-  <img id="dynsection-24-trigger" src="closed.png" alt="+"/> Here is the caller graph for this function:</div>
-<div id="dynsection-24-summary" class="dynsummary" style="display:block;">
-</div>
-<div id="dynsection-24-content" class="dyncontent" style="display:none;">
-<div class="center"><div class="zoom"><iframe scrolling="no" frameborder="0" src="namespaceshared_a690cc836408825d804377522d9d99a07_icgraph.svg" width="100%" height="600"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div></div>
 </div>
 
 </div>
@@ -1370,11 +797,11 @@ template&lt;typename T&gt; </div>
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>The stripped string. </dd></dl>
-<div id="dynsection-25" onclick="return dynsection.toggleVisibility(this)" class="dynheader closed" style="cursor:pointer;">
-  <img id="dynsection-25-trigger" src="closed.png" alt="+"/> Here is the caller graph for this function:</div>
-<div id="dynsection-25-summary" class="dynsummary" style="display:block;">
+<div id="dynsection-11" onclick="return dynsection.toggleVisibility(this)" class="dynheader closed" style="cursor:pointer;">
+  <img id="dynsection-11-trigger" src="closed.png" alt="+"/> Here is the caller graph for this function:</div>
+<div id="dynsection-11-summary" class="dynsummary" style="display:block;">
 </div>
-<div id="dynsection-25-content" class="dyncontent" style="display:none;">
+<div id="dynsection-11-content" class="dyncontent" style="display:none;">
 <div class="center"><iframe scrolling="no" frameborder="0" src="namespaceshared_ae0ec3e8d4de79340eda47eabfd075feb_icgraph.svg" width="622" height="96"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
@@ -1410,89 +837,13 @@ template&lt;typename T&gt; </div>
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>The trimmed string. @info trim only removes from the front and end, stopping after encountered a non-to_strip character, whereas strip removes all instances regardless. </dd></dl>
-<div id="dynsection-26" onclick="return dynsection.toggleVisibility(this)" class="dynheader closed" style="cursor:pointer;">
-  <img id="dynsection-26-trigger" src="closed.png" alt="+"/> Here is the caller graph for this function:</div>
-<div id="dynsection-26-summary" class="dynsummary" style="display:block;">
+<div id="dynsection-12" onclick="return dynsection.toggleVisibility(this)" class="dynheader closed" style="cursor:pointer;">
+  <img id="dynsection-12-trigger" src="closed.png" alt="+"/> Here is the caller graph for this function:</div>
+<div id="dynsection-12-summary" class="dynsummary" style="display:block;">
 </div>
-<div id="dynsection-26-content" class="dyncontent" style="display:none;">
+<div id="dynsection-12-content" class="dyncontent" style="display:none;">
 <div class="center"><iframe scrolling="no" frameborder="0" src="namespaceshared_a77e45bc6735a35fbc38891b166e40a7b_icgraph.svg" width="619" height="96"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
-
-</div>
-</div>
-<a id="ae5d42a7f6819f149991304227a611c78" name="ae5d42a7f6819f149991304227a611c78"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ae5d42a7f6819f149991304227a611c78">&#9670;&#160;</a></span>vectorize()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">vector shared::vectorize </td>
-          <td>(</td>
-          <td class="paramtype">const int &amp;</td>          <td class="paramname"><span class="paramname"><em>fd</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const int &amp;</td>          <td class="paramname"><span class="paramname"><em>pid</em></span><span class="paramdefsep"> = </span><span class="paramdefval">-1</span>&#160;)</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>A Blocking Parser that splits the output into a vector. </p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">fd</td><td>The FD on the attached pipe. </td></tr>
-    <tr><td class="paramname">pid</td><td>The PID of the process. </td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="section return"><dt>Returns</dt><dd>The output, split on newlines. @info If you need to split on something other than '<br  />
-', use fd_splitter </dd></dl>
-<div id="dynsection-27" onclick="return dynsection.toggleVisibility(this)" class="dynheader closed" style="cursor:pointer;">
-  <img id="dynsection-27-trigger" src="closed.png" alt="+"/> Here is the call graph for this function:</div>
-<div id="dynsection-27-summary" class="dynsummary" style="display:block;">
-</div>
-<div id="dynsection-27-content" class="dyncontent" style="display:none;">
-<div class="center"><iframe scrolling="no" frameborder="0" src="namespaceshared_ae5d42a7f6819f149991304227a611c78_cgraph.svg" width="619" height="139"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-<div id="dynsection-28" onclick="return dynsection.toggleVisibility(this)" class="dynheader closed" style="cursor:pointer;">
-  <img id="dynsection-28-trigger" src="closed.png" alt="+"/> Here is the caller graph for this function:</div>
-<div id="dynsection-28-summary" class="dynsummary" style="display:block;">
-</div>
-<div id="dynsection-28-content" class="dyncontent" style="display:none;">
-<div class="center"><iframe scrolling="no" frameborder="0" src="namespaceshared_ae5d42a7f6819f149991304227a611c78_icgraph.svg" width="342" height="264"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-
-</div>
-</div>
-<a id="a2bf95a904a7f3cf5fed5722296ef016c" name="a2bf95a904a7f3cf5fed5722296ef016c"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a2bf95a904a7f3cf5fed5722296ef016c">&#9670;&#160;</a></span>wait_for()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void shared::wait_for </td>
-          <td>(</td>
-          <td class="paramtype">const int &amp;</td>          <td class="paramname"><span class="paramname"><em>fd</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const int &amp;</td>          <td class="paramname"><span class="paramname"><em>pid</em></span><span class="paramdefsep"> = </span><span class="paramdefval">-1</span>&#160;)</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>A Blocking Parser that waits for the PID to exit. </p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">fd</td><td>The FD on the attached pipe. </td></tr>
-    <tr><td class="paramname">pid</td><td>The PID of the process. </td></tr>
-  </table>
-  </dd>
-</dl>
 
 </div>
 </div>
@@ -1530,48 +881,13 @@ template&lt;typename T&gt; </div>
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>: All unique matches. </dd></dl>
-<div id="dynsection-29" onclick="return dynsection.toggleVisibility(this)" class="dynheader closed" style="cursor:pointer;">
-  <img id="dynsection-29-trigger" src="closed.png" alt="+"/> Here is the call graph for this function:</div>
-<div id="dynsection-29-summary" class="dynsummary" style="display:block;">
+<div id="dynsection-13" onclick="return dynsection.toggleVisibility(this)" class="dynheader closed" style="cursor:pointer;">
+  <img id="dynsection-13-trigger" src="closed.png" alt="+"/> Here is the caller graph for this function:</div>
+<div id="dynsection-13-summary" class="dynsummary" style="display:block;">
 </div>
-<div id="dynsection-29-content" class="dyncontent" style="display:none;">
-<div class="center"><iframe scrolling="no" frameborder="0" src="namespaceshared_a6955b6b671ef8b660a0d6ed018712923_cgraph.svg" width="615" height="139"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-<div id="dynsection-30" onclick="return dynsection.toggleVisibility(this)" class="dynheader closed" style="cursor:pointer;">
-  <img id="dynsection-30-trigger" src="closed.png" alt="+"/> Here is the caller graph for this function:</div>
-<div id="dynsection-30-summary" class="dynsummary" style="display:block;">
-</div>
-<div id="dynsection-30-content" class="dyncontent" style="display:none;">
+<div id="dynsection-13-content" class="dyncontent" style="display:none;">
 <div class="center"><div class="zoom"><iframe scrolling="no" frameborder="0" src="namespaceshared_a6955b6b671ef8b660a0d6ed018712923_icgraph.svg" width="100%" height="394"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div></div>
 </div>
-
-</div>
-</div>
-<a id="a381814a41c1c1ca61c1436527cc08116" name="a381814a41c1c1ca61c1436527cc08116"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a381814a41c1c1ca61c1436527cc08116">&#9670;&#160;</a></span>zip()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;class T&gt; </div>
-      <table class="memname">
-        <tr>
-          <td class="memname">std::vector&lt; const char * &gt; shared::zip </td>
-          <td>(</td>
-          <td class="paramtype">const T &amp;</td>          <td class="paramname"><span class="paramname"><em>cmd</em></span></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Zip a container for exec. </p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">cmd</td><td>The container to zip. </td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="section return"><dt>Returns</dt><dd>The zipped contents. </dd></dl>
 
 </div>
 </div>

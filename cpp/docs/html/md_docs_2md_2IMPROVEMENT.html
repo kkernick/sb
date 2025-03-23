@@ -88,7 +88,7 @@ $(function(){ initResizable(false); });
   <div class="headertitle"><div class="title">Improvement</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md1"></a></p>
+<div class="textblock"><p><a class="anchor" id="autotoc_md0"></a></p>
 <p>This file tracks performance between various versions of SB++, based on commit. It should be noted that decreases in performance comes with new features, a simplification of the codebase, or other changes, and as such it not necessarily desirable to have a consistently downward slope; that said, periodic testing can illustrate regressions.</p>
 <p>If you use Obsidian, you can visualize these tables directly via <em>Obsidian Charts</em>. All tests were done on the Chromium profile available in <code>examples</code>, and profiled via the <code>benchmark.sh</code> script using the <code>cpp</code> recipe or its equivalent at the time. To repeat any of these benchmarks, simply run <code>./benchmark.sh cpp COMMIT chromium.desktop.sb cpp</code> for the desired commit, not that the Python benchmarks will not work with this as the folder structure does not support it, and will instead require manual checkout.</p>
 <p>The following table shows the speed of Python-SB at its last update before SB++ was introduced. The values skew the charts too much for them the be useful, so they're included here for reference and comparison</p>

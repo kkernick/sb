@@ -1,5 +1,0 @@
-<map id="shared::get_pid" name="shared::get_pid">
-<area shape="rect" id="Node000001" title="A Non&#45;Blocking Parser that returns the PID." alt="" coords="189,13,299,40"/>
-<area shape="rect" id="Node000002" href="$namespacegenerate.html#a5c0026523dd30f942c55ad25f1b607b4" title="Spawn an instance of the xdg&#45;dbus&#45;proxy for the application instance." alt="" coords="5,5,141,48"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="173,29,141,29,141,24,173,24"/>
-</map>

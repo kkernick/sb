@@ -1,4 +1,5 @@
 var searchData=
 [
-  ['vectorize_0',['vectorize',['../namespaceshared.html#ae5d42a7f6819f149991304227a611c78',1,'shared']]]
+  ['why_0',['Why?',['../md_README.html#autotoc_md8',1,'']]],
+  ['wildcard_1',['wildcard',['../namespaceshared.html#a6955b6b671ef8b660a0d6ed018712923',1,'shared']]]
 ];

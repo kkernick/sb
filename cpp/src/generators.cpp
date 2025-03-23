@@ -8,6 +8,7 @@
 #include <fstream>
 
 using namespace shared;
+using namespace exec;
 namespace fs = std::filesystem;
 
 namespace generate {
@@ -35,15 +36,15 @@ namespace generate {
     }
     if (create) {
       fs::create_directories(app_data);
-      auto pass = exec<std::string>({
+      auto pass = execute<std::string>({
         "kdialog",
         "--title", title,
         "--newpassword", "To setup an encrypted sandbox, enter a password. You will need to enter this password each time you want to run the application.",
         "--desktopfile", std::string(program) + ".desktop",
 
-      }, one_line, STDOUT);
+      }, one_line, {.cap = STDOUT, .verbose = arg::at("verbose") >= "debug"});
 
-      exec<void>({"gocryptfs", "-init", app_data.string()}, wait_for, NONE, pass);
+      execute<void>({"gocryptfs", "-init", app_data.string()}, wait_for, {.in = pass, .verbose = arg::at("verbose") >= "debug"});
       for (auto& c : pass) c = '\0';
     }
 
@@ -53,26 +54,26 @@ namespace generate {
     if (fs::is_empty(enc_dir)) {
 
       while (true) {
-        auto pass = exec<std::string>({
+        auto pass = execute<std::string>({
           "kdialog",
           "--title", title,
           "--password", "This sandbox is encrypted. Please enter its decryption password.",
           "--desktopfile", std::string(program) + ".desktop",
-        }, one_line, STDOUT);
+        }, one_line, {.cap = STDOUT, .verbose = arg::at("verbose") >= "debug"});
 
         if (pass.empty()) exit(0);
 
-        auto mount = exec<std::string>({"gocryptfs", app_data.string(), enc_dir.string()}, dump, STDOUT, pass);
+        auto mount = execute<std::string>({"gocryptfs", app_data.string(), enc_dir.string()}, dump, {STDOUT, pass, arg::at("verbose") >= "debug"});
         if (mount.contains("Filesystem mounted and ready")) break;
       }
     }
     else if (!flags.contains("persist")) {
-      exec<void>({
+      execute<void>({
         "kdialog", "--title", title,
         "--desktopfile", std::string(program) + ".desktop",
         "--error", "An instance of the sandbox is already running. Use the persist flag if you want to run more than one instance!"
       },
-      wait_for);
+      wait_for, {.verbose = arg::at("verbose") >= "debug"});
       exit(0);
     }
 
@@ -103,7 +104,7 @@ namespace generate {
     out << "#!/bin/sh\n";
     out << "sb " << join(arguments, ' ') << " -- \"$@\"";
     out.close();
-    exec({"chmod", "+x", binary});
+    execute({"chmod", "+x", binary});
   }
 
 
@@ -122,7 +123,7 @@ namespace generate {
     if (!std::filesystem::exists(binary)) script(binary);
 
     // Modify the Exec and DBus lines
-    auto contents = read_file<vector>(src, vectorize);
+    auto contents = file::parse<vector>(src, vectorize);
     for (auto& line : contents) {
       if (line.starts_with("Exec="))
         line = "Exec=" + binary + (line.contains(' ') ? line.substr(line.find(' ')) : "\n");
@@ -184,13 +185,13 @@ namespace generate {
         auto cache = libraries::hash_cache("xdg-dbus-proxy", p_hash);
         if (std::filesystem::exists(cache) && !std::filesystem::is_empty(cache)) {
           log({"Using Proxy Cache"});
-          libraries::resolve(read_file<vector>(cache, fd_splitter<vector, ' '>), "xdg-dbus-proxy", p_hash, false);
+          libraries::resolve(file::parse<vector>(cache, fd_splitter<vector, ' '>), "xdg-dbus-proxy", p_hash, false);
         }
         else {
           log({"Generating Proxy Cache"});
           libraries::lib_t libraries = {};
           if (arg::at("hardened_malloc")) libraries::get(libraries, "/usr/lib/libhardened_malloc.so");
-          init<binaries::bin_t>(binaries::parse, "/usr/bin/xdg-dbus-proxy", libraries);
+          container::init<binaries::bin_t>(binaries::parse, "/usr/bin/xdg-dbus-proxy", libraries);
           libraries::resolve(libraries, "xdg-dbus-proxy", p_hash, false);
         }
       }
@@ -248,7 +249,7 @@ namespace generate {
       for (const auto& portal : arg::list("own")) command.emplace_back("--own=" + portal);
 
       lib_future.wait();
-      if (!arg::at("dry")) return exec<int>(command, get_pid);
+      if (!arg::at("dry")) return execute<int>(command, get_pid, {.verbose = arg::at("verbose") >= "debug"});
       return -1;
     };
 
@@ -284,7 +285,7 @@ namespace generate {
     if (lib && !update_sof) {
       if (std::filesystem::exists(c_cache)  && !std::filesystem::is_empty(c_cache)) {
         log({"Reusing existing command cache"});
-        return read_file<vector>(c_cache, fd_splitter<vector, ' ', true>);
+        return file::parse<vector>(c_cache, fd_splitter<vector, ' ', true>);
       }
     }
     if (update_sof) log({"Updating SOF"});
@@ -300,7 +301,14 @@ namespace generate {
 
       // Get libraries needed for added executables.
       if (arg::at("fs") && std::filesystem::is_directory(arg::mod("fs") + "/usr/bin")) {
-        single_batch(binaries::parse, binaries, exec<vector>({"find", arg::mod("fs") + "/usr/bin", "-type", "f,l", "-executable"}, vectorize, STDOUT), libraries);
+        single_batch(
+          binaries::parse, binaries, 
+          execute<vector>(
+            {"find", arg::mod("fs") + "/usr/bin", "-type", "f,l", "-executable"}, 
+            vectorize, 
+            {.cap = STDOUT, .verbose = arg::at("verbose") >= "debug"}
+          ), 
+          libraries);
       }
     }
 

@@ -6,6 +6,8 @@
 #include "shared.hpp"
 #include "arguments.hpp"
 
+using namespace exec;
+
 namespace shared {
 
   // Init our shared values.
@@ -14,8 +16,6 @@ namespace shared {
   std::random_device TemporaryDirectory::dev = {};
   std::mt19937 TemporaryDirectory::prng(TemporaryDirectory::dev());
   std::uniform_int_distribution<uint64_t> TemporaryDirectory::rand(0);
-
-  constexpr uint_fast16_t buffer_size = 1024;
 
   #ifdef PROFILE
   std::map<std::string, uint_fast32_t> time_slice;
@@ -45,122 +45,10 @@ namespace shared {
     }
   }
 
-
-  // Helper functions.
   bool contains(const char& v, const char& d) {return v == d;}
   bool contains(const char& v, const std::string_view& d) {return d.contains(v);}
-  void emplace(set& working, const std::string_view& val) {working.emplace(val);}
-  void emplace(vector& working, const std::string_view& val) {working.emplace_back(val);}
-
-  // Zip a list/vector into a format exec can use.
-  template <class T> std::vector<const char*> zip(const T& cmd) {
-    std::vector<const char*> argv; argv.reserve(cmd.size() + 1);
-    if (arg::at("verbose") >= "debug") {
-      std::cout << "EXEC: ";
-       for (const std::string_view& v : cmd) {
-         std::cout << v << ' ';
-         argv.emplace_back(v.data());
-       }
-       std::cout << std::endl;
-    }
-    else for (const std::string_view& v : cmd) argv.emplace_back(v.data());
-    argv.emplace_back(nullptr);
-    return argv;
-  }
-  template std::vector<const char*> zip(const list&);
-  template std::vector<const char*> zip(const vector&);
-
-  // Blocking Parser that merely waits until the pid closes.
-  void wait_for(const int& fd, const int& pid) {close(fd); int state; waitpid(pid, &state, 0);}
-
-  // Non-Blocking Parser that detaches and returns the PID.
-  int get_pid(const int& fd, const int& pid) {close(fd); return pid;}
-
-  // Blocking Parser that splits output into a vector based on newlines.
-  vector vectorize(const int& fd, const int& pid) {return fd_splitter<vector, '\n'>(fd, pid);}
-
-  // Blocking Parser that splits output into a set based on spaces.
-  set setorize(const int& fd, const int& pid) {return fd_splitter<set, ' '>(fd, pid);}
-
-  // Blocking Parser that dumps output into a single string.
-  std::string dump(const int& fd, const int& pid) {
-    std::string result;
-    std::array<char, buffer_size> buffer;
-    int bytes = read(fd, buffer.data(), buffer_size);
-    while (bytes > 0) {
-      result.reserve(bytes);
-      result.append(buffer.data(), bytes);
-      bytes = read(fd, buffer.data(), buffer_size);
-    }
-    close(fd);
-    return result;
-  }
-
-  // Blocking Parser that dumps the first line of output and returns immediately.
-  std::string one_line(const int& fd, const int& pid) {
-    std::string result;
-    std::array<char, buffer_size> buffer = {0};
-    int bytes = read(fd, buffer.data(), buffer_size), index = 0;
-    while (bytes > 0 && index != std::string::npos)  {
-      result.reserve(buffer_size);
-      result.append(buffer.data(), bytes);
-      bytes =  read(fd, buffer.data(), buffer_size);
-      index = result.rfind('\n');
-    }
-    close(fd);
-    if (pid > 0) kill(pid, SIGTERM);
-    return result.substr(0, index);
-  }
-
-  // Splitter utility for splitting strings into containers.
-  template <typename C, typename T> void splitter(C& working, const std::string_view& str, const T& delim, const bool& escape) {
-
-    // Ignore our delim if its contained within quotes.
-    bool wrapped = false;
-    for (size_t r_bound = 0, l_bound = 0; r_bound <= str.length(); ++r_bound) {
-      if (!wrapped && (contains(str[r_bound], delim) || r_bound == str.length())) {
-        if (r_bound != l_bound) emplace(working, std::string_view(&str[l_bound], r_bound - l_bound));
-        l_bound = r_bound + 1;
-      }
-
-      // If we hit a quote, we ignore the delimeters until we reach the match.
-      // We also skip over the quote itself when emplacing.
-      else if (escape && str[r_bound] == '\'') {
-        if (r_bound == l_bound)
-          ++l_bound;
-        else if (contains(str[r_bound + 1], delim)) {
-          emplace(working, std::string_view(&str[l_bound], r_bound - l_bound));
-          l_bound = r_bound + 1;
-        }
-        wrapped ^= 1;
-      }
-    }
-  }
-  template void splitter(vector&, const std::string_view&, const char&, const bool&);
-  template void splitter(vector&, const std::string_view&, const std::string_view&, const bool&);
-  template void splitter(set&, const std::string_view&, const char&, const bool&);
-  template void splitter(set&, const std::string_view&, const std::string_view&, const bool&);
-
-  // Split a string with a character.
-  void split(vector& working, const std::string_view& str, const char& delim, const bool& escape) {
-    splitter(working, str, delim, escape);
-  }
-
-  // Split a string with a collection of delims.
-  void splits(vector& working, const std::string_view& str, const std::string_view& delim, const bool& escape) {
-    splitter(working, str, delim, escape);
-  }
-
-  // Split into a set, using a character
-  void usplit(set& working, const std::string_view& str, const char& delim, const bool& escape) {
-    splitter(working, str, delim, escape);
-  }
-
-  // Split into a set, using a string.
-  void usplits(set& working, const std::string_view& str, const std::string_view& delim, const bool& escape) {
-    splitter(working, str, delim, escape);
-  }
-
+  void emplace(std::set<std::string>& working, const std::string_view& val) {working.emplace(val);}
+  void emplace(std::vector<std::string>& working, const std::string_view& val) {working.emplace_back(val);}
 
   // Join a container into a string.
   template <class T> std::string join(const T& list, const char& joiner) {
@@ -209,7 +97,7 @@ namespace shared {
     command.insert(command.end(), {"find", local ? std::filesystem::path(pattern).parent_path().string() : path.data()});
     command.insert(command.end(), args.begin(), args.end());
     command.insert(command.end(), {"-name", local ? std::filesystem::path(pattern).filename().string() : pattern.data()});
-    return exec<set>(command, fd_splitter<set, '\n'>, STDOUT);
+    return execute<set>(command, fd_splitter<set, '\n'>, {.cap = STDOUT, .verbose = arg::at("verbose") >= "debug"});
   };
 
 

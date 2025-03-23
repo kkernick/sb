@@ -11,6 +11,7 @@
 #include "arguments.hpp"
 
 using namespace shared;
+using namespace exec;
 
 namespace libraries {
 
@@ -32,9 +33,9 @@ namespace libraries {
 
     auto cache = cache_name(std::string(library), "ldd");
     if (std::filesystem::exists(cache) && !std::filesystem::is_empty(cache))
-      libraries = read_file<set>(cache, setorize);
+      libraries = file::parse<set>(cache, setorize);
     else {
-      if (read_file<std::string>(library, head<5>) != "\177ELF\2") return;
+      if (file::parse<std::string>(library, head<5>) != "\177ELF\2") return;
       std::filesystem::create_directories(cache.parent_path());
 
       // If this is a library, add it.
@@ -43,7 +44,7 @@ namespace libraries {
       }
 
       // LDD it!
-      auto output = exec<std::string>({"ldd", library}, dump, STDOUT);
+      auto output = execute<std::string>({"ldd", library}, dump, {.cap = STDOUT, .verbose = arg::at("verbose") >= "debug"});
 
       // Parse it in a single pass, rather than splitting.
       for (size_t x = output.find('/'); x != std::string::npos; x = output.find('/', x + 1)) {
@@ -92,7 +93,7 @@ namespace libraries {
 
     // If the cache exists, and we don't need to update, use it.
     if (std::filesystem::exists(cache) && !std::filesystem::is_empty(cache)) {
-      libraries.merge(read_file<set>(cache, setorize));
+      libraries.merge(file::parse<set>(cache, setorize));
       return;
     }
 
@@ -104,7 +105,7 @@ namespace libraries {
 
     // Find all shared libraries in dir.
     else if (std::filesystem::is_directory(library)) {
-      local.merge(exec<lib_t>({"find", library, "-type", "f,l", "-executable"}, fd_splitter<lib_t, '\n'>, STDOUT));
+      local.merge(execute<lib_t>({"find", library, "-type", "f,l", "-executable"}, fd_splitter<lib_t, '\n'>, {.cap = STDOUT, .verbose = arg::at("verbose") >= "debug"}));
       directory = library;
     }
 

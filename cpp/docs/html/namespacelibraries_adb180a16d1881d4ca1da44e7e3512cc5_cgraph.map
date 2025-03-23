@@ -1,7 +1,0 @@
-<map id="libraries::setup" name="libraries::setup">
-<area shape="rect" id="Node000001" title="Setup an SOF directory." alt="" coords="5,31,112,57"/>
-<area shape="rect" id="Node000002" href="$namespaceshared.html#ad10b700d545b2e01515db6e550c9b2e6" title="Wait for an inotify watcher." alt="" coords="160,5,294,32"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="112,33,144,28,145,34,113,39"/>
-<area shape="rect" id="Node000003" href="$namespaceshared.html#a99724c73af55fa92ae29fee700152917" title="Log output to console, if verbose." alt="" coords="184,56,270,83"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="113,49,169,58,169,63,112,55"/>
-</map>

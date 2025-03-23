@@ -6,6 +6,7 @@
 #include <cassert>
 
 using namespace shared;
+using namespace exec;
 
 namespace syscalls {
 
@@ -34,11 +35,11 @@ namespace syscalls {
     }
 
     // See if the existing file is already up to date, and just use that directly.
-    auto content = read_file<vector>(syscall_file, vectorize);
+    auto content = file::parse<vector>(syscall_file, vectorize);
     if (content.size() > 1) {
       auto hash = std::string(arg::get("seccomp") == "enforcing" ? "E" : "P") + shared::hash(content[1]);
       if (
-        hash == init<vector>(split, content[0], ' ', false)[1] &&
+        hash == container::init<vector>(container::split<vector, char>, content[0], ' ', false)[1] &&
         std::filesystem::exists(bpf) && arg::at("update") < "cache" &&
         arg::get("shell") != "debug" && arg::at("verbose") < "error"
       ) {
@@ -53,7 +54,7 @@ namespace syscalls {
     else content = {"0", ""};
 
     // Get the syscalls that should be allowed
-    set syscalls = init<set>(usplit, content[1], ' ', false);
+    set syscalls = container::init<set>(container::split<set, char>, content[1], ' ', false);
     log({arg::get("seccomp") == "enforcing" ? "Enforced": "Logged", "Syscalls:", std::to_string(syscalls.size())});
 
     // Add necessary syscalls
@@ -113,10 +114,10 @@ namespace syscalls {
     auto syscall_file = app_data / "syscalls.txt";
     set syscalls;
     if (std::filesystem::exists(syscall_file)) {
-      auto content = read_file<vector>(syscall_file, vectorize);
+      auto content = file::parse<vector>(syscall_file, vectorize);
       switch (content.size()) {
-        case 1:  if (!content[0].starts_with("HASH")) usplit(syscalls, content[0], ' ', false); break;
-        case 2: usplit(syscalls, content[1], ' '); break;
+        case 1:  if (!content[0].starts_with("HASH")) container::split<set, char>(syscalls, content[0], ' ', false); break;
+        case 2: container::split<set, char>(syscalls, content[1], ' '); break;
         default: break;
       }
     }

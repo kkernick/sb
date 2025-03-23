@@ -1,6 +1,6 @@
 pkgbase = sb++-git
 	pkgdesc = Sandbox Applications
-	pkgver = r388.a1b88b1
+	pkgver = r397.606cc82
 	pkgrel = 1
 	arch = any
 	makedepends = git
@@ -18,6 +18,9 @@ pkgbase = sb++-git
 	optdepends = zram-generator: for --sof=zram
 	optdepends = xdg-dbus-proxy: for --portals, --see, --talk, --own for Flatpak Emulation
 	optdepends = libseccomp: for --syscalls
+	optdepends = gocryptfs: for --encrypt
+	optdepends = kdialog: for --encrypt
+	optdepends = libexec: To dynamically link against libexec.
 	provides = sb
 	conflicts = sb
 	conflicts = sb-git

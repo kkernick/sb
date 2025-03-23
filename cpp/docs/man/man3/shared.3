@@ -28,14 +28,6 @@ shared \- Shared functionality\&.
 .RI "using \fBlist\fP = std::initializer_list<std::string_view>"
 .br
 .in -1c
-.SS "Enumerations"
-
-.in +1c
-.ti -1c
-.RI "enum \fBexec_policy\fP { \fBNONE\fP, \fBSTDOUT\fP, \fBSTDERR\fP, \fBALL\fP }"
-.br
-.RI "policy for the executor, describing what should be captured\&. "
-.in -1c
 .SS "Functions"
 
 .in +1c
@@ -50,72 +42,10 @@ shared \- Shared functionality\&.
 .RI "bool \fBcontains\fP (const char &v, const std::string_view &d)"
 .br
 .ti -1c
-.RI "void \fBemplace\fP (set &working, const std::string_view &val)"
+.RI "void \fBemplace\fP (std::set< std::string > &working, const std::string_view &val)"
 .br
 .ti -1c
-.RI "void \fBemplace\fP (vector &working, const std::string_view &val)"
-.br
-.ti -1c
-.RI "template<class T> std::vector< const char * > \fBzip\fP (const T &cmd)"
-.br
-.RI "Zip a container for exec\&. "
-.ti -1c
-.RI "template std::vector< const char * > \fBzip\fP (const list &)"
-.br
-.ti -1c
-.RI "template std::vector< const char * > \fBzip\fP (const vector &)"
-.br
-.ti -1c
-.RI "void \fBwait_for\fP (const int &fd, const int &pid=\-1)"
-.br
-.RI "A Blocking Parser that waits for the PID to exit\&. "
-.ti -1c
-.RI "int \fBget_pid\fP (const int &fd, const int &pid=\-1)"
-.br
-.RI "A Non-Blocking Parser that returns the PID\&. "
-.ti -1c
-.RI "vector \fBvectorize\fP (const int &fd, const int &pid=\-1)"
-.br
-.RI "A Blocking Parser that splits the output into a vector\&. "
-.ti -1c
-.RI "set \fBsetorize\fP (const int &fd, const int &pid=\-1)"
-.br
-.RI "A Blocking Parser that splits the output into a set\&. "
-.ti -1c
-.RI "std::string \fBdump\fP (const int &fd, const int &pid=\-1)"
-.br
-.RI "A Blocking Parser that returns the output in a single string\&. "
-.ti -1c
-.RI "std::string \fBone_line\fP (const int &fd, const int &pid=\-1)"
-.br
-.RI "A Blocking Parser that returns the first line of output\&. "
-.ti -1c
-.RI "template<typename C, typename T> void \fBsplitter\fP (C &working, const std::string_view &str, const T &delim, const bool &\fBescape\fP)"
-.br
-.RI "Split a string\&. "
-.ti -1c
-.RI "template void \fBsplitter\fP (vector &, const std::string_view &, const char &, const bool &)"
-.br
-.ti -1c
-.RI "template void \fBsplitter\fP (vector &, const std::string_view &, const std::string_view &, const bool &)"
-.br
-.ti -1c
-.RI "template void \fBsplitter\fP (set &, const std::string_view &, const char &, const bool &)"
-.br
-.ti -1c
-.RI "template void \fBsplitter\fP (set &, const std::string_view &, const std::string_view &, const bool &)"
-.br
-.ti -1c
-.RI "void \fBsplit\fP (vector &working, const std::string_view &str, const char &delim, const bool &\fBescape\fP)"
-.br
-.ti -1c
-.RI "void \fBsplits\fP (vector &working, const std::string_view &str, const std::string_view &delim, const bool &\fBescape\fP)"
-.br
-.ti -1c
-.RI "void \fBusplit\fP (set &working, const std::string_view &str, const char &delim, const bool &\fBescape\fP)"
-.br
-.ti -1c
-.RI "void \fBusplits\fP (set &working, const std::string_view &str, const std::string_view &delim, const bool &\fBescape\fP)"
+.RI "void \fBemplace\fP (std::vector< std::string > &working, const std::string_view &val)"
 .br
 .ti -1c
 .RI "template<class T> std::string \fBjoin\fP (const T &list, const char &joiner=' ')"
@@ -193,22 +123,6 @@ shared \- Shared functionality\&.
 .br
 .RI "Hash a string\&. "
 .ti -1c
-.RI "template<uint_fast8_t count> std::string \fBhead\fP (const int &fd, const int &pid)"
-.br
-.RI "A Blocking Parser that returns the first count of the output\&. "
-.ti -1c
-.RI "template<class R = void, class T = list> R \fBexec\fP (const T &cmd, const std::function< R(const int &, const int &)> &parser=[](const int &fd, const int &pid) {close(fd);}, const \fBexec_policy\fP &policy=NONE, const std::string &in='')"
-.br
-.RI "Execute stuff\&. "
-.ti -1c
-.RI "template<class C, char delim, bool escape = false> C \fBfd_splitter\fP (const int &fd, const int &pid)"
-.br
-.RI "Split the contents of an FD\&. "
-.ti -1c
-.RI "template<class R> R \fBread_file\fP (const std::filesystem::path &path, const std::function< R(const int &, const int &)> &parser)"
-.br
-.RI "Read a file\&. "
-.ti -1c
 .RI "std::string \fBescape\fP (const std::string &in)"
 .br
 .RI "Escape a string\&. "
@@ -216,10 +130,6 @@ shared \- Shared functionality\&.
 .RI "void \fBmerge\fP (set &command, set path)"
 .br
 .RI "Merge two sets together\&. "
-.ti -1c
-.RI "template<class T, class A, class \&.\&.\&. Args> T \fBinit\fP (const A &fun, Args &&\&.\&.\&. args)"
-.br
-.RI "Compose a return value from an accumulator function\&. "
 .ti -1c
 .RI "template<class T, class A, class L = list, class \&.\&.\&. Args> void \fBsingle_batch\fP (const A &fun, T &accum, const L &mem, Args &&\&.\&.\&. args)"
 .br
@@ -241,9 +151,6 @@ shared \- Shared functionality\&.
 .br
 .ti -1c
 .RI "int \fBinotify\fP = \-1"
-.br
-.ti -1c
-.RI "constexpr uint_fast16_t \fBbuffer_size\fP = 1024"
 .br
 .ti -1c
 .RI "const std::string \fBhome\fP = std::getenv('HOME')"
@@ -314,24 +221,6 @@ All arguments must be immutable, as instances are threaded together\&. If the or
 .RE
 .PP
 
-.SS "std::string shared::dump (const int & fd, const int & pid = \fR\-1\fP)"
-
-.PP
-A Blocking Parser that returns the output in a single string\&. 
-.PP
-\fBParameters\fP
-.RS 4
-\fIfd\fP The FD on the attached pipe\&. 
-.br
-\fIpid\fP The PID of the process\&. 
-.RE
-.PP
-\fBReturns\fP
-.RS 4
-: The output 
-.RE
-.PP
-
 .SS "std::string shared::escape (const std::string & in)"
 
 .PP
@@ -345,33 +234,6 @@ Escape a string\&.
 \fBReturns\fP
 .RS 4
 : The escaped string\&. 
-.RE
-.PP
-
-.SS "template<class R = void, class T = list> R shared::exec (const T & cmd, const std::function< R(const int &, const int &)> & parser = \fR[](const int& fd, const int& pid) {close(fd);}\fP, const \fBexec_policy\fP & policy = \fRNONE\fP, const std::string & in = \fR''\fP)"
-
-.PP
-Execute stuff\&. 
-.PP
-\fBTemplate Parameters\fP
-.RS 4
-\fIR\fP What to return from the child\&. 
-.br
-\fIT\fP The container holding the command\&. 
-.RE
-.PP
-\fBParameters\fP
-.RS 4
-\fIcmd\fP The command to run\&. 
-.br
-\fIparser\fP The Parser to use on the output\&. 
-.br
-\fIpolicy\fP What to capture\&. 
-.RE
-.PP
-\fBReturns\fP
-.RS 4
-The selected output from the parser\&. 
 .RE
 .PP
 
@@ -411,31 +273,6 @@ Extend a container in place\&.
 .RE
 .PP
 
-.SS "template<class C, char delim, bool escape = false> C shared::fd_splitter (const int & fd, const int & pid)"
-
-.PP
-Split the contents of an FD\&. 
-.PP
-\fBTemplate Parameters\fP
-.RS 4
-\fIC\fP The container to return\&. 
-.br
-\fIdelim\fP The delimiter to use\&. 
-.RE
-.PP
-\fBParameters\fP
-.RS 4
-\fIfd\fP The FD of the file/process\&. 
-.br
-\fIpid\fP The PID of the process\&. 
-.RE
-.PP
-\fBReturns\fP
-.RS 4
-The split output/contents\&. 
-.RE
-.PP
-
 .SS "void shared::genv (vector & command, const std::string_view & env)"
 
 .PP
@@ -446,24 +283,6 @@ Attach an environment variable to the sandbox\&.
 \fIcommand\fP The command to append to\&. 
 .br
 \fIenv\fP The environment variable to add\&. @info: The value of the variable is the actual value\&. 
-.RE
-.PP
-
-.SS "int shared::get_pid (const int & fd, const int & pid = \fR\-1\fP)"
-
-.PP
-A Non-Blocking Parser that returns the PID\&. 
-.PP
-\fBParameters\fP
-.RS 4
-\fIfd\fP The FD on the attached pipe\&. 
-.br
-\fIpid\fP The PID of the process\&. 
-.RE
-.PP
-\fBReturns\fP
-.RS 4
-: The PID 
 .RE
 .PP
 
@@ -480,56 +299,6 @@ Hash a string\&.
 \fBReturns\fP
 .RS 4
 The hex digest\&. 
-.RE
-.PP
-
-.SS "template<uint_fast8_t count> std::string shared::head (const int & fd, const int & pid)"
-
-.PP
-A Blocking Parser that returns the first count of the output\&. 
-.PP
-\fBTemplate Parameters\fP
-.RS 4
-\fIcount\fP The amount of characters to return\&. 
-.RE
-.PP
-\fBParameters\fP
-.RS 4
-\fIfd\fP The FD on the attached pipe\&. 
-.br
-\fIpid\fP The PID of the process\&. 
-.RE
-.PP
-\fBReturns\fP
-.RS 4
-: The output\&. 
-.RE
-.PP
-
-.SS "template<class T, class A, class \&.\&.\&. Args> T shared::init (const A & fun, Args &&\&.\&.\&. args)"
-
-.PP
-Compose a return value from an accumulator function\&. 
-.PP
-\fBTemplate Parameters\fP
-.RS 4
-\fIT\fP The return type (IE the accumulator type)\&. 
-.br
-\fIA\fP The function to wrap\&. 
-.br
-\fI\&.\&.\&.Args\fP Additional arguments to the function\&. 
-.RE
-.PP
-\fBParameters\fP
-.RS 4
-\fIfun\fP The function\&. 
-.br
-\fIargs\fP Additional arguments\&. 
-.RE
-.PP
-\fBReturns\fP
-.RS 4
-The accumulated results from the function\&. 
 .RE
 .PP
 
@@ -593,65 +362,6 @@ Merge two sets together\&.
 .RE
 .PP
 
-.SS "std::string shared::one_line (const int & fd, const int & pid = \fR\-1\fP)"
-
-.PP
-A Blocking Parser that returns the first line of output\&. 
-.PP
-\fBParameters\fP
-.RS 4
-\fIfd\fP The FD on the attached pipe\&. 
-.br
-\fIpid\fP The PID of the process\&. 
-.RE
-.PP
-\fBReturns\fP
-.RS 4
-: The first line\&. 
-.RE
-.PP
-
-.SS "template<class R> R shared::read_file (const std::filesystem::path & path, const std::function< R(const int &, const int &)> & parser)"
-
-.PP
-Read a file\&. 
-.PP
-\fBTemplate Parameters\fP
-.RS 4
-\fIR\fP The return type\&. 
-.RE
-.PP
-\fBParameters\fP
-.RS 4
-\fIpath\fP The path to the file\&. 
-.br
-\fIparser\fP The parser to use on the file\&. 
-.RE
-.PP
-\fBReturns\fP
-.RS 4
-The contents\&. 
-.RE
-.PP
-
-.SS "set shared::setorize (const int & fd, const int & pid = \fR\-1\fP)"
-
-.PP
-A Blocking Parser that splits the output into a set\&. 
-.PP
-\fBParameters\fP
-.RS 4
-\fIfd\fP The FD on the attached pipe\&. 
-.br
-\fIpid\fP The PID of the process\&. 
-.RE
-.PP
-\fBReturns\fP
-.RS 4
-The output, split on spaces\&. @info If you need to split on something other than ' ', use fd_splitter 
-.RE
-.PP
-
 .SS "void shared::share (vector & command, const std::string_view & path, const std::string & mode = \fR'ro\-bind'\fP)"
 
 .PP
@@ -695,30 +405,6 @@ Batch multiple iterations of an accumulator function together\&.
 .RE
 .PP
 
-.SS "template<typename C, typename T> void shared::splitter (C & working, const std::string_view & str, const T & delim, const bool & escape)"
-
-.PP
-Split a string\&. 
-.PP
-\fBTemplate Parameters\fP
-.RS 4
-\fIC\fP The accumulator container type\&. 
-.br
-\fIT\fP The delimiter type, can either be a single character, or a string of characters\&. 
-.RE
-.PP
-\fBParameters\fP
-.RS 4
-\fIworking\fP The accumulator\&. 
-.br
-\fIstr\fP The string to split\&. 
-.br
-\fIdelim\fP The delimiter to split on 
-.br
-\fIescape\fP Ignore delimiters bound in quotes\&. 
-.RE
-.PP
-
 .SS "template<typename T> std::string shared::strip (const std::string_view & in, const T & to_strip)"
 
 .PP
@@ -755,39 +441,6 @@ The trimmed string\&. @info trim only removes from the front and end, stopping a
 .RE
 .PP
 
-.SS "vector shared::vectorize (const int & fd, const int & pid = \fR\-1\fP)"
-
-.PP
-A Blocking Parser that splits the output into a vector\&. 
-.PP
-\fBParameters\fP
-.RS 4
-\fIfd\fP The FD on the attached pipe\&. 
-.br
-\fIpid\fP The PID of the process\&. 
-.RE
-.PP
-\fBReturns\fP
-.RS 4
-The output, split on newlines\&. @info If you need to split on something other than '
-.br
-', use fd_splitter 
-.RE
-.PP
-
-.SS "void shared::wait_for (const int & fd, const int & pid = \fR\-1\fP)"
-
-.PP
-A Blocking Parser that waits for the PID to exit\&. 
-.PP
-\fBParameters\fP
-.RS 4
-\fIfd\fP The FD on the attached pipe\&. 
-.br
-\fIpid\fP The PID of the process\&. 
-.RE
-.PP
-
 .SS "set shared::wildcard (const std::string_view & pattern, const std::string_view & path, const list & args = \fR{}\fP)"
 
 .PP
@@ -805,22 +458,6 @@ Resolve wildcard patterns\&.
 \fBReturns\fP
 .RS 4
 : All unique matches\&. 
-.RE
-.PP
-
-.SS "template<class T> std::vector< const char * > shared::zip (const T & cmd)"
-
-.PP
-Zip a container for exec\&. 
-.PP
-\fBParameters\fP
-.RS 4
-\fIcmd\fP The container to zip\&. 
-.RE
-.PP
-\fBReturns\fP
-.RS 4
-The zipped contents\&. 
 .RE
 .PP
 

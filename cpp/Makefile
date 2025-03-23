@@ -4,8 +4,11 @@ VERSION := $(shell git rev-parse --short HEAD)
 REQUIRED = -std=c++23 -lseccomp -lb2 -fuse-ld=lld -DVERSION="\"$(VERSION)\""
 FAST = -march=native -O3 -ffast-math -flto=thin
 
-cpp: $(SOURCES)
+cpp: $(SOURCES) src/third_party/libexec/src/exec.cpp
 	clang++ $(REQUIRED) $(FAST) $^ -o sb
+
+link: $(SOURCES)
+	clang++ $(REQUIRED) -lexec $(FAST) $^ -o sb
 
 generic: $(SOURCES)
 	clang++ $(REQUIRED) $^ -o sb

@@ -1,6 +1,6 @@
 pkgname=sb++-git
 pkgdesc="Sandbox Applications"
-pkgver=r396.bd7ea08
+pkgver=r397.606cc82
 pkgrel=1
 
 source=("git+https://github.com/kkernick/sb.git")
@@ -15,6 +15,7 @@ optdepends=(
   'libseccomp: for --syscalls'
   'gocryptfs: for --encrypt'
   'kdialog: for --encrypt'
+  'libexec: To dynamically link against libexec.'
 )
 arch=("any")
 provides=("sb")
@@ -25,9 +26,20 @@ pkgver() {
   printf "r%s.%s" "$(git rev-list --count HEAD)" "$(git rev-parse --short=7 HEAD)"
 }
 
+prepare() {
+  cd $srcdir/sb/cpp
+  git submodule init
+}
+
 build() {
   cd $srcdir/sb/cpp
-  make cpp
+
+  if [[ -f "/usr/lib/libexec.so" ]]; then
+    make link
+  else
+    make cpp
+  fi
+
   make doxygen
 }
 
@@ -44,13 +56,7 @@ package() {
   install -Dm644 "$srcdir/sb/cpp/sb.conf" "$pkgdir/usr/lib/systemd/zram-generator.conf.d/sb.conf"
   install -Dm755 "$srcdir/sb/sb-open" "$pkgdir/usr/bin/sb-open"
 
-
-  for page in $srcdir/sb/cpp/docs/man/man3/*; do
-    gzip $page
-    install -Dm644 "$page.gz" "$pkgdir/usr/share/man/man3/sb.$(basename $page).gz"
-  done
-
-  for license in "$srcdir/sb/LICENSE" $srcdir/sb/cpp/src/third_party/licenses/*; do
+  for license in "$srcdir/sb/LICENSE" $srcdir/sb/cpp/src/third_party/thread-pool/LICENSE.txt; do
     install -Dm644 "$license" "$pkgdir/usr/share/licenses/sb/$(basename $license)"
   done
 }

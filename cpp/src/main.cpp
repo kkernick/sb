@@ -9,6 +9,7 @@
 #include <sys/wait.h>
 
 using namespace shared;
+using namespace exec;
 namespace fs = std::filesystem;
 
 // The WD of the proxy
@@ -33,8 +34,8 @@ static void cleanup(int sig) {
 
   if (arg::get("fs") == "persist") {
     auto path = arg::mod("fs");
-    exec<void>({"find", path, "-type", "l", "-exec", "rm", "-f", "{}", ";"}, wait_for);
-    exec<void>({"find", path, "-type", "f", "-empty", "-exec", "rm", "-f", "{}", ";"}, wait_for);
+    execute<void>({"find", path, "-type", "l", "-exec", "rm", "-f", "{}", ";"}, wait_for, {.verbose = arg::at("verbose") >= "debug"});
+    execute<void>({"find", path, "-type", "f", "-empty", "-exec", "rm", "-f", "{}", ";"}, wait_for, {.verbose = arg::at("verbose") >= "debug"});
     for (const auto& junk : {"/dev", "/sys", "/run"}) {
       if (fs::exists(path + junk))
         fs::remove_all(path + junk);
@@ -46,10 +47,10 @@ static void cleanup(int sig) {
 
   if (arg::at("encrypt") && !arg::list("encrypt").contains("persist")) {
     log({"Unmounting encrypted root at", app_data.string()});
-    auto stderr = exec<std::string>({"fusermount", "-u", app_data.string()}, dump, STDERR);
+    auto stderr = execute<std::string>({"fusermount", "-u", app_data.string()}, dump, {.cap = STDERR, .verbose = arg::at("verbose") >= "debug"});
     if (!stderr.empty()) {
       log({"Failed to unmount:", stderr});
-      exec<void>({"kdialog", "--error", "Failed to close sandbox! Another instance may be using it!"});
+      execute<void>({"kdialog", "--error", "Failed to close sandbox! Another instance may be using it!"});
     }
   }
 }
@@ -73,11 +74,11 @@ int main(int argc, char* argv[]) {
   auto parse_args = []() {
     if (arg::args.size() > 0 && arg::args[0].ends_with(".sb")) {
       auto program = arg::args[0];
-      auto resolved = fs::exists(arg::args[1]) ? program : exec<std::string>({"which", program}, one_line, STDOUT);
-      auto contents = read_file<vector>(resolved, vectorize);
+      auto resolved = fs::exists(arg::args[1]) ? program : execute<std::string>({"which", program}, one_line, {.cap = STDOUT, .verbose = arg::at("verbose") >= "debug"});
+      auto contents = file::parse<vector>(resolved, vectorize);
       if (contents.size() == 2) {
         auto old = arg::args;
-        arg::args = init<vector>(split, contents[1], ' ', false);
+        arg::args = container::init<vector>(container::split<vector, char>, contents[1], ' ', false);
 
         // Remove the sb
         arg::args.erase(arg::args.begin());
@@ -131,7 +132,7 @@ int main(int argc, char* argv[]) {
     !fs::is_directory(lib_sof)
   ) {
     log({"Using cached SOF"});
-    libraries::resolve(read_file<vector>(lib_cache, fd_splitter<vector, ' '>), program, arg::hash);
+    libraries::resolve(file::parse<vector>(lib_cache, fd_splitter<vector, ' '>), program, arg::hash);
     auto [dir, future] = generate::proxy_lib();
     if (startup) future.wait();
   }
@@ -383,7 +384,7 @@ int main(int argc, char* argv[]) {
 
     // Add flags
     auto flags = app_data / "flags.conf";
-    if (fs::exists(flags)) splits(command, read_file<std::string>(flags.string(), dump), " \n");
+    if (fs::exists(flags)) container::split(command, file::parse<std::string>(flags.string(), dump), " \n");
   }
 
   // Do this before our auxiliary wait.
@@ -416,16 +417,16 @@ int main(int argc, char* argv[]) {
     if (arg::at("post")) {
 
       // Run the sandbox non-blocking
-      exec(command);
+      execute(command);
 
       // Assemble the post-command; args are provided in the modifier.
       command = {arg::get("post")};
-      split(command, arg::mod("post"), ' ');
+      container::split(command, arg::mod("post"), ' ');
     }
 
     if (arg::get("seccomp") == "strace")
-      syscalls::update_policy(program, exec<vector>(command, vectorize, STDERR));
-    else exec<void>(command, wait_for);
+      syscalls::update_policy(program, execute<vector>(command, vectorize, {.cap = STDERR, .verbose = arg::at("verbose") >= "debug"}));
+    else execute<void>(command, wait_for, {.verbose = arg::at("verbose") >= "debug"});
   }
 
   // Cleanup FD.
