@@ -13,10 +13,10 @@ link: $(SOURCES)
 generic: $(SOURCES)
 	clang++ $(REQUIRED) $^ -o sb
 
-debug: $(SOURCES)
+debug: $(SOURCES) src/third_party/libexec/src/exec.cpp
 	clang++ -march=x86-64 -g -DPROFILE $(REQUIRED) $^ -o sb
 
-pgo: $(SOURCES)
+pgo: $(SOURCES) src/third_party/libexec/src/exec.cpp
 	clang++ -fprofile-instr-generate $(REQUIRED) $(FAST) $^ -o sb
 
 	-./pgo-helper
@@ -26,7 +26,7 @@ pgo: $(SOURCES)
 
 	rm *.profraw *.profdata
 
-bolt: $(SOURCES)
+bolt: $(SOURCES) src/third_party/libexec/src/exec.cpp
 	clang++ $(REQUIRED) $(FAST) -Wl,--emit-relocs $^ -o sb
 	-./bolt-helper
 
@@ -36,7 +36,7 @@ bolt: $(SOURCES)
 
 	rm *.fdata *.data *.data.old
 
-bolt-pgo: $(SOURCES)
+bolt-pgo: $(SOURCES) src/third_party/libexec/src/exec.cpp
 	clang++ -fprofile-instr-generate $(REQUIRED) $(FAST) $^ -o sb
 	-./pgo-helper
 	llvm-profdata merge *.profraw -output=sb.profdata

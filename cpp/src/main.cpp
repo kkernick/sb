@@ -168,7 +168,10 @@ int main(int argc, char* argv[]) {
     if (arg::mod("update") != "batch")
       fs::remove_all(fs::path(data) / "sb" / "cache");
 
-    fs::remove_all(fs::path(data) / "sb" / program / "cache");
+    try {
+      fs::remove_all(fs::path(data) / "sb" / program / "cache");
+    }
+    catch (fs::filesystem_error&) {}
 
     if (arg::get("update") == "clean")
       fs::remove_all(fs::path(arg::get("sof")) / program / "lib");

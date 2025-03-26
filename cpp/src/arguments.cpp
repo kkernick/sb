@@ -192,7 +192,7 @@ namespace arg {
     }},
     {"encrypt", arg::config{
       .l_name="--encrypt", .s_name="-E",
-      .valid={"persist", "init", "external-sof"},
+      .valid={"persist", "init"},
       .flag_set = true,
       .help="Encrypt the profile's configuration and filesystems as $XDG_DATA_HOME.",
       .updates_sof = true
@@ -247,9 +247,7 @@ namespace arg {
         if (switches.contains("cmd")) {
           auto basename = arg::get("cmd");
           if (basename.contains('/')) basename = basename.substr(basename.rfind('/') + 1);
-          auto path = std::filesystem::path(data) / "sb";
-          if (arg::at("encrypt")) return path / "work" / basename / v;
-          return path / basename / v;
+          return std::filesystem::path(data) / "sb" / basename / v;
         }
         return std::string(v);
       }

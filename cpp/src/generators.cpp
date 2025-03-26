@@ -15,12 +15,13 @@ namespace generate {
 
 
   void encrypted(const std::string_view& program) {
-    const auto enc_root = fs::path(data) / "sb" / "work";
+    const auto enc_root = fs::path(data) / "sb" / "enc";
     fs::create_directories(enc_root);
     fs::permissions(enc_root, fs::perms::owner_all);
 
     auto enc_dir = enc_root / program;
     fs::create_directories(enc_dir);
+    fs::create_directories(app_data);
 
     std::string title = "SB++ — " + std::string(program);
 
@@ -35,7 +36,6 @@ namespace generate {
       else create = false;
     }
     if (create) {
-      fs::create_directories(app_data);
       auto pass = execute<std::string>({
         "kdialog",
         "--title", title,
@@ -44,14 +44,11 @@ namespace generate {
 
       }, one_line, {.cap = STDOUT, .verbose = arg::at("verbose") >= "debug"});
 
-      execute<void>({"gocryptfs", "-init", app_data.string()}, wait_for, {.in = pass, .verbose = arg::at("verbose") >= "debug"});
+      execute<void>({"gocryptfs", "-init", enc_root.string()}, wait_for, {.in = pass, .verbose = arg::at("verbose") >= "debug"});
       for (auto& c : pass) c = '\0';
     }
 
-    if (!flags.contains("external-lib"))
-      arg::emplace("sof", enc_dir / "lib");
-
-    if (fs::is_empty(enc_dir)) {
+    if (fs::is_empty(app_data)) {
 
       while (true) {
         auto pass = execute<std::string>({
@@ -63,7 +60,7 @@ namespace generate {
 
         if (pass.empty()) exit(0);
 
-        auto mount = execute<std::string>({"gocryptfs", app_data.string(), enc_dir.string()}, dump, {STDOUT, pass, arg::at("verbose") >= "debug"});
+        auto mount = execute<std::string>({"gocryptfs", enc_dir.string(), app_data.string()}, dump, {STDOUT, pass, arg::at("verbose") >= "debug"});
         if (mount.contains("Filesystem mounted and ready")) break;
       }
     }
@@ -78,12 +75,9 @@ namespace generate {
     }
 
    if (fs::exists(enc_root / (std::string(program) + "-old"))) {
-     std::filesystem::copy(enc_root / (std::string(program) + "-old"), enc_dir, fs::copy_options::recursive);
+     std::filesystem::copy(enc_root / (std::string(program) + "-old"), app_data, fs::copy_options::recursive);
      std::filesystem::remove_all(enc_root / (std::string(program) + "-old"));
    }
-
-    data_dir = enc_dir;
-    app_data = enc_dir;
   }
 
   // Generate the script file
@@ -302,12 +296,12 @@ namespace generate {
       // Get libraries needed for added executables.
       if (arg::at("fs") && std::filesystem::is_directory(arg::mod("fs") + "/usr/bin")) {
         single_batch(
-          binaries::parse, binaries, 
+          binaries::parse, binaries,
           execute<vector>(
-            {"find", arg::mod("fs") + "/usr/bin", "-type", "f,l", "-executable"}, 
-            vectorize, 
+            {"find", arg::mod("fs") + "/usr/bin", "-type", "f,l", "-executable"},
+            vectorize,
             {.cap = STDOUT, .verbose = arg::at("verbose") >= "debug"}
-          ), 
+          ),
           libraries);
       }
     }
