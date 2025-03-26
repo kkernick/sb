@@ -5,6 +5,7 @@
 #include "libraries.hpp"
 
 #include <cstring>
+#include <filesystem>
 #include <fstream>
 #include <sys/wait.h>
 
@@ -35,6 +36,14 @@ static void cleanup(int sig) {
   if (arg::get("fs") == "persist") {
     auto path = arg::mod("fs");
     execute<void>({"find", path, "-type", "l", "-exec", "rm", "-f", "{}", ";"}, wait_for, {.verbose = arg::at("verbose") >= "debug"});
+    
+    vector files;
+    do {
+      files = execute<vector>({"find", path, "-empty"}, vectorize, {.cap = STDOUT, .verbose = arg::at("verbose") >= "debug"});
+      pool.submit_loop(0, files.size(), [&files](size_t x) {fs::remove(files[x]);}).wait();
+    } while (!files.empty());
+
+
     execute<void>({"find", path, "-type", "f", "-empty", "-exec", "rm", "-f", "{}", ";"}, wait_for, {.verbose = arg::at("verbose") >= "debug"});
     for (const auto& junk : {"/dev", "/sys", "/run"}) {
       if (fs::exists(path + junk))
@@ -237,7 +246,8 @@ int main(int argc, char* argv[]) {
     if (fs::is_directory(path + "/tmp")) extend(command, {"--overlay-src", arg::mod("fs") + "/tmp", "--tmp-overlay", "/tmp"});
     else extend(command, {"--tmpfs", "/tmp"});
   }
-  else extend(command, {"--tmpfs", "/tmp", "--tmpfs", "/home/sb/.cache"});
+  else extend(command, {"--tmpfs", "/tmp"});
+  extend(command, {"--tmpfs", "/home/sb/.cache"});
 
   // Mount *AFTER* the root file system has been overlain to prevent it being hidden.
   if (std::get<0>(proxy_pair) != -1) {
