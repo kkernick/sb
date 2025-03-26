@@ -1,6 +1,6 @@
 pkgname=sb++-git
 pkgdesc="Sandbox Applications"
-pkgver=r401.7f4513e
+pkgver=r402.e625757
 pkgrel=1
 
 license=("Unlicense")

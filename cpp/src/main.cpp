@@ -47,11 +47,10 @@ static void cleanup(int sig) {
 
   if (arg::at("encrypt") && !arg::list("encrypt").contains("persist")) {
     log({"Unmounting encrypted root at", app_data.string()});
-    auto stderr = execute<std::string>({"fusermount", "-u", app_data.string()}, dump, {.cap = STDERR, .verbose = arg::at("verbose") >= "debug"});
-    if (!stderr.empty()) {
-      log({"Failed to unmount:", stderr});
-      execute<void>({"kdialog", "--error", "Failed to close sandbox! Another instance may be using it!"});
-    }
+    std::string stderr;
+    do {
+      stderr = execute<std::string>({"fusermount", "-u", app_data.string()}, dump, {.cap = STDERR, .verbose = arg::at("verbose") >= "debug"});
+    } while (!stderr.empty());
   }
 }
 

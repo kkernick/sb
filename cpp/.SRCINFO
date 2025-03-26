@@ -1,8 +1,9 @@
 pkgbase = sb++-git
 	pkgdesc = Sandbox Applications
-	pkgver = r399.83455aa
+	pkgver = r402.e625757
 	pkgrel = 1
 	arch = any
+	license = Unlicense
 	makedepends = git
 	makedepends = lld
 	makedepends = clang
