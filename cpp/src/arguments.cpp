@@ -127,17 +127,12 @@ namespace arg {
       .help="Share QT libraries.",
       .updates_sof = true
     }},
-    {"gtk", arg::config{
-      .l_name="--gtk", .s_name="",
-      .valid={"false", "true", "3", "4"},
-      .help="For gtk applications. Implies --gui",
-      .updates_sof = true
-    }},
     {"python", arg::config{
       .l_name="--python", .s_name="",
       .help="Provide the specified version of python.",
       .updates_sof = true
     }},
+
 
     // Lists of Values.
     {"libraries", arg::config{
@@ -195,6 +190,20 @@ namespace arg {
       .valid={"persist", "init"},
       .flag_set = true,
       .help="Encrypt the profile's configuration and filesystems as $XDG_DATA_HOME.",
+      .updates_sof = true
+    }},
+    {"spelling", arg::config{
+      .l_name="--spelling", .s_name="",
+      .valid = {"hunspell", "enchant"},
+      .list=true,
+      .help="Spell checking support",
+      .updates_sof = true
+    }},
+    {"gtk", arg::config{
+      .l_name="--gtk", .s_name="",
+      .valid={"3", "4", "gdk", "sourceview", "adwaita", "gir", "webkit"},
+      .list = true,
+      .help="For gtk applications. Implies --gui",
       .updates_sof = true
     }},
 

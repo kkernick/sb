@@ -430,7 +430,7 @@ namespace arg {
        * @brief Return whether the argument was set.
        * @returns Whether the value is greater than the default (IE unset).
        */
-      operator bool() const {return level() != 0 || (flag && set);}
+      operator bool() const {return level() != 0 || (flag && set) || (list && !list_val.empty());}
 
       /**
        * @brief Check if the current value is underneath the provided.

@@ -323,6 +323,26 @@ namespace generate {
     // Add our new home and path.
     extend(command, {"--setenv", "HOME", "/home/sb", "--setenv", "PATH", "/usr/bin"});
 
+    // Spelling
+    if (arg::at("spelling")) {
+      const auto& engines = arg::list("spelling");
+      if (engines.contains("enchant")) {
+        log({"Adding enchant"});
+        share(command, "/usr/share/enchant-2");
+        if (update_sof) {
+          libraries::get(libraries, "libenchant*");
+          libraries::directories.emplace("/usr/lib/enchant-2");
+        }
+      }
+      if (engines.contains("hunspell")) {
+        log({"Adding hunspell"});
+        share(command, "/usr/share/hunspell");
+        if (update_sof) {
+          libraries::get(libraries, "libhunspell*");
+        }
+      }
+    }
+
     // XDG Open
     if (arg::at("xdg_open")) {
       log({"Adding XDG-Open"});
@@ -378,7 +398,7 @@ namespace generate {
 
     if (arg::at("gtk")) {
       log({"Adding GTK"});
-      auto version = arg::get("gtk");
+      set features = arg::list("gtk");
 
       batch(share, command, {
         "/usr/share/gtk", config + "/gtkrc", "/usr/share/glib-2.0",
@@ -386,7 +406,7 @@ namespace generate {
         config + "/gtkrc-2.0", config + "/gtk-2.0"
       }, "ro-bind");
 
-      if (version == "3" || version == "true")  {
+      if (features.contains("3"))  {
         batch(share, command, {
           config + "/gtk-3.0",
           "/usr/share/gtk-3.0",
@@ -396,13 +416,40 @@ namespace generate {
         if (update_sof) batch(libraries::get, libraries, {"libgdk-3*", "libgtk-3*"}, "");
       }
 
-      if (version == "4" || version == "true") {
+      if (features.contains("4")) {
         batch(share, command, {
           "/usr/share/gtk-4.0",
           config + "/gtk-4.0",
         }, "ro-bind");
         libraries::directories.emplace("/usr/lib/gtk-4.0");
         if (update_sof) batch(libraries::get, libraries, {"libgdk-4*", "libgtk-4*"}, "");
+      }
+
+      if (features.contains("webkit")) {
+        features.emplace("gir");
+        sys_dirs.emplace("proc");
+
+        share(command, "/dev/urandom", "dev-bind");
+        libraries::directories.emplace("/usr/lib/webkitgtk-6.0/");
+        if (update_sof) batch(libraries::get, libraries, {"libwebkitgtk*", "libjavascriptcoregtk*"}, "");
+      }
+
+      if (features.contains("gdk")) {
+        libraries::directories.emplace("/usr/lib/gdk-pixbuf-2.0");
+      }
+
+      if (features.contains("sourceview")) {
+        share(command, "/usr/share/gtksourceview-5");
+        if (update_sof) libraries::get(libraries, "libgtksourceview*");
+      }
+
+      if (features.contains("adwaita")) {
+        if (update_sof) libraries::get(libraries, "libadwaita*");
+      }
+
+      if (features.contains("gir")) {
+        share(command, "/usr/share/gir-1.0/");
+        libraries::directories.emplace("/usr/lib/girepository-1.0/");
       }
 
       extend(command, {"--setenv", "GTK_USE_PORTAL", "1", "--setenv", "GTK_A11Y", "none"});
@@ -459,7 +506,7 @@ namespace generate {
       });
 
       extend(libraries::directories, {"/usr/lib/dri", "/usr/lib/gbm"});
-      if (update_sof) batch(libraries::get, libraries, {"*Mesa*", "*mesa*", "*EGL*"}, "");
+      if (update_sof) batch(libraries::get, libraries, {"libMesa*", "libGL*", "libEGL*"}, "");
 
       const auto& flags = arg::list("gui");
       if (flags.contains("vulkan")) {
