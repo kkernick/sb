@@ -161,11 +161,14 @@ namespace binaries {
 
         // Get the shebang from the top.
         auto lines = container::init<vector>(container::split<vector, char>, contents, '\n', false);
-        auto shebang = strip<std::string_view>(lines[0], "#! \t\n");
-        local.emplace(shebang);
 
-        if (shebang.starts_with("/bin/")) shebang = shebang.insert(0, "/usr");
-        parse(required, shebang, libraries);
+        auto shebang = container::init<vector>(container::split<vector, char>, lines[0], ' ', false);
+        shebang[0] = strip<std::string_view>(shebang[0], "#! \t\n");
+        for (auto& s : shebang) {
+          local.emplace(s);
+          if (s.starts_with("/bin/")) s = s.insert(0, "/usr");
+          parse(required, s, libraries);
+        }
 
         // Go through the other lines.
         for (uint_fast16_t x = 0; x < lines.size(); ++x) {

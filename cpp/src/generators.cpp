@@ -429,7 +429,7 @@ namespace generate {
         features.emplace("gir");
         sys_dirs.emplace("proc");
 
-        share(command, "/dev/urandom", "dev-bind");
+        batch(share, command, {"/dev/urandom", "/dev/null"}, "dev-bind");
         libraries::directories.emplace("/usr/lib/webkitgtk-6.0/");
         if (update_sof) batch(libraries::get, libraries, {"libwebkitgtk*", "libjavascriptcoregtk*"}, "");
       }
