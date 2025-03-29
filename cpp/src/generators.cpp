@@ -447,6 +447,12 @@ namespace generate {
         if (update_sof) libraries::get(libraries, "libadwaita*");
       }
 
+      if (features.contains("gst")) {
+        features.emplace("gir");
+        libraries::directories.emplace("/usr/lib/gstreamer-1.0/");
+        if (update_sof) libraries::get(libraries, "libgst*");
+      }
+
       if (features.contains("gir")) {
         share(command, "/usr/share/gir-1.0/");
         libraries::directories.emplace("/usr/lib/girepository-1.0/");

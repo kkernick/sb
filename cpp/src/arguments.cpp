@@ -201,7 +201,7 @@ namespace arg {
     }},
     {"gtk", arg::config{
       .l_name="--gtk", .s_name="",
-      .valid={"3", "4", "gdk", "sourceview", "adwaita", "gir", "webkit"},
+      .valid={"3", "4", "gdk", "sourceview", "adwaita", "gir", "webkit", "gst"},
       .list = true,
       .help="For gtk applications. Implies --gui",
       .updates_sof = true
