@@ -110,6 +110,7 @@ namespace arg {
       .l_name="--seccomp", .s_name="",
       .valid={"permissive", "enforcing", "strace"},
       .help="Use a BPF-SECCOMP Filter to restrict syscalls.",
+      .updates_sof = true,
     }},
     {"file_passthrough", arg::config{
       .l_name="--file-passthrough", .s_name="",
@@ -184,6 +185,7 @@ namespace arg {
       .valid = {"user", "ipc", "pid", "net", "cgroup", "none", "all"},
       .list=true,
       .help="Share namespaces.",
+      .updates_sof = true,
     }},
     {"encrypt", arg::config{
       .l_name="--encrypt", .s_name="-E",
