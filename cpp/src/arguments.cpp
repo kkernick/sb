@@ -65,6 +65,12 @@ namespace arg {
       .help="System locale",
       .updates_sof = true
     }},
+    {"no-flags", arg::config{
+      .l_name="--no-flags", .s_name="",
+      .valid={"false", "true"},
+      .help="Don't use a flag file if it exists",
+      .updates_sof = true
+    }},
     {"dry", arg::config{
       .l_name="--dry", .s_name="-d",
       .valid={"false", "true"},

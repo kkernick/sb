@@ -395,8 +395,10 @@ int main(int argc, char* argv[]) {
     extend(command, post);
 
     // Add flags
-    auto flags = app_data / "flags.conf";
-    if (fs::exists(flags)) container::split(command, file::parse<std::string>(flags.string(), dump), " \n");
+    if (!arg::at("no-flags")) {
+      auto flags = app_data / "flags.conf";
+      if (fs::exists(flags)) container::split(command, file::parse<std::string>(flags.string(), dump), " \n");
+    }
   }
 
   // Do this before our auxiliary wait.
