@@ -6,7 +6,6 @@
 
 #include <cstring>
 #include <filesystem>
-#include <fstream>
 #include <sys/wait.h>
 
 using namespace shared;
@@ -16,6 +15,7 @@ namespace fs = std::filesystem;
 // The WD of the proxy
 int proxy_pid = -1;
 
+bool kdialog = fs::exists("/usr/bin/kdialog");
 
 // Cleanup children.
 static void child_handler(int sig) {
@@ -36,7 +36,7 @@ static void cleanup(int sig) {
   if (arg::get("fs") == "persist") {
     auto path = arg::mod("fs");
     execute<void>({"find", path, "-type", "l", "-exec", "rm", "-f", "{}", ";"}, wait_for, {.verbose = arg::at("verbose") >= "debug"});
-    
+
     vector files;
     do {
       files = execute<vector>({"find", path, "-empty"}, vectorize, {.cap = STDOUT, .verbose = arg::at("verbose") >= "debug"});
@@ -60,6 +60,21 @@ static void cleanup(int sig) {
     do {
       stderr = execute<std::string>({"fusermount", "-u", app_data.string()}, dump, {.cap = STDERR, .verbose = arg::at("verbose") >= "debug"});
     } while (!stderr.empty());
+  }
+}
+
+void warning(const list& msg, const bool& error = true) {
+  if (kdialog)
+    exec::execute<void>({"kdialog", "--title", arg::get("cmd"), "--error", join<list>(msg, ' ')}, wait_for);
+  else {
+    if (error) std::cerr << "ERROR: ";
+    else std::cerr << "WARN: ";
+    for (const auto& x : msg) std::cerr << x << ' ';
+    std::cerr << std::endl;
+  }
+  if (error) {
+    cleanup(0);
+    exit(0);
   }
 }
 
@@ -103,7 +118,12 @@ int main(int argc, char* argv[]) {
         }
       }
     }
-    arg::parse_args();
+    try {
+      arg::parse_args();
+    }
+    catch (std::runtime_error& e) {
+      warning({"Failed to parse arguments", e.what()});
+    }
   };
   profile("Argument Parser", parse_args);
 
@@ -193,13 +213,13 @@ int main(int argc, char* argv[]) {
 
   // Initialize inotify
   inotify = inotify_init();
-  if (inotify == -1) throw std::runtime_error(std::string("Failed to initialize inotify: ") + strerror(errno));
+  if (inotify == -1) warning({"Failed to initialize inotify: ", strerror(errno)});
 
 
   // Create the ld.so.preload to ensure hardened malloc is enforced.
   if (arg::at("hardened_malloc")) {
       if (!fs::exists("/usr/lib/libhardened_malloc.so"))
-        throw std::runtime_error("Installed hardened malloc!");
+        warning({"Install hardened malloc!"});
       auto preload = std::ofstream(work_dir.sub("ld.so.preload"));
       preload << "/usr/lib/libhardened_malloc.so";
       preload.close();
@@ -207,7 +227,6 @@ int main(int argc, char* argv[]) {
 
   // Defer instance dir to only when we actually need it.
   auto instance_dir = TemporaryDirectory(runtime + "/.flatpak", program, "", true);
-
   std::pair<int, std::future<int>> proxy_pair;
 
   if (arg::list("portals").empty() && arg::list("see").empty() && arg::list("talk").empty() && arg::list("own").empty()) {
@@ -284,7 +303,7 @@ int main(int argc, char* argv[]) {
   int bwrap_fd = -1;
   if (std::get<0>(proxy_pair) != -1) {
     bwrap_fd = creat(instance_dir.sub("bwrapinfo.json").c_str(), S_IRUSR | S_IWUSR | S_IROTH);
-    if (bwrap_fd == -1) throw std::runtime_error(std::string("Failed to create bwrapinfo: ") + strerror(errno));
+    if (bwrap_fd == -1) warning({"Failed to create bwrapinfo: ", strerror(errno)});
     extend(command, {
       "--dir", runtime,
       "--chmod", "0700", runtime,
@@ -311,8 +330,7 @@ int main(int argc, char* argv[]) {
       command.insert(command.end(), next.begin(), next.end());
     }
     catch (std::exception& e) {
-      std::cerr << "Failed to generate command: " << e.what() << std::endl;
-      cleanup(0);
+      warning({"Failed to generate command: ", e.what()});
     }
   };
   profile("Command Generation", generate_command);
@@ -330,20 +348,20 @@ int main(int argc, char* argv[]) {
       // Discard, which only applies on folders, puts a TMPFS overlay to make directories appear
       // writable within the sandbox, but to which said changes are discarded.
       else if (policy == "discard") {
-        if (!fs::is_directory(path)) throw std::runtime_error("Discard policy can only apply to directories!");
+        if (!fs::is_directory(path)) warning({"Discard policy can only apply to directories!"});
         extend(command, {"--overlay-src", path, "--tmp-overlay", "/enclave" + path});
         return;
       }
 
-      else if (policy == "false") throw std::runtime_error("--file-passthrough must be set if --files does not use modifiers!");
+      else if (policy == "false") warning({"--file-passthrough must be set if --files does not use modifiers!"});
 
       // Otherwise complain if the policy is invalid.
-      else throw std::runtime_error("Invalid policy for " + path + ':' + policy);
+      else warning({"Invalid policy for ", path, ":", policy});
 
       // Give it within the enclave.
       extend(command, {path, "/enclave/" + path});
     }
-    else throw std::runtime_error("Please provide a passthrough mode!");
+    else warning({"Please provide a passthrough mode!"});
 
   };
 

@@ -123,7 +123,6 @@ namespace shared {
     const std::string& get_name() const {return name;}
   };
 
-
   /**
    * @brief Log output to console, if verbose.
    * @param msg: A list of strings to be printed.

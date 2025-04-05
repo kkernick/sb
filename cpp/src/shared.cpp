@@ -52,13 +52,14 @@ namespace shared {
 
   // Join a container into a string.
   template <class T> std::string join(const T& list, const char& joiner) {
-    if (list.empty()) return "";
+    if (list.size() == 0) return "";
     std::stringstream in;
     for (const auto& x : list)
       in << x << joiner;
     auto str = in.str();
     return str.erase(str.length() - 1);
   }
+  template std::string join(const list&, const char&);
   template std::string join(const vector&, const char&);
   template std::string join(const set&, const char&);
 
