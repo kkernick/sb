@@ -34,7 +34,7 @@ namespace libraries {
     auto cache = cache_name(std::string(library), "ldd");
     if (std::filesystem::exists(cache) && !std::filesystem::is_empty(cache))
       libraries = file::parse<set>(cache, setorize);
-    else {
+    else try {
       if (file::parse<std::string>(library, head<5>) != "\177ELF\2") return;
       std::filesystem::create_directories(cache.parent_path());
 
@@ -80,6 +80,7 @@ namespace libraries {
         else log({"Failed to write cache file:", cache.string()});
       }
     }
+    catch (std::runtime_error&) {return;}
     required.merge(libraries);
   }
 
