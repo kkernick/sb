@@ -221,7 +221,10 @@ int main(int argc, char* argv[]) {
       if (!fs::exists("/usr/lib/libhardened_malloc.so"))
         warning({"Install hardened malloc!"});
       auto preload = std::ofstream(work_dir.sub("ld.so.preload"));
-      preload << "/usr/lib/libhardened_malloc.so";
+      if (arg::get("hardened_malloc") == "light")
+        preload << "/usr/lib/libhardened_malloc-light.so";
+      else
+        preload << "/usr/lib/libhardened_malloc.so";
       preload.close();
   }
 

@@ -43,7 +43,7 @@ namespace arg {
     }},
     {"hardened_malloc", arg::config{
       .l_name="--hardened-malloc", .s_name="-m",
-      .valid={"false", "true"},
+      .valid={"false", "true", "light"},
       .help="Enforce hardened malloc within the sandbox.",
       .updates_sof = true
     }},

@@ -184,7 +184,9 @@ namespace generate {
         else {
           log({"Generating Proxy Cache"});
           libraries::lib_t libraries = {};
-          if (arg::at("hardened_malloc")) libraries::get(libraries, "/usr/lib/libhardened_malloc.so");
+          if (arg::get("hardened_malloc") == "true") libraries::get(libraries, "/usr/lib/libhardened_malloc.so");
+          else if (arg::get("hardened_malloc") == "light") libraries::get(libraries, "/usr/lib/libhardened_malloc-light.so");
+
           container::init<binaries::bin_t>(binaries::parse, "/usr/bin/xdg-dbus-proxy", libraries);
           libraries::resolve(libraries, "xdg-dbus-proxy", p_hash, false);
         }
@@ -353,7 +355,9 @@ namespace generate {
     // Hardened Malloc
     if (arg::at("hardened_malloc") && update_sof) {
       log({"Adding Hardened Malloc"});
-      libraries::get(libraries, "/usr/lib/libhardened_malloc.so");
+      if (arg::get("hardened_malloc") == "light")
+        libraries::get(libraries, "/usr/lib/libhardened_malloc-light.so");
+      else libraries::get(libraries, "/usr/lib/libhardened_malloc.so");
     }
 
     // A shell
