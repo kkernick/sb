@@ -2,6 +2,7 @@
 #include "arguments.hpp"
 #include "binaries.hpp"
 #include "libraries.hpp"
+#include "shared.hpp"
 
 #include <cstring>
 #include <filesystem>
@@ -14,6 +15,38 @@ namespace fs = std::filesystem;
 namespace generate {
 
 
+  std::pair<std::string, int> xorg() {
+    auto sockets = execute<set>({"find", "/tmp", "-maxdepth", "1", "-name", ".X*-lock"}, fd_splitter<set, '\n'>,  {.cap = STDOUT, .verbose = arg::at("verbose") >= "debug"});
+    size_t display = 0;
+    while (true) {
+      std::string lock = "/tmp/.X" + std::to_string(display) + "-lock";
+      if (!fs::exists(lock)) {
+        break;
+      }
+      ++display;
+    }
+    auto d = ":" + std::to_string(display);
+
+    vector command = {"Xephyr", "-once"};
+    const auto& flags = arg::list("xorg");
+
+    if (arg::at("xsize")) extend(command, {"-screen", arg::get("xsize")});
+    else if (flags.contains("fullscreen")) command.push_back("-fullscreen");
+
+    if (flags.contains("resize")) command.push_back("-resizeable");
+    if (flags.contains("gl")) extend(command, {
+      "-glamor",
+      "+iglx",
+      "+extension", "GLX",
+      "+extension", "COMPOSITE"
+    });
+
+    command.push_back(d);
+    auto pid = execute<int>(command, get_pid);
+    return {d, pid};
+  }
+
+  // Unlock an encrypted FS
   void encrypted(const std::string_view& program) {
     const auto enc_root = fs::path(data) / "sb" / "enc";
     fs::create_directories(enc_root);
@@ -490,7 +523,7 @@ namespace generate {
         share(command, "/usr/share/qt");
         libraries::directories.emplace("/usr/lib/qt");
       }
-      
+
       if (update_sof) {
         libraries::get(libraries, "libQt" + version + "*");
        if (version != "kf6") libraries::get(libraries, "/usr/lib/kf6/kioworker");

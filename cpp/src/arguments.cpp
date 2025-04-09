@@ -139,6 +139,16 @@ namespace arg {
       .help="Provide the specified version of python.",
       .updates_sof = true
     }},
+    {"xorg", arg::config{
+      .l_name="--xorg", .s_name="-X",
+      .valid={"resize", "fullscreen", "gl"},
+      .flag_set = true,
+      .help="Provide an isolated Xorg instance for the application, giving the resolution.",
+    }},
+    {"xsize", arg::config{
+      .l_name="--xsize", .s_name="",
+      .help="The size of the X-Window. Requires --xorg",
+    }},
 
 
     // Lists of Values.

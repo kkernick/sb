@@ -11,6 +11,12 @@
 namespace generate {
 
 
+  std::pair<std::string, int> xorg();
+  
+  /**
+   * @brief Handle an encrypted FS Sandbox.
+   * @param program: The program
+   */
   void encrypted(const std::string_view& program);
 
   /**

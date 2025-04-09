@@ -407,6 +407,15 @@ int main(int argc, char* argv[]) {
   };
   profile("Exclusive SECCOMP Setup", seccomp_setup);
 
+  int xephr = -1;
+  if (arg::at("xorg")) {
+    auto pair = generate::xorg();
+
+    auto display = pair.first;
+    xephr = pair.second;
+    extend(command, {"--setenv", "DISPLAY", display});
+  }
+
   // Final command args. Debug Shell replaces the actual app
   if (arg::get("shell") == "debug") command.emplace_back("sh");
   else {
@@ -473,6 +482,8 @@ int main(int argc, char* argv[]) {
   // Cleanup FD.
   if (seccomp_fd != -1) close(seccomp_fd);
   if (bwrap_fd != -1) close(bwrap_fd);
+
+  if (xephr != -1) kill(xephr, SIGTERM);
 
   #ifdef PROFILE
   for (const auto& [key, value] : time_slice)

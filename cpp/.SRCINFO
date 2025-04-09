@@ -1,6 +1,6 @@
 pkgbase = sb++-git
 	pkgdesc = Sandbox Applications
-	pkgver = r402.e625757
+	pkgver = r413.2302651
 	pkgrel = 1
 	arch = any
 	license = Unlicense
@@ -23,6 +23,7 @@ pkgbase = sb++-git
 	optdepends = gocryptfs: for --encrypt
 	optdepends = kdialog: for --encrypt
 	optdepends = libexec: To dynamically link against libexec.
+	optdepends = xorg-server-xephyr: For Xorg applications and --xorg
 	provides = sb
 	conflicts = sb
 	conflicts = sb-git
