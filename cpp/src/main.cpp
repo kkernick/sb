@@ -282,6 +282,12 @@ int main(int argc, char* argv[]) {
   // Add environment variables.
   batch(genv, command, {"XDG_RUNTIME_DIR", "XDG_CURRENT_DESKTOP", "DESKTOP_SESSION"});
 
+  for (const auto& env : arg::list("env")) {
+    auto split = container::init<vector>(container::split<vector, char>, env, '=', false);
+    if (split.size() == 2)
+      extend(command, {"--setenv", split[0], split[1]});
+  }
+
   // If we are using a shell, create a dummy passwd file.
   if (arg::at("shell")) {
     const auto passwd = work_dir.sub("passwd");

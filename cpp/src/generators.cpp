@@ -485,11 +485,19 @@ namespace generate {
 
       share(command, "/usr/share/qt" + version);
       libraries::directories.emplace("/usr/lib/qt" + version);
+
+      if (version == "5") {
+        share(command, "/usr/share/qt");
+        libraries::directories.emplace("/usr/lib/qt");
+      }
+      
       if (update_sof) {
         libraries::get(libraries, "libQt" + version + "*");
        if (version != "kf6") libraries::get(libraries, "/usr/lib/kf6/kioworker");
       }
+
       arg::emplace("gui", "true");
+      extend(command, {"--setenv", "QT_QPA_PLATFORM", "wayland"});
     }
 
     if (arg::at("gui")) {
