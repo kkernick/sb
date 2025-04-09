@@ -409,11 +409,13 @@ int main(int argc, char* argv[]) {
 
   int xephr = -1;
   if (arg::at("xorg")) {
-    auto pair = generate::xorg();
-
-    auto display = pair.first;
-    xephr = pair.second;
-    extend(command, {"--setenv", "DISPLAY", display});
+    try {
+      auto pair = generate::xorg();
+      auto display = pair.first;
+      xephr = pair.second;
+      extend(command, {"--setenv", "DISPLAY", display});
+    }
+    catch (std::runtime_error& e) {warning({"Failed to setup xorg: ", e.what()});}
   }
 
   // Final command args. Debug Shell replaces the actual app

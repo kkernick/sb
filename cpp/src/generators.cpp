@@ -16,6 +16,11 @@ namespace generate {
 
 
   std::pair<std::string, int> xorg() {
+    if (execute<std::string>({"which", "Xephyr"}, dump, {.cap = STDOUT}).empty()) {
+      throw std::runtime_error("Xephyr not found!");
+    }
+
+
     auto sockets = execute<set>({"find", "/tmp", "-maxdepth", "1", "-name", ".X*-lock"}, fd_splitter<set, '\n'>,  {.cap = STDOUT, .verbose = arg::at("verbose") >= "debug"});
     size_t display = 0;
     while (true) {
