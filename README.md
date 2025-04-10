@@ -1,7 +1,7 @@
 # SB
 
-SB is a command line utility that sandboxes Linux applications via `bwrap`.  It simplifying the creation of sandboxes via:
-1. Automatically resolving and managing library and binary dependencies via `ldd`.
+SB is a command line utility that sandboxes Linux applications via `bwrap`.  It simplifies the creation of sandboxes by:
+1. Automatically resolving and managing library and binary dependencies via `ldd` and shell-script parsing.
 2. Flatpak Portal emulation via `xdg-dbus-proxy` and `inotify`
 3. Automatic SECCOMP filter generation via `libseccomp` and `strace`
 4. Configurations for:
@@ -33,3 +33,7 @@ Reduced /usr/bin By: 99.6241% (3192 to 12)
 Reduced /usr/lib By: 99.1509% (40750 to 346)  
 Reduced Files By: 92.7379% (740617 to 53784)
 ```
+
+## Examples
+
+See [Here](./cpp/examples)
