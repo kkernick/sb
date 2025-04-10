@@ -352,7 +352,8 @@ int main(int argc, char* argv[]) {
   //Passthrough any and all files.
   vector post = {};
   auto passthrough = [&command](const std::string& path, const std::string& policy) {
-    if (arg::at("file_passthrough") || !arg::list("files").empty()) {
+    if (!fs::exists(path)) return;
+    else if (arg::at("file_passthrough") || !arg::list("files").empty()) {
 
       // RO/RW are bound.
       if (policy == "ro") command.emplace_back("--ro-bind");
