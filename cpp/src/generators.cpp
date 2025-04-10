@@ -16,7 +16,7 @@ namespace generate {
 
 
   std::pair<std::string, int> xorg() {
-    if (execute<std::string>({"which", "Xephyr"}, dump, {.cap = STDOUT}).empty()) {
+    if (execute<std::string>({"which", "Xephyr"}, dump, {.cap = STDOUT, .verbose = arg::at("verbose") >= "debug"}).empty()) {
       throw std::runtime_error("Xephyr not found!");
     }
 
@@ -47,7 +47,7 @@ namespace generate {
     });
 
     command.push_back(d);
-    auto pid = execute<int>(command, get_pid);
+    auto pid = execute<int>(command, get_pid, {.verbose = arg::at("verbose") >= "debug"});
     return {d, pid};
   }
 
@@ -307,6 +307,7 @@ namespace generate {
     command.reserve(200);
 
     binaries::bin_t binaries; libraries::lib_t libraries;
+    set devices = arg::list("devices");
 
     // So that we can easily query as unique, and to emplace.
     auto sys_dirs = arg::list("sys_dirs");
@@ -315,7 +316,7 @@ namespace generate {
     const auto& app_dirs = arg::list("app_dirs");
     const bool lib = !sys_dirs.contains("lib"), bin = !sys_dirs.contains("bin");
 
-    bool update_sof = arg::at("update") | !std::filesystem::exists(l_cache);
+    bool update_sof = arg::at("update") | !std::filesystem::exists(l_cache) || arg::at("stats");
     if (lib && !update_sof) {
       if (std::filesystem::exists(c_cache)  && !std::filesystem::is_empty(c_cache)) {
         log({"Reusing existing command cache"});
@@ -353,6 +354,9 @@ namespace generate {
         if (update_sof) libraries::get(libraries, lib);
       }
     }
+
+    if (arg::at("stats") && bin)
+      binaries::parse(binaries, "fd", libraries);
 
     // Add strace if we need to.
     if (arg::at("verbose") >= "error" && bin) {
@@ -422,7 +426,7 @@ namespace generate {
 
     if (arg::at("electron")) {
       log({"Adding Electron"});
-      batch(share, command, {"/dev/null", "/dev/urandom", "/dev/shm"}, "dev-bind");
+      extend(devices, {"/dev/null", "/dev/urandom", "/dev/shm"});
 
       if (update_sof) batch(libraries::get, libraries, {"libsoftokn3*", "libfreeblpriv3*"}, "");
 
@@ -471,7 +475,7 @@ namespace generate {
         features.emplace("gir");
         sys_dirs.emplace("proc");
 
-        batch(share, command, {"/dev/urandom", "/dev/null"}, "dev-bind");
+        extend(devices, {"/dev/urandom", "/dev/null"});
         libraries::directories.emplace("/usr/lib/webkitgtk-6.0/");
         if (update_sof) batch(libraries::get, libraries, {"libwebkitgtk*", "libjavascriptcoregtk*"}, "");
       }
@@ -540,7 +544,7 @@ namespace generate {
 
     if (arg::at("gui")) {
       log({"Adding GUI"});
-      share(command, "/dev/dri", "dev-bind");
+      devices.emplace("/dev/dri");
       batch(share, command, {
         "/sys/devices/pci0000:00",
         "/sys/dev/char",
@@ -620,7 +624,10 @@ namespace generate {
 
     // Parse system directories.
     if (sys_dirs.contains("dev")) extend(command, {"--dev", "/dev"});
-    else batch(share, command, arg::list("devices"), "dev-bind");
+    else {
+      batch(share, command, devices, "dev-bind");
+      stats("/dev", devices.size());
+    }
 
     if (sys_dirs.contains("proc")) extend(command, {"--proc", "/proc"});
     if (sys_dirs.contains("etc")) extend(command, {"--overlay-src", "/etc", "--tmp-overlay", "/etc"});
@@ -634,7 +641,10 @@ namespace generate {
     if (app_dirs.contains("opt")) libraries::directories.emplace("/opt/" + program);
 
     // Setup binaries and symlinks.
-    if (bin) binaries::setup(binaries, command);
+    if (bin) {
+      binaries::setup(binaries, command);
+      stats("/usr/bin", binaries.size());
+    }
     binaries::symlink(command);
 
     if (update_sof) {
@@ -646,7 +656,8 @@ namespace generate {
       // into another thread, and then call pool.wait() just before running the program.
       pool.detach_task([program = std::move(program), libraries = std::move(libraries)]() {
             libraries::resolve(libraries, program, arg::hash);
-        });
+            stats("/usr/lib", libraries.size());
+      });
     }
     else log({"SOF Satisfied"});
     if (lib) extend(command, {"--overlay-src", lib_dir.string(), "--tmp-overlay", "/usr/lib"});

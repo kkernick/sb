@@ -294,4 +294,6 @@ namespace shared {
   #else
     #define profile(name, func) func();
   #endif
+  
+  void stats(const std::string& path, const float& reduction);
 }

@@ -1,6 +1,6 @@
 pkgname=sb++-git
 pkgdesc="Sandbox Applications"
-pkgver=r415.470ce5b
+pkgver=r416.2492173
 pkgrel=1
 
 license=("Unlicense")
@@ -18,6 +18,8 @@ optdepends=(
   'kdialog: for --encrypt'
   'libexec: To dynamically link against libexec.'
   'xorg-server-xephyr: For Xorg applications and --xorg'
+  'fd: For --stats'
+
 )
 arch=("any")
 provides=("sb")

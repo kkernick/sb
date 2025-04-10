@@ -93,10 +93,10 @@ The `--desktop-entry (O)` switch can be used to shadow the system `.desktop` fil
 
 If your program doesn't have a desktop file, you can use `--script (C)` to create the script file in `~/.local/bin`.
 
-All the above flags assume the program is run under Wayland, which is a far more secure protocol than Xorg. Providing the Xorg socket into the sandbox is such as easy escape that you might as well not bother with SB. However, if you have `xorg-server-xephyr` installed, SB can run an isolated Xorg server specifically for that application, via the `--xorg (F)` switch. 
+All the above flags assume the program is run under Wayland, which is a far more secure protocol than Xorg. Providing the Xorg socket into the sandbox is such as easy escape that you might as well not bother with SB. However, if you have `xorg-server-xephyr` installed, SB can run an isolated Xorg server specifically for that application, via the `--xorg (F)` switch.
 
 > [!note]
-> While `--xorg` *creates* the server and corresponding `DISPLAY` environment variable, it doesn't provide any graphical libraries, and as such you'll need to include something like`--gui` or `--electron` depending on the app. 
+> While `--xorg` *creates* the server and corresponding `DISPLAY` environment variable, it doesn't provide any graphical libraries, and as such you'll need to include something like`--gui` or `--electron` depending on the app.
 
 >[!tip]
 >Wayland will *always* be available within the sandbox, so long as `--gui` is directly or indirectly provided. Therefore, if your program runs under both, and defaults to Wayland, you'll need to somehow tell it to use X11, such as `--ozone-platform=x11` for Chromium/Electron
@@ -131,7 +131,7 @@ Usually, SB will automatically find all needed libraries used by the program, bu
 * Use `--libraries (L+M)` to pass them to the sandbox. It accepts three formats:
 	* Wildcards: `--libraries libSDL3*`
 	* Directories: `--libraries /usr/lib/chromium`
-	* Files: `--libraries /usr/lib/libSDL3.so`. 
+	* Files: `--libraries /usr/lib/libSDL3.so`.
 	As a list switch, you can pass multiple such values, either in one invocation, like `--libraries A B`, or multiple, such as `--libraries A --libraries B`.
 * Use `--sys-dirs lib` to pass `/usr/lib` into the sandbox. Don't do this unless you have no choice.
 
@@ -168,7 +168,7 @@ For a more quantifiable example, consider the following benchmark using `example
 | `usr`   | 238148.9 | 3317.5 | 10119.9   | 246266.4 | 0              |
 > [!note]
 > *Cold* in this case involves deleting the folder before each run. This simulates `--update all`, but note that `data` and `usr` will launch at *Hot* at every invocation, whereas `tmp` and `zram` will launch at *Cold* once after reboot, then *Hot*. If the numbers did not make this obvious, you should use the Dry Startup service if you use either of the RAM backed SOFs.
-> 
+>
 
 >[!warning]
 >YMML on speed between RAM and Disk backings depending on your own RAM and Disk/Filesystem. These tests were conducted on ZFS, which effectively makes RAM/Disk the same speed
@@ -208,7 +208,7 @@ When using `--files (L+M)`, you can modify each file via a modifier, to which yo
 
 By default, and to make AppArmor profile generation easier, all passed files are actually exposed in a `/enclave` folder in the sandbox, such that profiles can just have `/enclave/{,**} rw,` in their AppArmor profiles. However, if you need the path to exist as it does on the host, such as passing something from `/etc` or `/var`, you can provide the `do/dw` modifier accordingly.
 
-If no modifier is provided, it defaults to whatever `--file-passthrough` is, so you can have something like: `--file-passthrough ro --files text.txt text.csv:rw /etc/hosts:do`. 
+If no modifier is provided, it defaults to whatever `--file-passthrough` is, so you can have something like: `--file-passthrough ro --files text.txt text.csv:rw /etc/hosts:do`.
 
 ## Directory Passthrough
 
@@ -242,7 +242,7 @@ While you can use the above `--files` mechanism to pass folders to the sandbox, 
 Passing your home folder into the sandbox is a terrible idea. **Never** use `--files /home`, and ***especially*** not `--files /home:rw`. Like providing the global Xorg socket, you might as well save the effort and run the program unconfined. However, applications store their configuration files in the home, and unless you want a clean slate every launch, you still need a way to store them.
 
 The `--fs` switch will create an isolated directory in `$XDG_DATA_HOME/sb/program` that is overlain on the *root* of the sandbox. This allows for:
-* The storage of configurations within the `FS/home/sb` (The user name within the sandbox is obscured) 
+* The storage of configurations within the `FS/home/sb` (The user name within the sandbox is obscured)
 * Passing of any file that may be too encumbering to provide via `--files` especially if the file doesn't actually exist at the path you want it to. For example:
 	* Place a binary in `FS/usr/bin`
 	* Place libraries in `FS/usr/lib`
@@ -265,7 +265,7 @@ By default, the user namespace created by `bwrap` is completely separate from th
 The `--share (F)` switch controls the sharing of the following namespaces:
 * `--share none` shares nothing, and is the default.
 * `--share user` shares the user namespace, which is needed for Chromium/Electron to make their sandbox (This is automatically enabled with `--electron`)
-* `--share ipc` shares the IPC namespace. 
+* `--share ipc` shares the IPC namespace.
 * `--share pid` shares the PID namespace.
 * `--share net` shares the Network namespace, and allows the program use the network.
 * `--share cgroup` shares the CGroup namespace.
@@ -289,8 +289,8 @@ If you don't happen to know every single syscall your program ever uses, SB can 
 ## Encryption
 
 If your program contains sensitive information, you may want to secure it by encrypting it. The `--encrypt (F)` switch can encrypt the configuration and FS using `gocryptfs`. To setup:
-1. Run the program with `--encrypt init`. This will create a new encrypted root for the program's configuration at `$XDG_DATA_HOME/sb/enc`. The cache for the program, and its FS will be encrypted within the root. If there's an existing configuration, it will be seamlessly copied. 
-2. Provide the `--encrypt` switch to the profile. 
+1. Run the program with `--encrypt init`. This will create a new encrypted root for the program's configuration at `$XDG_DATA_HOME/sb/enc`. The cache for the program, and its FS will be encrypted within the root. If there's an existing configuration, it will be seamlessly copied.
+2. Provide the `--encrypt` switch to the profile.
 
 The `--encrypt persist` flag will make the encryption a one-time operation per boot. It will be locked on reboot, and on the first attempted execution will prompt for unlocking, then remain unlocked for the rest of the boot.
 
@@ -314,8 +314,5 @@ You'll need to install `gocryptfs`, along with `kdialog`, otherwise you will be 
 * `--spelling (F)` provides spellchecking support, including:
 	* `--spelling hunspell` for Hunspell.
 	* `--spelling enchant` for enchant.
+* `--stats` provides statistics about the sandbox.
 * `--version (TF)` prints the SB version.
-
-
-
-

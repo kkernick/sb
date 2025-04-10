@@ -171,4 +171,12 @@ namespace shared {
     }
     else throw std::runtime_error("Failed to hash string!");
   }
+  
+  void stats(const std::string& path, const float& final) {
+    if (arg::at("stats")) {
+      float start = execute<vector>({"fd", ".", path}, vectorize, {.cap = STDOUT, .verbose = arg::at("verbose") >= "debug"}).size();
+      std::cout << "Reduced " << path << " By: " << ((start - final) / abs(start)) * 100.0f << "%"
+                << " (" << start << " to " << final << ")" << std::endl;
+    }
+  }
 }

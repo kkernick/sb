@@ -104,6 +104,12 @@ namespace arg {
       .valid = {"false", "true"},
       .help="Pass the real hostname to the sandbox",
     }},
+    {"stats", arg::config{
+      .l_name="--stats", .s_name="",
+      .valid = {"false", "true"},
+      .help="Compute sandbox statistics.",
+      .updates_sof = true
+    }},
 
     // Discrete, Single-Value Switches.
     {"update", arg::config{

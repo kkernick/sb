@@ -419,7 +419,10 @@ int main(int argc, char* argv[]) {
   }
 
   // Final command args. Debug Shell replaces the actual app
-  if (arg::get("shell") == "debug") command.emplace_back("sh");
+  if (arg::at("stats")) {
+    extend(command, {"fd", ".", "/", "-E", "run", "-H"});
+  }
+  else if (arg::get("shell") == "debug") command.emplace_back("sh");
   else {
     // Strace just prepends itself before running the command.
     // --shell=debug --strace will just debug shell; why would you
@@ -464,21 +467,31 @@ int main(int argc, char* argv[]) {
     };
     profile("Exclusive Proxy Setup", wait);
 
-    // If there's a post command, the main command is non-blocking,
-    // we launch the post command, and wait on that.
-    if (arg::at("post")) {
-
-      // Run the sandbox non-blocking
-      execute(command);
-
-      // Assemble the post-command; args are provided in the modifier.
-      command = {arg::get("post")};
-      container::split(command, arg::mod("post"), ' ');
+    if (arg::at("stats")) {
+      auto files = execute<vector>(command, vectorize, {.cap = STDOUT, .verbose = arg::at("verbose") >= "debug"});
+      auto total = execute<vector>({"fd", ".", "/", "-E", "run", "-H"}, vectorize, {.cap = STDOUT, .verbose = arg::at("verbose") >= "debug"});
+      double start = total.size(), final = files.size();
+      std::cout << "Reduced Files By: " << ((start - final) / abs(start)) * 100.0f << "%"
+                 << " (" << start << " to " << final << ")" << std::endl;
     }
 
-    if (arg::get("seccomp") == "strace")
-      syscalls::update_policy(program, execute<vector>(command, vectorize, {.cap = STDERR, .verbose = arg::at("verbose") >= "debug"}));
-    else execute<void>(command, wait_for, {.verbose = arg::at("verbose") >= "debug"});
+    else {
+      // If there's a post command, the main command is non-blocking,
+      // we launch the post command, and wait on that.
+      if (arg::at("post")) {
+
+        // Run the sandbox non-blocking
+        execute(command);
+
+        // Assemble the post-command; args are provided in the modifier.
+        command = {arg::get("post")};
+        container::split(command, arg::mod("post"), ' ');
+      }
+
+      if (arg::get("seccomp") == "strace")
+        syscalls::update_policy(program, execute<vector>(command, vectorize, {.cap = STDERR, .verbose = arg::at("verbose") >= "debug"}));
+      else execute<void>(command, wait_for, {.verbose = arg::at("verbose") >= "debug"});
+    }
   }
 
   // Cleanup FD.

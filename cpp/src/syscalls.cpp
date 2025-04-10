@@ -41,7 +41,8 @@ namespace syscalls {
       if (
         hash == container::init<vector>(container::split<vector, char>, content[0], ' ', false)[1] &&
         std::filesystem::exists(bpf) && arg::at("update") < "cache" &&
-        arg::get("shell") != "debug" && arg::at("verbose") < "error"
+        arg::get("shell") != "debug" && arg::at("verbose") < "error" &&
+        !arg::at("stats")
       ) {
         log({"Using cached SECCOMP filter"});
         return bpf;
@@ -101,6 +102,13 @@ namespace syscalls {
       cache_file.close();
     }
 
+    if (arg::at("stats")) {
+      // x86 Syscalls
+      float start = 335.0f, final = syscalls.size();
+      std::cout << "Reduced Total Syscalls By: " << ((start - final) / abs(start)) * 100.0f << "%"
+                << " (" << start << " to " << final << ")" << std::endl;
+    }
+
     // Release the filter and return the path to the filter so the main process can open it.
     seccomp_release(filter);
     return bpf;
@@ -123,7 +131,6 @@ namespace syscalls {
     }
 
     log({"Existing syscalls:", std::to_string(syscalls.size())});
-
 
     for (const auto& line : straced) {
       if (line.contains('(')) {
