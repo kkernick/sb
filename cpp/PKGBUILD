@@ -6,17 +6,15 @@ pkgrel=1
 license=("Unlicense")
 source=("git+https://github.com/kkernick/sb.git")
 b2sums=("SKIP")
-depends=(findutils glibc which bubblewrap libb2 libseccomp)
+depends=(findutils glibc which bubblewrap libb2 libseccomp libexec)
 makedepends=(git lld clang llvm doxygen)
 optdepends=(
   'strace: for --strace, useful for debugging'
   'hardened_malloc: for --hardened-malloc'
   'zram-generator: for --sof=zram'
   'xdg-dbus-proxy: for --portals, --see, --talk, --own for Flatpak Emulation'
-  'libseccomp: for --syscalls'
   'gocryptfs: for --encrypt'
   'kdialog: for --encrypt'
-  'libexec: To dynamically link against libexec.'
   'xorg-server-xephyr: For Xorg applications and --xorg'
   'fd: For --stats'
 
@@ -38,13 +36,7 @@ prepare() {
 
 build() {
   cd $srcdir/sb/cpp
-
-  if [[ -f "/usr/lib/libexec.so" ]]; then
-    make link
-  else
-    make cpp
-  fi
-
+  make
   make doxygen
 }
 
