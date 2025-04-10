@@ -11,13 +11,13 @@ cpp: $(SOURCES)
 	clang++ $(REQUIRED) $(LINK) $(FAST) $^ -o sb
 
 static: $(SOURCES)
-	clang++ $(REQUIRED) $(STATIC) $(FAST) $^ -o sb
+	clang++ $(REQUIRED) $(STATIC) $(FAST) $^ -o sb-static
 
 generic: $(SOURCES)
 	clang++ $(REQUIRED) $(LINK) $^ -o sb
 
 generic-static: $(SOURCES)
-	clang++ $(REQUIRED) $(STATIC) $^ -o sb
+	clang++ $(REQUIRED) $(STATIC) $^ -o sb-static
 
 debug: $(SOURCES)
 	clang++ -march=x86-64 -g -DPROFILE $(REQUIRED) $(LINK) $^ -o sb

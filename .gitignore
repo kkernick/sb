@@ -1,4 +1,5 @@
 /**/sb
+/**/sb-static
 sb.zip
 *.log
 compile_commands.json
