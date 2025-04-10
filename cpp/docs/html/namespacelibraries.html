@@ -174,7 +174,8 @@ lib_t&#160;</td><td class="memItemRight" valign="bottom"><b>directories</b> = {}
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>: A set of all shared libraries used by the program and its dependencies. @info library can be any executable file, such as binaries in /usr/bin, but only shared-libraries in /usr/lib will be included in the return. </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>: A set of all shared libraries used by the program and its dependencies. </dd></dl>
+<dl class="section note"><dt>Note</dt><dd>library can be any executable file, such as binaries in /usr/bin, but only shared-libraries in /usr/lib will be included in the return. </dd></dl>
 <div id="dynsection-0" onclick="return dynsection.toggleVisibility(this)" class="dynheader closed" style="cursor:pointer;">
   <img id="dynsection-0-trigger" src="closed.png" alt="+"/> Here is the call graph for this function:</div>
 <div id="dynsection-0-summary" class="dynsummary" style="display:block;">
@@ -248,10 +249,11 @@ lib_t&#160;</td><td class="memItemRight" valign="bottom"><b>directories</b> = {}
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">command</td><td>The command to append to </td></tr>
-    <tr><td class="paramname">application</td><td>The running application. @info This function symlinks /lib /lib64 and /usr/lib64 to /usr/lib, where the SOF is mounted </td></tr>
+    <tr><td class="paramname">application</td><td>The running application. </td></tr>
   </table>
   </dd>
 </dl>
+<dl class="section note"><dt>Note</dt><dd>This function symlinks /lib /lib64 and /usr/lib64 to /usr/lib, where the SOF is mounted </dd></dl>
 <div id="dynsection-2" onclick="return dynsection.toggleVisibility(this)" class="dynheader closed" style="cursor:pointer;">
   <img id="dynsection-2-trigger" src="closed.png" alt="+"/> Here is the call graph for this function:</div>
 <div id="dynsection-2-summary" class="dynsummary" style="display:block;">

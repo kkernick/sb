@@ -1,2 +1,2 @@
 #!/bin/sh
-sb chromium --portals Documents Desktop Notifications FileChooser Camera --pipewire --electron --gui vaapi --app-dirs lib --own org.mpris.MediaPlayer2.chromium.instance2 --fs=cache --share net --file-passthrough=rw --xdg-open --libraries "libQt6*:x" -- "$@"
+sb chromium --password-store=basic --portals Documents Desktop Notifications FileChooser Camera --pipewire --electron --gui vaapi --app-dirs lib --own org.mpris.MediaPlayer2.chromium.instance2 --fs=cache --share net --file-passthrough=rw --xdg-open --libraries "libQt*:x" --hardened-malloc=false -- "$@"

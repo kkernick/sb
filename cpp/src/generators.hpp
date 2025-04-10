@@ -42,7 +42,7 @@ namespace generate {
   /**
    * @brief Setup the Proxy's SOF.
    * @returns The path to the Proxy's SOF, and a future to wait for the path to be populated.
-   * @info We run this on --dry, such that the Proxy SOF gets generated along with all the others.
+   * @note We run this on --dry, such that the Proxy SOF gets generated along with all the others.
    */
   std::pair<std::filesystem::path, std::future<void>> proxy_lib();
 
@@ -58,7 +58,7 @@ namespace generate {
    * @brief Generate the bulk of the main program command.
    * @param program: The name of the program.
    * @returns The generated command.
-   * @info Parts of the command that should be computed at runtime, like environment
+   * @note Parts of the command that should be computed at runtime, like environment
    * variables, should be done outside this function.
    */
   shared::vector cmd(const std::string& program);

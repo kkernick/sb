@@ -46,6 +46,10 @@ The following dependencies are needed:
 \fRwhich\fP
 .IP "4." 4
 \fRbubblewrap\fP
+.IP "5." 4
+\fRlibb2\fP
+.IP "6." 4
+\fRlibseccomp\fP
 .PP
 
 .PP
@@ -61,34 +65,41 @@ There are also optional runtime dependencies, guarded behind switches, that can 
 .IP "4." 4
 \fRxdg-dbus-proxy\fP: To enable Flatpak emulation and Portals supports\&.
 .IP "5." 4
-\fRlibseccomp\fP: To enable \fR--seccomp\fP to further harden the sandbox by permitting what syscalls are allowed to be run\&.
+\fRgocryptfs\fP for \fR--encrypt\fP
+.IP "6." 4
+\fRkdialog\fP for graphical dialogs
+.IP "7." 4
+\fRxorg-server-xephyr\fP for \fR--xorg\fP\&.
 .PP
 .SH "Installation"
 .PP
-If you're running an Arch-Based Distribution, you can use the PKGBUILD in this repo\&. Just run \fRmakepkg -si\fP\&.
-.SH "Scripts and Services"
-.PP
-The following files are located at the root of the repo, and are shared between both implementations:
+If you're running an Arch-Based Distribution, you can use the PKGBUILD in this repo\&. Just run \fRmakepkg -si\fP\&. Otherwise, ensure all of the above run-time dependencies are met, and additionally install the following build-time dependencies:
 
+.PP
+.IP "1." 4
+\fRlld\fP For linking\&.
+.IP "2." 4
+\fRclang\fP For compiling\&.
+.IP "3." 4
+\fRllvm\fP If you want \fRllvm-bolt\fP profiling\&.
+.IP "4." 4
+\fRdoxygen\fP If you want documentation\&.
+.PP
+
+.PP
+Initialize the third-party submodules via \fRgit submodule init\fP and \fRgit submodule fetch\fP\&. Then, you can either choose to dynamically link against \fRlibexec\fP, or compile it in with the third-party submodule\&. If you have \fRlibexec\fP installed, run \fRmake link\fP, otherwise \fRmake cpp\fP\&. The resulting binary can then be used/installed\&.
+.SH "Scripts and Services"
 .PP
 .IP "1." 4
 \fRsb\&.conf\fP is a zram configuration\&. If you have \fRzram-generator\fP installed and want \fRsb\fP to use zram as an SOF backing, copy it to \fR/usr/lib/systemd/zram-generator\&.conf\&.d\fP
 .IP "2." 4
 \fRsb\&.service\fP is a user systemd service that dry runs applications tagged with \fR--dry-startup\fP\&. To use, copy it to \fR/usr/lib/systemd/user/\fP, copy \fRsb-startup\fP to the path, and enable the service\&.
 .IP "3." 4
-\fRsb-open\fP is a slimmed down version of \fRxdg-open\fP, and is used with the \fR--xdg-open\fP switch\&. Your mileage may vary using the real \fRxdg-open\fP\&.
-.PP
-
-.PP
-The following files are specific to SB++
-
-.PP
-.IP "1." 4
 \fRsb-refresh\fP: Refresh all profile caches\&. Run after an update\&.
-.IP "2." 4
+.IP "4." 4
 \fRsb-seccomp\fP: Append new syscalls to a SECCOMP filter\&. Use in conjunction with \fR--seccomp=strace\fP\&.
-.IP "3." 4
-\fRsb-startup\fP: The startup worker\&.
+.IP "5." 4
+\fRsb-open\fP is a slimmed down version of \fRxdg-open\fP, and is used with the \fR--xdg-open\fP switch\&. Your mileage may vary using the real \fRxdg-open\fP\&. 
 .PP
 .SH "Licenses and Third-Party Libraries"
 .PP
@@ -97,7 +108,6 @@ SB++ uses the \fRBS::ThreadPool\fP library, which is licensed under the MIT\&. W
 .PP
 .SH "Why?"
 .PP
-.SS "Speed"
 Speed was the principal reason for implementing SB in C++, and the results are to be expected from moving from Python to C++ (via \fRbenchmark\&.sh\fP):
 
 .PP
@@ -109,103 +119,6 @@ Cold Launch is an important metric if the startup service isn't be used, as it d
 .IP "\(bu" 2
 Hot Launch is the most important metric for SB\&. It defines how fast the program can launch with a warm SOF and both a \fRlib\&.cache\fP and \fRcmd\&.cache\fP\&. It effectively measures how quickly SB can read the \fRcmd\&.cache\fP and launch \fRbwrap\fP\&. The ideal is for this value to be zero, which would be equivalent to launching the application directly\&.
 .IP "\(bu" 2
-Update Libraries/Caches are important metrics for when the caches needs to be updated, particularly after an update\&.
-.PP
-
-.PP
-Besides the improvements inherent in the change of language, SB++ implements many improvements to the underlying algorithms, yielding further performance gains:
-.IP "\(bu" 2
-Cold Launch has been massively improved through two key improvements:
-.IP "  1." 6
-Rather than reading files as binary and writing them to the SOF, SB++ uses \fRstd::filesystem::copy_file\fP to use internal copying mechanisms that are far faster\&.
-.IP "  2." 6
-Copying to the SOF is threaded; rather than copying files sequentially they are processed by a pool\&.
-.PP
-
-.IP "\(bu" 2
-Hot Launch has been improved by using \fRfork/dup2/exec\fP directly, foregoing the need to launch a shell\&.
-.IP "\(bu" 2
-Library Updates fix a bug in the Python implementation, where \fRldd\fP was assumed to not recursively determine dependencies\&. It does\&. This speed up allows for a far more reliable parser, mentioned below\&.
-.IP "\(bu" 2
-Cache Updates no longer using a thread-mediated \fRsearched\fP list, to which mutex access significantly slowed access down\&. Instead, we just cache \fRldd\fP results, and return the pre-computed results immediately\&. You may think that returning libraries instead of just an empty list would slow things down, but the performance gain is tremendous, and come with the benefit in that it is more accurate, as the prior implementation had a bug where caches would not be complete if one of their libraries/binaries were already check prior in the sandbox construction\&.
-.PP
-.SS "Functionality and Usability"
-New functionality and usability improvements were also a major consideration, with many improvements infeasible or impossible within the confines of Python\&. Such improvements include:
-.IP "\(bu" 2
-A custom, flexible argument handler:
-.IP "  \(bu" 4
-Rather than \fR--electron --electron-version 33\fP, you can combine them into \fR--electron 33\fP\&. The old argument handler could not support a flag that is either on/off and one that can be given a value\&.
-.IP "  \(bu" 4
-Rather than \fR--fs=cache --fs-location=md\fP, you can again combine them using a modifier \fR--fs=cache:md\fP\&.
-.IP "  \(bu" 4
-Arguments are consumed first-come, first-serve, and unless an argument has been explicitly defined as only being set once, you can replace previously defined values\&. This allows for:
-.IP "    \(bu" 6
-Overriding configuration\&. If you have a \fR\&.sb\fP file that defines \fR--fs=cache\fP, and want to temporarily make it persist, you can simply call \fRprofile\&.sb --fs=persist\fP and the earlier definition will be ignored\&. This does not affect list behavior, and you can chain them like \fR--binaries cat --binaries ls\fP
-.IP "    \(bu" 6
-Inherited profiles\&. If a \fR\&.sb\fP profile calls another \fR\&.sb\fP program, SB++ will source the called script for arguments and then apply the newly defined changes atop it\&. Specifically, you can create \fIclean\fP profiles, such as by defining a script that calls \fRsb app\&.sb --fs=none\fP, particularly useful for applications like Chromium\&.
-.IP "    \(bu" 6
-Combined Flag and Keypair semantics\&. The Python argument handler had \fRstore_true\fP and \fRstore_false\fP values, which allowed for values like \fR--hardened-malloc\fP\&. However, these semantics made it impossible to retroactively \fIdisable\fP such flags\&. If a configuration was defined in \fR$XDG_CONFIG_HOME/sb\&.conf\fP, it could \fInot\fP be disabled since the flag was a \fRstore_true\fP\&. Now, \fIall\fP values can either be explicitly set or toggled\&. This allows for:
-.IP "      \(bu" 8
-Using \fR--hardened-malloc\fP like a flag, or explicitly setting it via \fR--hardened-malloc=true\fP or \fR--hardened-malloc=false\fP\&.
-.IP "      \(bu" 8
-Defining named levels for incrementing switches\&. \fR--verbose\fP can be used as a counter flag, such as \fR-vvv\fP, but you can also define the level (Which is outlined in \fR--help\fP), such as \fR--verbose=error\fP\&.
-.PP
-
-.IP "    \(bu" 6
-Modifier values can be used to extend values by using a \fR:\fP as a delimiter\&. This allows for:
-.IP "      \(bu" 8
-\fIExcluding\fP libraries by using \fR:x\fP\&. Our new library parser is now \fItoo\fP good, and draws in \fRlibQt6Core*\fP from Chromium's shims, which then complains because the corresponding Wayland libraries do not exist\&. We can use \fR--libraries libQt6:x\fP to exclude them from the sandbox\&.
-.IP "      \(bu" 8
-Specify explicit permissions for \fR--files\fP, such as \fR--files file\&.txt:ro file\&.csv:rw\fP\&.
-.PP
-
-.PP
-
-.IP "  \(bu" 4
-Values can be reset to the default using \fR!\fP\&. This is particularly useful for:
-.IP "    \(bu" 6
-Resetting a list\&. If we want to create a clean profile using inheritance semantics that does not have access to portals, we need to reset the \fR--portals\fP flag\&. Our profile is as easy as \fRsb profile\&.sb --profiles !\fP to drop all values in \fR--portals\fP\&.
-.IP "    \(bu" 6
-Defaulting a flag\&. While you can always explicitly provide a value, it can be useful to default earlier flags without caring about the underlying default value\&. Such resets will ignore \fRsb\&.conf\fP overrides\&.
-.PP
-
-.PP
-
-.IP "\(bu" 2
-Combined functionality:
-.IP "  \(bu" 4
-\fR--sockets\fP was a useless flag; \fR--sockets wayland\fP would never not be combined with \fR--dri\fP or a super-set, to which \fR--dri\fP quickly outgrew its original name\&. Now, both flags have been combined into \fR--gui\fP, which still exists as a base for \fR--qt\fP and \fR--gtk\fP\&.
-.IP "  \(bu" 4
-\fR--qt --qt5 --kde\fP were similar in function, and it wasn't entirely clear when to use one over another\&. The distinction between vanilla Qt applications and those using KDE's Frameworks is a good distinction since the former wouldn't need the latter libraries, but these could be more easily combined thanks to our new argument parser via \fR--qt 5/6/kf6\fP\&.
-.IP "  \(bu" 4
-\fR--strace\fP has been combined into \fR--verbose\fP, since it's a means of logging\&. There's no \fR--verbose=error\fP, which will use \fRstrace\fP to only report errors, whereas \fR--verbose=strace\fP will dump everything\&.
-.IP "  \(bu" 4
-\fR--seccomp-log\fP has been removed in favor of an SELinux style flag via \fR--seccomp permissive/enforcing/strace\fP\&. The latter option captures \fRstrace\fP output to parse syscalls, which will not exhaustive and still requires \fRsb-seccomp\fP, provides a base and doesn't require root\&.
-.IP "  \(bu" 4
-\fR--update-libraries\fP and \fR--update-cache\fP have been combined into \fR--update false/libraries/cache/all\fP, and are much faster thanks to faster algorithms\&.
-.IP "  \(bu" 4
-\fR--post\fP now uses a modifier so you can specify command and argument in one flag, such as \fR--post chromium\&.desktop\&.sb:"https://localhost:7070"\fP
-.PP
-
-.IP "\(bu" 2
-Faster algorithms:
-.IP "  \(bu" 4
-The \fRexec\fP handler now doesn't invoke a shell, and uses \fRfork/dup2/execv\fP rather than \fRpopen\fP to hasten execution\&.
-.IP "  \(bu" 4
-Writing the SOF is threaded to tremendous boost cold start speed\&.
-.IP "  \(bu" 4
-The Library parser relies on \fRldd\fP's recursive functionality, the speed up allowing it to be far more exhaustive and complete than the Python implementation\&. \fISo exhaustive\fP that profiles like Chromium needed to \fIexclude\fP libraries from the search (Not because they were erroneous, but because the shim does indeed pull Qt)\&. The result of this is less manual calls to \fR--libraries\fP and less time using \fRstrace\fP
-.IP "  \(bu" 4
-The Binary parser is far more advanced\&. It parser variables to resolve them latter in the script, and use the shell itself to interpret lines\&. This allows for electron scripts to resolve the \fR/usr/lib/${electron_version}/electron\fP calls and actually pulls in the library\&.
-.PP
-
-.IP "\(bu" 2
-New Functionality
-.IP "  \(bu" 4
-The Proxy can now use hardened malloc\&.
-.IP "  \(bu" 4
-By using \fRinotify\fP and \fRlibseccomp\fP directly, we remove all runtime libraries besides those that add more functionality\&. 
-.PP
-
+Update Libraries/Caches are important metrics for when the caches needs to be updated, particularly after an update\&. 
 .PP
 

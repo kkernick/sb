@@ -52,6 +52,9 @@ shared \- Shared functionality\&.
 .br
 .RI "Join a vector into a string\&. "
 .ti -1c
+.RI "template std::string \fBjoin\fP (const list &, const char &)"
+.br
+.ti -1c
 .RI "template std::string \fBjoin\fP (const vector &, const char &)"
 .br
 .ti -1c
@@ -282,7 +285,12 @@ Attach an environment variable to the sandbox\&.
 .RS 4
 \fIcommand\fP The command to append to\&. 
 .br
-\fIenv\fP The environment variable to add\&. @info: The value of the variable is the actual value\&. 
+\fIenv\fP The environment variable to add\&. 
+.RE
+.PP
+\fBNote\fP
+.RS 4
+: The value of the variable is the actual value\&. 
 .RE
 .PP
 
@@ -358,7 +366,12 @@ Merge two sets together\&.
 .RS 4
 \fIcommand\fP The set to be extended\&. 
 .br
-\fIpath\fP The set to merge into the first\&. @info This function exists because C++ cannot deduce bracket initializers\&. 
+\fIpath\fP The set to merge into the first\&. 
+.RE
+.PP
+\fBNote\fP
+.RS 4
+This function exists because C++ cannot deduce bracket initializers\&. 
 .RE
 .PP
 
@@ -437,7 +450,12 @@ Trim characters from the front and end of a string\&.
 .PP
 \fBReturns\fP
 .RS 4
-The trimmed string\&. @info trim only removes from the front and end, stopping after encountered a non-to_strip character, whereas strip removes all instances regardless\&. 
+The trimmed string\&. 
+.RE
+.PP
+\fBNote\fP
+.RS 4
+trim only removes from the front and end, stopping after encountered a non-to_strip character, whereas strip removes all instances regardless\&. 
 .RE
 .PP
 

@@ -1,0 +1,2 @@
+#!/bin/sh
+sb ~/.local/bin/chromium.desktop.sb --ozone-platform=wayland --fs false --no-flags -- "$@"

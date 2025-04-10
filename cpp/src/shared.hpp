@@ -77,7 +77,7 @@ namespace shared {
      * @param prefix: A prefix for the name.
      * @param suffix: A suffix for the name.
      * @param defer: Defer creation. Call create().
-     * @info The directory deletes itself after falling out of scope.
+     * @note The directory deletes itself after falling out of scope.
      */
     TemporaryDirectory(
         const std::string& parent = std::filesystem::temp_directory_path(),
@@ -165,7 +165,7 @@ namespace shared {
    * @param in: The input string.
    * @param to_strip: The list of characters to trim.
    * @returns The trimmed string.
-   * @info trim only removes from the front and end, stopping after
+   * @note trim only removes from the front and end, stopping after
    * encountered a non-to_strip character, whereas strip removes
    * all instances regardless.
    */
@@ -203,7 +203,7 @@ namespace shared {
    * @brief Merge two sets together.
    * @param command: The set to be extended.
    * @param path: The set to merge into the first.
-   * @info This function exists because C++ cannot deduce bracket initializers.
+   * @note This function exists because C++ cannot deduce bracket initializers.
    */
   void merge(set& command, set path);
 
@@ -212,7 +212,7 @@ namespace shared {
    * @brief Attach an environment variable to the sandbox.
    * @param command: The command to append to.
    * @param env: The environment variable to add.
-   * @info: The value of the variable is the actual value.
+   * @note: The value of the variable is the actual value.
    */
   void genv(vector& command, const std::string_view& env);
 

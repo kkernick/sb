@@ -1,0 +1,2 @@
+#!/bin/sh
+sb qmmp --portals Desktop FileChooser --own org.mpris.MediaPlayer2.qmmp --pipewire --qt 6 --libraries /usr/lib/qmmp-2.2 "libmpris*" --fs=cache -- "$@"

@@ -74,7 +74,12 @@ Recursively resolve all shared-libraries needed by a library\&.
 .PP
 \fBReturns\fP
 .RS 4
-: A set of all shared libraries used by the program and its dependencies\&. @info library can be any executable file, such as binaries in /usr/bin, but only shared-libraries in /usr/lib will be included in the return\&. 
+: A set of all shared libraries used by the program and its dependencies\&. 
+.RE
+.PP
+\fBNote\fP
+.RS 4
+library can be any executable file, such as binaries in /usr/bin, but only shared-libraries in /usr/lib will be included in the return\&. 
 .RE
 .PP
 
@@ -104,7 +109,12 @@ Add symlink commands\&.
 .RS 4
 \fIcommand\fP The command to append to 
 .br
-\fIapplication\fP The running application\&. @info This function symlinks /lib /lib64 and /usr/lib64 to /usr/lib, where the SOF is mounted 
+\fIapplication\fP The running application\&. 
+.RE
+.PP
+\fBNote\fP
+.RS 4
+This function symlinks /lib /lib64 and /usr/lib64 to /usr/lib, where the SOF is mounted 
 .RE
 .PP
 

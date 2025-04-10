@@ -143,7 +143,7 @@ namespace arg {
 
       /**
        * @brief Increment the argument.
-       * @info Arguments are all strings, but we can treat them like numbers
+       * @note Arguments are all strings, but we can treat them like numbers
        * by simply 'incrementing' the argument to successive valid values. For example,
        * --verbose is a numerical argument, and we can treat this verboseness either as a boolean:
        * valid = {"false", "true"}, or with multiple values, {"false", "log", "debug"}. Then,
@@ -291,7 +291,7 @@ namespace arg {
 
       /**
        * @brief Update configurations.
-       * @info This function is used for arguments that depend on the value of other arguments.
+       * @note This function is used for arguments that depend on the value of other arguments.
        */
       void update() {
         if (mandatory && !set) throw std::runtime_error("Missing mandatory argument: " + long_name);
@@ -345,7 +345,7 @@ namespace arg {
        * @brief Emplace a value
        * @param val: The value to emplace.
        * @throws std::runtime_error if the valid is invalid.
-       * @info For single value arguments, this overwrites the stored value. For lists,
+       * @note For single value arguments, this overwrites the stored value. For lists,
        * it emplaces to the back of the list if its valid.
        * @warning This function uses the same parsing logic as initial argument parsing,
        * which means invalid values will throw exceptions.
@@ -355,7 +355,7 @@ namespace arg {
       /**
        * @brief Get a mutable reference to the stored modifier.
        * @returns The modifier.
-       * @info This function returns an empty string if a modifier does not exist or is allowed.
+       * @note This function returns an empty string if a modifier does not exist or is allowed.
        */
       auto&& mod(this auto&& self) {return self.modifier;}
 

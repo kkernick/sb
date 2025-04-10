@@ -1,0 +1,2 @@
+#!/bin/sh
+sb ~/.local/bin/dev.zed.Zed.desktop.sb --fs=cache:clean --portals=! --binaries=! --shell=false --include=false -- "$@"

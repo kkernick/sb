@@ -27,7 +27,7 @@ namespace syscalls {
    * @brief Append an existing policy with newly discovered syscalls.
    * @param application: The name of the application, to locate the syscalls.txt
    * @param strace: The output of an straced-run.
-   * @info This function subsumes sb-seccomp in a far better way. Rather than parsing
+   * @note This function subsumes sb-seccomp in a far better way. Rather than parsing
    * the Audit logs (Requiring root permission), we just call --seccomp=strace which
    * will run the program with strace, capture STDERR (The channel strace logs to),
    * and then parse that output to update the file.

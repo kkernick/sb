@@ -1,0 +1,5 @@
+<map id="generate::encrypted" name="generate::encrypted">
+<area shape="rect" id="Node000001" title="Handle an encrypted FS Sandbox." alt="" coords="5,5,142,32"/>
+<area shape="rect" id="Node000002" href="$namespaceshared.html#a99724c73af55fa92ae29fee700152917" title="Log output to console, if verbose." alt="" coords="190,5,275,32"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="142,16,174,16,174,21,142,21"/>
+</map>

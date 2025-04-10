@@ -21,7 +21,7 @@ namespace binaries {
    * @param required: The binary accumulator.
    * @param path: The path to the binary.
    * @param libraries: The current list of libraries.
-   * @info libraries are updated.
+   * @note libraries are updated.
    */
   void parse(bin_t& required, std::string path, libraries::lib_t& libraries);
 

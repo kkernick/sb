@@ -88,159 +88,296 @@ $(function(){ initResizable(false); });
   <div class="headertitle"><div class="title">Usage</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md1"></a></p>
-<p>SB++ and Python-SB are generally similar, but the former has combined many features, removed others, and introduced some new functionality on top. Profiles created for one will likely not work for the other, but they are very similar and can be easily translated. See the examples folders in both implementations to see identical applications confined within both.</p>
-<p>See Python-SB's <a href="../../python/docs/USAGE">Usage Guide</a> for a description of the more general points; this document outlines SB++ libraries and major deviations from the former.</p>
-<h1><a class="anchor" id="autotoc_md3"></a>
-Command Line Reference</h1>
-<p>As mentioned in the README, SB++ has a new argument handler that is more powerful than Python-SB. In essence, all arguments are treated as strings. For example, the verbose flag can either be:</p><ul>
-<li>Toggled with a long name: <code>--verbose</code></li>
-<li>Toggled with a short name: <code>-v</code></li>
-<li>Given an explicit value: <code>--verbose=debug</code> or <code>--verbose strace</code></li>
-<li>Incremented: <code>-vv</code>, which corresponds to the <em>third</em> value in the switches valid list (IE <code>debug</code> for <code>--verbose</code>). The first value, typically <code>false</code>, is when the flag has not been provided, so <code>-v</code> will increment it to the second.</li>
-<li>Repeated, either to increment the value such as <code>--verbose --verbose</code> yielding <code>debug</code>, or to override older values such as <code>--verbose=false --verbose=error</code> yielding <code>error</code>. This is particularly useful for running a <code>.sb</code> profile from the command line, allowing you to change defined settings without modifying the script itself or the <code>sb.conf</code> file.</li>
-<li>Reset to the default value with <code>!</code>: <code>--verbose=!</code></li>
+<div class="textblock"><p><a class="anchor" id="autotoc_md2"></a></p>
+<div class="fragment"><div class="line">sb program</div>
+</div><!-- fragment --><p>Unless your program is simple, this likely won't work by itself. SB++ subscribers to a whitelisting approach where the sandbox is populated with nothing, and it is on the profile to explicitly provide files and configurations.</p>
+<p>&gt;[!tip] &gt;AppArmor and SB++ work very well together, and provides defense-in-depth.</p>
+<h1><a class="anchor" id="autotoc_md8"></a>
+Switch Semantics</h1>
+<p>SB uses a custom argument handler for its command line switches. It is very powerful, but bears a brief aside to explain its grammar.</p>
+<p>Switches can be one of seven discrete classes:</p><ul>
+<li>True/False, such as <code>--pipewire</code> which is either on or off.</li>
+<li>Discrete, such as <code>--sof</code> which is either <code>usr</code>, <code>tmp</code>, <code>data</code>, or <code>zram</code>.</li>
+<li>Custom, such as <code>--script</code> take a single, arbitrary value.</li>
+<li>Optional, such as <code>--electron</code> is treated as TF, but can be provided an optional, arbitrary value.</li>
+<li>Lists, such as <code>--libraries</code> which can accept multiple arbitrary values.</li>
+<li>Flags, which is a List with explicit values, such as <code>--qt</code>, which takes multiple values, but only those of <code>false</code>, <code>5</code>, <code>6</code>, or <code>kf6</code>.</li>
+<li>Modifiers, which takes a key-pair separated by a <code>:</code>, such as <code>--fs</code>, which is a Discrete switch taking either <code>false</code>, <code>persist</code>, or <code>cache</code>, but which can optionally be modified, such as <code>--fs persist:md</code> to specify a folder to use as the filesystem backing. Modifiers can also be Lists, such as <code>--files</code> accepting multiple arbitrary values, to which each can be modified.</li>
 </ul>
-<p>For lists, such as defining libraries:</p><ul>
-<li>Values can be collected in a single invocation: <code>--libraries lib1.so lib2.so</code> or <code>--libraries lib1.so,lib2.so</code></li>
-<li>Collected from multiple invocations: <code>--libraries lib1.so libraries lib2.so</code></li>
-<li>Some lists, such as <code>libraries</code>, supports wildcard semantics: <code>--libraries lib*.so</code>.</li>
-<li>Some lists, such as <code>libraries</code>, support modifier semantics: <code>--libraries lib1.so:x</code> would exclude that library from being provided in the sandbox, regardless of dependency resolution.</li>
+<p>&gt;[!note] &gt;This document will specify the type of switch via <code>TF</code>, <code>D</code>, <code>O</code>, <code>L</code>, <code>F</code>, <code>+M</code> when they appear in the documentation.</p>
+<p>Internally, all switches are either strings, or lists. It does this via two novel designs:</p><ul>
+<li><code>false</code> is an explicit value, and the default for most switches.</li>
+<li>Switches increment through their valid values.</li>
 </ul>
-<hr  />
-<ul>
-<li><code>--cmd/-C</code> specifies the program to run, and must be the first argument to which the switch can be omitted, such as <code>sb program</code>. You can use the switch to override the program, particularly for inherited profiles.</li>
-<li><code>--app-dirs</code> specifies program folders to be provided to the sandbox:<ul>
-<li><code>etc</code> provides <code>/etc/app</code></li>
-<li><code>lib</code> provides <code>/usr/lib/app</code></li>
-<li><code>share</code> provides <code>/usr/share/app</code></li>
-<li><code>opt</code> provides <code>/opt/app</code></li>
+<p>This means that a True/False switch can be toggled in two different ways:</p><ul>
+<li><code>--pipewire</code>, which <em>increments</em> the PipeWire flag from <code>false</code> to <code>true</code></li>
+<li><code>--pipewire=true</code> or <code>--pipewire true</code>, which explicitly sets the value to one of the two valid selections, being <code>false</code> or <code>true</code>.</li>
 </ul>
-</li>
-<li><code>--binaries</code> provides a list of additional binaries to provide in the sandbox</li>
-<li><code>--destkop-entry/-D</code> creates a desktop entry for the application. If needed, you can provide a desktop file explicitly in case it deviates from the program name, such as <code>--destkop-entry application.desktop</code>.</li>
-<li><code>--devices</code> provides a list of devices to add to the sandbox</li>
-<li><code>--dry</code> will create the sandbox, but not run the application, useful to warm the SOF.</li>
-<li><code>--dry-startup</code> marks a profile as eligible to run by <code>sb.service</code>, which allows its SOF to be populated immediately. This remove the cold start penalty.</li>
-<li><code>--electron</code> specifies the application as an Electron app, giving it access to GTK and NSS libraries, the ability to create user namespaces, and more. It can be provided with an explicit version if the app uses a system electron, such as <code>--electron 33 *</code>&ndash;env<code>provides a list of</code>KEY=VAL<code>environment variables to pass into the sandbox. *</code>&ndash;file-passthrough<code>defines the default mode for files passed into the sandbox, either as unknown arguments (particularly when attached to a desktop file), or provided via</code>&ndash;files<code>: *</code>ro<code>mounts the files as read-only *</code>rw<code>mounts the files as read-write. Note that files are attached via bind-mounts, which means that the file cannot be moved or deleted. Some KDE applications update configuration files by creating a copy, then moving it into the original. If you use</code>&ndash;fs<code>instead of attaching host configurations, this isn't a problem. *</code>discard<code>only applies to directories, and uses an overlay to allow seamless, real read-write to the directory and its files, but to which writes are actually done to a temporary copy that is discarded upon program termination. *</code>&ndash;files<code>provides a list of files to provide in the sandbox at</code>/enclave/path<code>. Modifier semantics allows for granular control over permissions, defaulting to the value of</code>&ndash;file-passthrough<code>(Which defaults to</code>false<code>, hence if</code>&ndash;file-passthrough<code>is not defined all files will need an explicit policy) such as</code>&ndash;files test.txt:ro test.csv:rw dir:discard<code>. You can also provide the unique modifiers</code>do<code>and</code>dw` for Direct Read-Only and Direct Read-Write, which will be exposed in the sandbox in the exact same path they appear on the host.</li>
+<p>This further means that every switch can be increments, moving it from valid values. <code>--verbose</code>'s valid values (As seen in <code>--help</code>) are ordered as <code>{false, log, debug, error, strace}</code>. That means, if <code>--verbose/-v</code> is not provided, it is set as <code>false</code>. However, if you pass <code>-vv</code>, it will step to <code>debug</code>, and <code>-vvvv</code> will set it to <code>strace</code>.</p>
+<p>One of the most powerful features of the argument handler is that it can override earlier invocations of a switch. For example, if a profile specifies <code>--fs=cache</code> in its script, but you need to set it to <code>persist</code> temporarily, rather than having to modify the script, you can just pass <code>profile.sb.desktop --fs=persist</code> to override it.</p>
+<p>For lists, which by default append values together a la <code>--libraries A --libraries B</code>, you can provide <code>!</code> to set it to the default, clear value. This works for <em>any</em> switch, and sets it to its default.</p>
+<p>The above functionality works together for <em>drop-ins</em>, where you can have a SB script call <em>another</em> SB script as its program, which will merely adopt the callee's settings. For example:</p><ul>
+<li>If you already have a profile for Chromium, but want a <em>second</em> profile that doesn't have a home folder, you can create a second profile that merely looks like <code>sb chromium.desktop.sb --fs=false</code>.</li>
+<li>If you want to create multiple instances of an application, each using their own home, you can merely create a single, main script, and then create specialized ones via <code>sb profile.desktop.sb --fs=cache:instance</code>, where <em>instance</em> is the home folder for that particular copy.</li>
 </ul>
-<dl class="section note"><dt>Note</dt><dd>This system has superseded <code>--ro</code> and <code>--rw</code></dd></dl>
-<ul>
-<li><code>--fs</code> provides the sandbox with a persistent root folder at <code>$XDG_DATA_HOME/sb/app/fs</code>, which is mounted onto the sandbox root. This allows for the additional of configuration files at <code>/etc</code>, binaries in <code>/usr/bin</code> (Which are dependency checked), and files in <code>/home</code>. A modifier can be used to change the location of the <code>fs</code>, which is useful to have multiple profiles of an application, such as <code>--fs persist:b</code> for a <code>fs</code> at <code>$XDG_DATA_HOME/sb/app/b</code><ul>
-<li><code>cache</code> will mount the <code>fs</code> as temporary overlay. The sandbox can modify everything within, but changes will not be propagated to the <code>fs</code> on the host system.</li>
-<li><code>persist</code> will mount the <code>fs</code> read-write, allowing changes in the <code>fs</code> to persist across sessions.</li>
+<dl class="section note"><dt>Note</dt><dd>All switches that pass files to them, such as <code>--libraries</code> or <code>--files</code>, will check if the file exists, and won't tear down <code>bwrap</code> if it doesn't. This means conditionally available files will either be passed if they exist, or ignored if they don't.</dd></dl>
+<h1><a class="anchor" id="autotoc_md9"></a>
+Debugging</h1>
+<p>The <code>--verbose (L)</code> flag is absolutely essential for constructing a profile, as it provides invaluable information about how the program runs within the sandbox:</p><ul>
+<li><code>--verbose debug</code> will print<code>xdg-dbus-proxy</code> output to the console, allowing you to see what busses the program attempts to connect to. It also prints what SB is doing, what it adds, and every command run.</li>
+<li><code>--verbose error</code> will run the program under <code>strace</code>, capturing all errors the program runs into, such as attempts to access files that don't exist.</li>
+<li><code>--verbose strace</code> will run the program under <code>strace</code>, capturing <em>all</em> syscalls from the program, errors and otherwise.</li>
 </ul>
-</li>
+<p><code>--shell debug (D)</code> will construct the sandbox exactly as if the switch was not provided, but instead of running the actual program, will instead drop into a debug shell. This will allow you to navigate the sandbox and find issues.</p>
+<p>&gt;[!tip] &gt;Use <code>--binaries (L)</code> to bring in command line utilities, such as <code>cat</code>, <code>less</code>, and <code>ls</code></p>
+<p>The <code>--update (D+M)</code> flag is used to invalidate caches used by the program, useful when you are iteratively building a profile. The following values are supported:</p><ul>
+<li><code>--update libraries</code> will update library caches.</li>
+<li><code>--update cache</code> will update library and binary caches.</li>
+<li><code>--update all</code> will update everything cached.</li>
+<li><code>--update clean</code> will update everything cached, and delete any old configurations.</li>
 </ul>
-<dl class="section note"><dt>Note</dt><dd>Applications like Chromium using Singletons to ensure only a single instance of the program is running. Using <code>persist</code> will mandate this requirement as all instance will share the <code>fs</code>, where <code>cache</code> will create a "copy" for each.</dd></dl>
-<ul>
-<li><code>--gtk</code> provides GTK configurations to the sandbox, and sets <code>--gui</code>.</li>
-<li><code>--gui</code> provides the Wayland socket, DRI device for graphics access, and fonts, themes, and other configurations needed for graphical applications.</li>
-<li><code>--hardened-malloc</code> enforces the use of <code>libhardenedmalloc.so</code> within the sandbox; all processed, including the proxy, will use it.</li>
-<li><code>--help</code> will print help information.</li>
-<li><code>--include</code> provides system C/C++ headers for IDEs.</li>
-<li><code>--libraries</code> provides a list of libraries to add to the sandbox, with dependencies recursively determined:<ul>
-<li>Libraries can outline a name: <code>liba.so</code></li>
-<li>Libraries can outline a path: <code>/usr/lib/liba.so</code></li>
-<li>Libraries can utilize wildcards: <code>/liba.so.*</code></li>
-<li>Libraries can be excluded with the <code>x</code> modifier: <code>liba.so:x</code></li>
-</ul>
-</li>
-<li><code>--locale</code> provides the system locale, timezone, language to the sandbox.</li>
-<li><code>--own</code> specifies portals that the application can <em>own</em>, or create new interfaces.</li>
-<li><code>--pipewire</code> provides the Pipewire socket for audio/screen-sharing/video (Mediated via <code>--portals</code>)</li>
-<li><code>--portals</code> provides a list of <code>org.freedesktop.portal.X</code> busses to provide to the sandbox including but not limited to:<ul>
-<li><code>Desktop</code> is essential, and provides theme, font, and other settings.</li>
-<li><code>FileChooser</code> allows the program to select files from the host, which are provided to the sandbox via the interface, and is far more secure than explicitly provides <code>--files</code> since it doesn't require changing the script.</li>
-<li><code>Documents</code> is like <code>FileChooser</code>, but for folders, and allows it to keep a handle on the folder between sessions, such as saving your music folder for a music player between sessions. This "handle" is eventually dropped.</li>
+<p>&gt;[!note] &gt;SB automatically silos separate configurations of the program, so you likely don't need to manually invalidate caches. However, this will create multiple instances in the SOF, so <code>--update clean</code> is a good idea to remove old, unused versions.</p>
+<h1><a class="anchor" id="autotoc_md10"></a>
+GUI</h1>
+<p>You're likely try to run a graphical application within SB++, and as such you'll want to use one of the switches dedicated for those kinds of applications.</p><ul>
+<li><code>--electron (O)</code> is for Electron/Chromium apps, such as Chrome and Obsidian. You can optionally provide an electron version, if your application uses the system electron, such as <code>--electron 28</code>. It also enables <code>--gtk 3</code>.</li>
+<li><code>--qt (F)</code> is for Qt applications, such as KDE programs. There are three flags for the switch:<ul>
+<li><code>--qt 5</code> is for Qt 5 applications.</li>
+<li><code>--qt 6</code> is for Qt 6 applications.</li>
+<li><code>--qt kf6</code> is a super-set of <code>--qt 6</code>, providing KDE Framework libraries that are needed by some KDE programs.</li>
 </ul>
 </li>
-<li><code>--post</code> specifies a command to run <em>after</em> the sandbox, and to which the sandbox will remain until the program dies. For example, services like <code>yarr</code> can launch a web browser pointing to itself, <code>--post chromium.desktop.sb:<a href="https://localhost:7070">https://localhost:7070</a></code>, and when the Chromium instance closes, so does the sandbox. You can use the modifier as seen above to provide arguments to the command; wrap it in quotes to pass more than one.</li>
-<li><code>--qt</code> provides Qt libraries and widgets to the sandbox:<ul>
-<li><code>5</code> is for Qt 5 applications.</li>
-<li><code>6</code> is for Qt 6 applications</li>
-<li><code>kf6</code> is a super-set of <code>6</code> that provides KDE framework libraries as well. All settings, however, will pass KDE settings such as theme and fonts.</li>
+<li><code>--gtk (F)</code> is for GTK applications. It's a <em>flag</em> switch, meaning you can provide multiple discrete flags that will add functionality, such as <code>--gtk 3 4 gdk</code>. Valid options include:<ul>
+<li><code>3</code> for GTK3</li>
+<li><code>4</code> for GTK4</li>
+<li><code>gdk</code> for the Pixel Buffer, which is needed for some apps to draw icons.</li>
+<li><code>sourceview</code> for the GTK Source View, required by some text editors.</li>
+<li><code>adwaita</code> for <code>libadwaita</code> applications</li>
+<li><code>gir</code> for the GIR Repository.</li>
+<li><code>webkit</code> for WebKit</li>
+<li><code>gst</code> for GStreamer.</li>
 </ul>
 </li>
-<li><code>--script</code> will create a <code>.sb</code> script for the program, but not a desktop entry.</li>
-<li><code>--seccomp</code> defines behavior of the SECCOMP Filter:<ul>
-<li><code>false</code> will not use SECCOMP Filters to restrict syscalls.</li>
-<li><code>permissive</code> will create a blank filter if it does not exist at <code>$XDG_DATA_HOME/sb/app/filter.bpf</code>, or use the filter in a permissive mode where violations will be logged. You can use <code>sb-seccomp</code> to generate a filter in this mode, or just parse <code>/var/log/audit/audit.log</code> directly. Place permitted syscalls in the <code>$XDG_DATA_HOME/sb/app/syscalls.txt</code> file, but ensure the first line remains unchanged so that the hash can be used to regenerate when needed.</li>
-<li><code>enforcing</code> will enforce the BPF Filter, and syscalls not outlined will fail with <code>EPERM</code>. Most programs don't know how to handle a failed syscall, and will likely just crash.</li>
-<li><code>strace</code> will set <code>--verbose=strace</code> and collect the output from <code>strace</code> to determine syscalls and update the filter directly. You will likely still need to use <code>sb-seccomp</code>, as <code>strace</code> is not exhaustive, but this will create a good starting filter.</li>
+<li><code>--gui (F)</code> is for any application that doesn't fall into the above switches. Note that all above flags already enable <code>--gui</code> if it isn't set, but as a <em>flag</em> switch you can pass further values, which includes:<ul>
+<li><code>vulkan</code> for Vulkan support</li>
+<li><code>vaapi</code> for hardware accelerated video decoding/encoding.</li>
 </ul>
 </li>
 </ul>
-<p>&gt;[!tip] </p><blockquote class="doxtable">
-<p>You will never need to scour logs or manually enter syscalls into <code>syscalls.txt</code>. <code>sb-seccomp</code> and <code>--seccomp=strace</code> are all you need to create a filter for <em>any</em> application, which will harden the security of the sandbox. It takes 30 seconds. </p>
-</blockquote>
-<ul>
-<li><code>--see</code> specifies busses that the sandbox can <em>see</em>, but not interact with.</li>
-<li><code>--share</code> specifies a list of <em>namespaces</em> that should be shared in the sandbox:<ul>
-<li><code>none</code> shares nothing. Use this unless you have good reason to use another one.</li>
-<li><code>user</code> shares the user namespace, which is needed for Electron applications that create their own sub-sandboxes. It does <em>not</em> leak your username or home folder. <code>--electron</code> already adds this, so you don't need to explicitly specify it.</li>
-<li><code>ipc</code> shared the IPC namespace, which allows for consenting programs to communicate between the host/sandbox. It's largely unnecessary.</li>
-<li><code>pid</code> shares the PID namespace, such that new PIDs in the sandbox will not conflict with the host. It's largely unnecessary.</li>
-<li><code>net</code> shares the network namespace, which is required to connect to the internet and the local network. SB will add other essential networking configurations, such as <code>/etc/hosts</code> and SSL/TLS configuration and certificates.</li>
-<li><code>cgroup</code> shares the cgroup, allowing for regulation of memory and CPU consumption.</li>
-<li><code>all</code> shares all namespace. <em>Don't.</em></li>
+<p>The <code>--desktop-entry (O)</code> switch can be used to shadow the system <code>.desktop</code> file used to launch the application, ensuring that your Window Manager launches the application sandboxed. It creates a script file in <code>~/.local/bin</code>, and places the override in <code>$XDG_DATA_HOME/applications</code>. If the desktop file does not match the program name, you'll need to provide the desktop file name (In <code>/usr/share/applications</code>), such as <code>--desktop-entry org.kde.okular.desktop</code>.</p>
+<p>If your program doesn't have a desktop file, you can use <code>--script (C)</code> to create the script file in <code>~/.local/bin</code>.</p>
+<p>All the above flags assume the program is run under Wayland, which is a far more secure protocol than Xorg. Providing the Xorg socket into the sandbox is such as easy escape that you might as well not bother with SB. However, if you have <code>xorg-server-xephyr</code> installed, SB can run an isolated Xorg server specifically for that application, via the <code>--xorg (F)</code> switch.</p>
+<dl class="section note"><dt>Note</dt><dd>While <code>--xorg</code> <em>creates</em> the server and corresponding <code>DISPLAY</code> environment variable, it doesn't provide any graphical libraries, and as such you'll need to include something like<code>--gui</code> or <code>--electron</code> depending on the app.</dd></dl>
+<p>&gt;[!tip] &gt;Wayland will <em>always</em> be available within the sandbox, so long as <code>--gui</code> is directly or indirectly provided. Therefore, if your program runs under both, and defaults to Wayland, you'll need to somehow tell it to use X11, such as <code>--ozone-platform=x11</code> for Chromium/Electron</p>
+<p><code>--xorg</code> accepts the following flags:</p><ul>
+<li><code>--xorg resize</code> allows the Xorg window to be resized (This is <em>not</em> the application window, but the <em>server's</em>)</li>
+<li><code>--xorg fullscreen</code> makes the Xorg window fullscreen.</li>
+<li><code>--xorg gl</code> provides OpenGL extensions and support. YMML on Hardware Acceleration.</li>
+</ul>
+<p>You can also use the <code>--xsize (C)</code> switch to provide a <code>width X height</code> argument, such as <code>--xsize 1000x1000</code>. This takes precedent over <code>--fullscreen</code>. </p>
+<h1><a class="anchor" id="autotoc_md11"></a>
+Portals</h1>
+<p>If you have <code>xdg-dbus-proxy</code> installed, you can provide Portals and Busses that the application can communicate to the host over. There are four such switches exposed:</p><ul>
+<li><code>--portals (L)</code> Is for FreeDesktop Portals, such as:<ul>
+<li><code>Desktop</code>: For system settings (Like theme, fonts, etc).</li>
+<li><code>FileChooser</code>: To select a file on the host, and pass is into the sandbox.</li>
+<li><code>Documents</code>: A more persistent <code>FileChooser</code></li>
+<li><code>Camera</code>: To provide the Camera via Pipewire.</li>
+<li><code>Notifications</code>: For system notifications.</li>
 </ul>
 </li>
-<li><code>--shell</code> provides <code>/usr/bin/sh</code> in the sandbox, and tells applications that it's the default shell for the user.<ul>
-<li><code>true</code> merely provides the shell</li>
-<li><code>debug</code> will drop you <em>into</em> the shell, rather than running the app, so you can look around the sandbox for troubleshooting.</li>
+<li><code>--own (L)</code> is for busses that the program <em>owns</em>, which is most frequently needed for GTK applications, such as <code>--own io.bassi.Amberol</code>, or Media Notifications such as <code>--own org.mpris.MediaPlayer2.chromium.instance2</code></li>
+<li><code>--talk (L)</code> is for busses that the program can talk to.</li>
+<li><code>--see (L)</code> is for busses the program can see, but can't interact with.</li>
+</ul>
+<p>To open files outside of the sandbox, and in the host's default application, use <code>--xdg-open (TF)</code>. </p>
+<h1><a class="anchor" id="autotoc_md12"></a>
+Sound</h1>
+<p>Use <code>--pipewire (TF)</code> For sound support. If your program uses GStreamer, use <code>--gtk gst</code>.</p>
+<h1><a class="anchor" id="autotoc_md13"></a>
+Libraries</h1>
+<p>Usually, SB will automatically find all needed libraries used by the program, but if it can't, you have two options:</p><ul>
+<li>Use <code>--libraries (L+M)</code> to pass them to the sandbox. It accepts three formats:<ul>
+<li>Wildcards: <code>--libraries libSDL3*</code></li>
+<li>Directories: <code>--libraries /usr/lib/chromium</code></li>
+<li>Files: <code>--libraries /usr/lib/libSDL3.so</code>. As a list switch, you can pass multiple such values, either in one invocation, like <code>--libraries A B</code>, or multiple, such as <code>--libraries A --libraries B</code>.</li>
 </ul>
 </li>
-<li><code>--sof</code> specifies the location for the SOF folder that contains libraries mounted to <code>/usr/lib</code> within the sandbox.<ul>
-<li><code>tmp</code> will create the SOF at <code>/tmp/sb/app</code>, which is backed by ram.</li>
-<li><code>data</code> will create the SOF at <code>$XDG_DATA_HOME/sb/app/lib</code>. The libraries are persistent on disk, which means you'll need to occasional refresh it. However, since the SOF is self contained, this also allows you to run different versions of an app, irrespective of the hosts files.</li>
-<li><code>zram</code> will create the SOF at <code>/run/sb</code>, which should be a <code>zram</code> device mounted by the <code>sb.conf</code> zram generator service. This uses less RAM than <code>tmp</code>, and has comparable or better performance</li>
-<li><code>usr</code> will create the SOF at <code>/usr/share/sb</code>, which&ndash;being on the same file system as the host library folder, allows for direct hard-linking and thus zero storage overhead for storing the SOF. Additionally, this avoid the need to copy files to another system, which can dramatically increase cold boot speed:</li>
+<li>Use <code>--sys-dirs lib</code> to pass <code>/usr/lib</code> into the sandbox. Don't do this unless you have no choice.</li>
 </ul>
-</li>
+<dl class="section remark"><dt>Remarks</dt><dd>Use <code>--verbose=error</code> to find libraries the program tried to access, but didn't exist!</dd></dl>
+<h2><a class="anchor" id="autotoc_md14"></a>
+SOF</h2>
+<p>Rather than providing the entire <code>/usr/lib</code> folder, SB recursively finds all libraries needed to run the program, and stores them into a per-application <em>SOF</em> folder, which is then provided as the sandbox's <code>/usr/lib</code>. Unless you provide <code>--sys-dirs lib</code>, which you <b>shouldn't</b>, this algorithm will:</p><ul>
+<li>Use <code>ldd</code> to find all libraries used by the program, including its dependencies.</li>
+<li>Parse shell scripts to determine all binaries used within it.</li>
 </ul>
+<p>You can use the <code>--sof</code> switch to specify where this folder will be stored on disk:</p><ul>
+<li><code>--sof usr</code> is the <em>Recommended</em> option, as it is the fastest (There is no copying) and most space efficient (0 overhead, as it merely makes hard-links to the system libraries), stored at <code>/usr/share/sb/program</code>. <em>However</em> if you have protected hard-links enabled, this will not work, but all other options are so bad comparatively you should probably just use <code>sysfs fs.protected_hardlinks=0</code> and use it.</li>
+<li><code>--sof tmp</code> will place the SOF in <code>/tmp/sb/program</code>. Backing onto ram, it will be fast to setup, and will use a shared folder to share libraries between other profiles, but there will be a space overhead equal to all libraries used by all profiles without duplication. However, because it is stored on RAM, it will be cleared on reboot, and hence there will be a cold-boot penalty that can be somewhat remedied via the startup service.</li>
+<li><code>--sof data</code> will place the SOF in <code>$XDG_DATA_HOME/sb/program</code>. It backs onto disk, which means it will be slower to setup, but there will be no cold-boot penalty on startup. It uses the same shared library as <code>tmp</code>, and as such the same space requirement.</li>
+<li><code>--sof zram</code> is only available if the zram configuration is enabled and <code>zram-generator</code> is installed, backing to <code>/run/sb</code>. Being stored on a compressed ram disk, it is faster and more space efficient than either <code>tmp</code> or <code>data</code>, but suffers a cold-boot penalty as with <code>tmp</code> as it backs to RAM. If you cannot use <code>usr</code>, and have <code>zram-generator</code>, this backing method is the preferred one.</li>
+</ul>
+<p>The following table summarizes each option:</p>
 <table class="markdownTable">
 <tr class="markdownTableHead">
-<th class="markdownTableHeadNone">Profile (ms/MB)   </th><th class="markdownTableHeadNone"><code>data</code>   </th><th class="markdownTableHeadNone"><code>tmp</code>   </th><th class="markdownTableHeadNone"><code>zram</code>   </th><th class="markdownTableHeadNone"><code>usr</code>    </th></tr>
+<th class="markdownTableHeadNone">Backing   </th><th class="markdownTableHeadNone">Backing Medium   </th><th class="markdownTableHeadNone">Space Cost   </th><th class="markdownTableHeadNone">Startup Cost   </th><th class="markdownTableHeadNone">Compatability    </th></tr>
 <tr class="markdownTableRowOdd">
-<td class="markdownTableBodyNone">Chromium Cold   </td><td class="markdownTableBodyNone">184.8   </td><td class="markdownTableBodyNone">191.3   </td><td class="markdownTableBodyNone">183.5   </td><td class="markdownTableBodyNone">169.6    </td></tr>
+<td class="markdownTableBodyNone"><code>data</code>   </td><td class="markdownTableBodyNone">Disk   </td><td class="markdownTableBodyNone">Shared   </td><td class="markdownTableBodyNone">No   </td><td class="markdownTableBodyNone">All    </td></tr>
 <tr class="markdownTableRowEven">
-<td class="markdownTableBodyNone">Chromium Hot   </td><td class="markdownTableBodyNone">3.2   </td><td class="markdownTableBodyNone">2.9   </td><td class="markdownTableBodyNone">3.0   </td><td class="markdownTableBodyNone">3.1    </td></tr>
+<td class="markdownTableBodyNone"><code>tmp</code>   </td><td class="markdownTableBodyNone">RAM   </td><td class="markdownTableBodyNone">Shared   </td><td class="markdownTableBodyNone">Yes   </td><td class="markdownTableBodyNone">All    </td></tr>
 <tr class="markdownTableRowOdd">
-<td class="markdownTableBodyNone">Chromium Update   </td><td class="markdownTableBodyNone">180.8   </td><td class="markdownTableBodyNone">176.5   </td><td class="markdownTableBodyNone">173.5   </td><td class="markdownTableBodyNone">176.2    </td></tr>
+<td class="markdownTableBodyNone"><code>zram</code>   </td><td class="markdownTableBodyNone">RAM   </td><td class="markdownTableBodyNone">Shared   </td><td class="markdownTableBodyNone">Yes   </td><td class="markdownTableBodyNone"><code>zram-generator</code>    </td></tr>
 <tr class="markdownTableRowEven">
-<td class="markdownTableBodyNone">Storage Usage   </td><td class="markdownTableBodyNone">373   </td><td class="markdownTableBodyNone">373   </td><td class="markdownTableBodyNone">172   </td><td class="markdownTableBodyNone">0M    </td></tr>
-<tr class="markdownTableRowOdd">
-<td class="markdownTableBodyNone">Backing   </td><td class="markdownTableBodyNone">Disk   </td><td class="markdownTableBodyNone">RAM   </td><td class="markdownTableBodyNone">RAM   </td><td class="markdownTableBodyNone">Disk   </td></tr>
+<td class="markdownTableBodyNone"><code>usr</code>   </td><td class="markdownTableBodyNone">Disk   </td><td class="markdownTableBodyNone">0   </td><td class="markdownTableBodyNone">No   </td><td class="markdownTableBodyNone"><code>fs.protected_hardlinks=0</code>   </td></tr>
 </table>
-<dl class="section warning"><dt>Warning</dt><dd>Race conditions can occur between the <code>sb.service</code> that populates the SOF on start, and other startup services. If you run a service confined by SB on startup, such as <code>syncthing</code>, either delay the service until <em>after</em> <code>sb.service</code> has run (Add <code>After=sb.service</code> to the service), or use <code>--sof=data</code>.</dd></dl>
+<p>For a more quantifiable example, consider the following benchmark using <code>examples/chromium.desktop.sb</code> (<code>./benchmark.sh cpp main chromium.desktop.sb "" --sof=data</code>)</p>
+<table class="markdownTable">
+<tr class="markdownTableHead">
+<th class="markdownTableHeadNone">Backing   </th><th class="markdownTableHeadNone">Cold   </th><th class="markdownTableHeadNone">Hot   </th><th class="markdownTableHeadNone">Libraries   </th><th class="markdownTableHeadNone">Cache   </th><th class="markdownTableHeadNone">Space Overhead    </th></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone"><code>data</code>   </td><td class="markdownTableBodyNone">248320.4   </td><td class="markdownTableBodyNone">4578.8   </td><td class="markdownTableBodyNone">11515.7   </td><td class="markdownTableBodyNone">258139.1   </td><td class="markdownTableBodyNone">378.3MB    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone"><code>tmp</code>   </td><td class="markdownTableBodyNone">236653.2   </td><td class="markdownTableBodyNone">4215.3   </td><td class="markdownTableBodyNone">10965.7   </td><td class="markdownTableBodyNone">253466.1   </td><td class="markdownTableBodyNone">378.3MB (RAM)    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone"><code>zram</code>   </td><td class="markdownTableBodyNone">232735.7   </td><td class="markdownTableBodyNone">4184.4   </td><td class="markdownTableBodyNone">11024.5   </td><td class="markdownTableBodyNone">251254.3   </td><td class="markdownTableBodyNone">183.0MB (RAM)    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone"><code>usr</code>   </td><td class="markdownTableBodyNone">238148.9   </td><td class="markdownTableBodyNone">3317.5   </td><td class="markdownTableBodyNone">10119.9   </td><td class="markdownTableBodyNone">246266.4   </td><td class="markdownTableBodyNone">0   </td></tr>
+</table>
+<dl class="section note"><dt>Note</dt><dd><em>Cold</em> in this case involves deleting the folder before each run. This simulates <code>--update all</code>, but note that <code>data</code> and <code>usr</code> will launch at <em>Hot</em> at every invocation, whereas <code>tmp</code> and <code>zram</code> will launch at <em>Cold</em> once after reboot, then <em>Hot</em>. If the numbers did not make this obvious, you should use the Dry Startup service if you use either of the RAM backed SOFs. <br  />
+<br  />
+</dd></dl>
+<p>&gt;[!warning] &gt;YMML on speed between RAM and Disk backings depending on your own RAM and Disk/Filesystem. These tests were conducted on ZFS, which effectively makes RAM/Disk the same speed </p>
+<h3><a class="anchor" id="autotoc_md15"></a>
+Dry Start</h3>
+<p>If your SOF is backed to RAM, you may want to consider the Dry Startup, which runs on user login and populates the SOF of all profiles in <code>~/.local/bin</code> with the <code>--dry-startup</code> switch. Unless you have limited RAM, it's recommended to simply put <code>DRY_STARTUP</code> in <code>$XDG_CONFIG_HOME/sb.conf</code> to populate all profiles on boot.</p>
+<p>You'll need to install the <code>sb.service</code>, and enable it via <code>systemctl enable --user sb</code>. </p>
+<h1><a class="anchor" id="autotoc_md16"></a>
+Binaries</h1>
+<p>If you need to add binaries to the sandbox, You can either use:</p><ul>
+<li><code>--binaries (L)</code>, which will use <code>which</code> to resolve the location</li>
+<li><code>--sys-dirs bin</code>, which you shouldn't use.</li>
+</ul>
+<p>This is useful if you're in a debug shell, such as <code>sb program --shell debug --binaries ls cat</code></p>
+<h1><a class="anchor" id="autotoc_md17"></a>
+File Passthrough</h1>
+<p>There are several switches dedicated to passing arbitrary files into the sandbox.</p>
+<p>Firstly, <em>Devices</em> can be provided via <code>--devices (L)</code>, such as <code>--devices /dev/tty</code>. You can also use <code>--sys-dirs dev</code>, but you shouldn't.</p>
+<p>For regular files, there two ways to pass files through:</p><ul>
+<li>With the <code>--files (L+M)</code> switch</li>
+<li>Simply passing the file through without a switch. This mode is mostly for Desktop Files, as it allows you to open files the sandboxed program supports with your file manager or other applications.</li>
+</ul>
+<p>For both of these methods, you must specify a pass through mode. This is done via <code>--file-passthrough (D)</code>, which, if not set, ignores both means of passing files through. Valid options are:</p><ul>
+<li><code>--file-passthrough ro</code> to pass files Read Only</li>
+<li><code>--file-passthrough rw</code> to pass files Read+Write.</li>
+<li><code>--file-passthrough discard</code>, only applicable if passing directories, where the sandbox overlays the directories with a temporary overlay, such that the program has <code>rw</code> access, but that such changes don't actually appear on the host.</li>
+</ul>
+<p>When using <code>--files (L+M)</code>, you can modify each file via a modifier, to which you have four options:</p><ul>
+<li><code>--files file.txt:ro</code> to pass the file Read Only</li>
+<li><code>--files file.txt:rw</code> to pass the file Read+Write</li>
+<li><code>--files file.txt:do</code> to pass the file Direct Read-Only</li>
+<li><code>--files file.txt:dw</code> to pass the file Direct Read-Write.</li>
+</ul>
+<p>By default, and to make AppArmor profile generation easier, all passed files are actually exposed in a <code>/enclave</code> folder in the sandbox, such that profiles can just have <code>/enclave/{,**} rw,</code> in their AppArmor profiles. However, if you need the path to exist as it does on the host, such as passing something from <code>/etc</code> or <code>/var</code>, you can provide the <code>do/dw</code> modifier accordingly.</p>
+<p>If no modifier is provided, it defaults to whatever <code>--file-passthrough</code> is, so you can have something like: <code>--file-passthrough ro --files text.txt text.csv:rw /etc/hosts:do</code>.</p>
+<h1><a class="anchor" id="autotoc_md18"></a>
+Directory Passthrough</h1>
+<p>While you can use the above <code>--files</code> mechanism to pass folders to the sandbox, there are some special flags dedicated to special folders</p>
+<p><code>--app-dirs (F)</code> Allows you to specify folders that are owned by the program, and thus share the same name as the program, to save typing it out. For example, with the program <code>chromium</code>:</p><ul>
+<li><code>--app-dirs etc</code> provides <code>/etc/chromium</code></li>
+<li><code>--app-dirs lib</code> provides <code>/usr/lib/chromium</code> and resolves libraries within as if it were provided via <code>--libraries</code></li>
+<li><code>--app-dirs share</code> provides <code>/usr/share/chromium</code>.</li>
+<li><code>--app-dirs opt</code> provides <code>/opt/chromium</code>, and resolves libraries within as if it were provided via <code>--libraries</code>.</li>
+</ul>
+<p><code>--sys-dirs (F)</code> Allows you to specify system directories, some of which may need to be mounted in ways <code>--files</code> cannot accommodate:</p>
+<p>&gt;[!warning] &gt;Many of the options to <code>--sys-dirs</code> open tremendous attack surface to the sandbox, and should <b>only</b> be used for debugging and sandbox generation. Use <code>--files</code>!</p>
 <ul>
-<li><code>--startup</code> Don't use it.</li>
-<li><code>--sys-dirs</code> System directories to mount into the sandbox:<ul>
-<li><code>dev</code> binds <code>/dev</code></li>
-<li><code>proc</code> binds <code>/proc</code>, but processes from outside the sandbox are invisible. If you don't enable <code>--share pid</code> the PID values will be different, too.</li>
-<li><code>lib</code> binds <code>/usr/lib</code>. You almost certainly don't need to do this unless you have a very stubborn application.</li>
-<li><code>bin</code> binds <code>/usr/bin</code>, see <code>lib</code></li>
-<li><code>etc</code> binds <code>/etc</code></li>
-<li><code>share</code> binds <code>/usr/share</code></li>
-<li><code>var</code> binds <code>/var</code></li>
+<li><code>--sys-dirs dev</code> mounts <code>/dev</code> as a <code>DevFS</code>. This shares all devices with the system. Don't use it.</li>
+<li><code>--sys-dirs proc</code> mounts <code>/proc</code> as a <code>ProcFS</code></li>
+</ul>
+<blockquote class="doxtable">
+<p>[!note] Providing <code>--sys-dirs proc</code> provides the sandbox with a <code>/proc</code> folder, but it is <em>not</em> the system. The sandbox will never be able to access the processes of programs running on the host. </p>
+</blockquote>
+<ul>
+<li><code>--sys-dirs lib</code> mounts <code>/usr/lib</code>. Don't use it.</li>
+<li><code>--sys-dirs bin</code> mounts <code>/usr/bin</code>. Don't use it.</li>
+<li><code>--sys-dirs etc</code> mounts <code>/etc</code>. Don't use it.</li>
+<li><code>--sys-dirs share</code> mounts <code>/usr/share</code>. Don't use it.</li>
+<li><code>--sys-dirs var</code> mounts <code>/var</code> Don't use it.</li>
+</ul>
+<h2><a class="anchor" id="autotoc_md19"></a>
+Local Filesystem</h2>
+<p>Passing your home folder into the sandbox is a terrible idea. <b>Never</b> use <code>--files /home</code>, and <em><b>especially</b></em> not <code>--files /home:rw</code>. Like providing the global Xorg socket, you might as well save the effort and run the program unconfined. However, applications store their configuration files in the home, and unless you want a clean slate every launch, you still need a way to store them.</p>
+<p>The <code>--fs</code> switch will create an isolated directory in <code>$XDG_DATA_HOME/sb/program</code> that is overlain on the <em>root</em> of the sandbox. This allows for:</p><ul>
+<li>The storage of configurations within the <code>FS/home/sb</code> (The user name within the sandbox is obscured)</li>
+<li>Passing of any file that may be too encumbering to provide via <code>--files</code> especially if the file doesn't actually exist at the path you want it to. For example:<ul>
+<li>Place a binary in <code>FS/usr/bin</code></li>
+<li>Place libraries in <code>FS/usr/lib</code></li>
+<li>Place files in <code>FS/tmp</code>.</li>
 </ul>
 </li>
-<li><code>--talk</code> specifies busses that the sandbox can communicate over.</li>
-<li><code>--update</code> specifies actions SB should take on sandbox generation.<ul>
-<li><code>libraries</code> updates <code>lib.cache</code>, which is useful on updates.</li>
-<li><code>cache</code> updates binary and library caches in <code>$XDG_DATA_HOME/sb/cache</code></li>
-<li><code>all</code> updates both</li>
+</ul>
+<p>In essence treat the <code>fs</code> folder as access to the root of the sandbox (Although not that files bound to the sandbox at runtime will not be there).</p>
+<p>There are two values that can be passed to <code>--fs</code>:</p><ul>
+<li><code>--fs persist</code> will provide the folder Read+Write, and any changes made during program execution will persist.</li>
+<li><code>--fs cache</code> will provide the folder, but won't save any changes made during program execution.</li>
+</ul>
+<dl class="section warning"><dt>Warning</dt><dd>You will need to provide the home with <code>persist</code> at least once so that configuration files will actually be saved on disk. Once you have the program configured, and don't need any future changes to be saved, you can switch it to <code>cache</code>.</dd></dl>
+<p>The switch also accepts a modifier, which changes the default path of <code>$XDG_DATA_HOME/sb/program/fs</code> to anything you want within that directory. This allows multiple silos of the app to exist at the same time. For example <code>--fs=persist:1</code> will use <code>$XDG_DATA_HOME/sb/program/1</code> instead. </p>
+<h1><a class="anchor" id="autotoc_md20"></a>
+Namespaces + Networking</h1>
+<p>By default, the user namespace created by <code>bwrap</code> is completely separate from the host's namespaces, following the whitelisting approach mentioned prior. However, you may need some of these namespaces enabled, especially for networking.</p>
+<p>The <code>--share (F)</code> switch controls the sharing of the following namespaces:</p><ul>
+<li><code>--share none</code> shares nothing, and is the default.</li>
+<li><code>--share user</code> shares the user namespace, which is needed for Chromium/Electron to make their sandbox (This is automatically enabled with <code>--electron</code>)</li>
+<li><code>--share ipc</code> shares the IPC namespace.</li>
+<li><code>--share pid</code> shares the PID namespace.</li>
+<li><code>--share net</code> shares the Network namespace, and allows the program use the network.</li>
+<li><code>--share cgroup</code> shares the CGroup namespace.</li>
+<li><code>--share all</code> shares all namespaces.</li>
+</ul>
+<p>&gt;[!warning] &gt;You will likely only ever need to use <code>--share net</code> to give the sandbox internet access. <code>--share user</code> may be necessary if your program uses its own sandbox, but is already set with both <code>--electron</code> and <code>--gtk webkit</code>, so you likely do not need to ever enable it. Don't enable any of the other namespaces, <b>especially</b> <code>all</code>, unless you know what you're doing.</p>
+<h1><a class="anchor" id="autotoc_md21"></a>
+SECCOMP</h1>
+<p><code>bwrap</code> provides the feature to pass a BPF SECCOMP filter that will be enforced within the sandbox. This can strengthen the sandbox by reducing the syscalls that the program can use, and all its children. SB+SECCOMP+AppArmor can significantly reduce the risk of Zero Day attacks by preventing malicious exploits moving horizontally. SB reduces what files the program can see, SECCOMP reduces what syscalls it can use to act on those files, and AppArmor can mitigate sandbox escape by enforcing only the access of those files.</p>
+<p>If you don't happen to know every single syscall your program ever uses, SB can fortunately automate the process:</p><ol type="1">
+<li>Firstly, run the program with <code>--seccomp=strace</code>. This will run the program under <code>strace</code>, and setup a filter. This will not be able to exhaustively report all syscalls, however.</li>
+<li>Secondly, use <code>sb-seccomp</code>, providing the <code>sb</code> script as the first argument, and the name of the local data folder of the program (It should be located within <code>$XDG_DATA_HOME/sb</code>. For example, <code>sb-seccomp chromium.desktop.sb chromium</code>, or <code>sb-seccomp org.kde.okular.desktop.sb okular</code>. This will require root access to read the <code>audit</code> log, which you'll also need installed and running, but will capture all used syscalls. Run this multiple times, using all the parts of the program you plan to use.</li>
+<li>Finally, set <code>--seccomp=enforcing</code>. From this point on, only those syscalls captured will be allowed, with all other syscalls failing with <code>EPERM</code>. Most programs don't know how to handle a failed syscalls, and will just die. If your program randomly crashes, you might have missed a syscall, or it did something it wasn't supposed to.</li>
+</ol>
+<dl class="section warning"><dt>Warning</dt><dd>If you're running an x86 computer, you may encounter an error that the <code>pread</code> or <code>pwrite</code> syscall is not recognized. Audit reports the syscall with those names, but they are actually architecture-specific, and hence you'll want to to modify the <code>$XDG_DATA_HOME/sb/program/syscalls.txt</code>, find those two names, and change them to <code>pread64</code> and <code>pwrite64</code> respectively</dd></dl>
+<h1><a class="anchor" id="autotoc_md22"></a>
+Encryption</h1>
+<p>If your program contains sensitive information, you may want to secure it by encrypting it. The <code>--encrypt (F)</code> switch can encrypt the configuration and FS using <code>gocryptfs</code>. To setup:</p><ol type="1">
+<li>Run the program with <code>--encrypt init</code>. This will create a new encrypted root for the program's configuration at <code>$XDG_DATA_HOME/sb/enc</code>. The cache for the program, and its FS will be encrypted within the root. If there's an existing configuration, it will be seamlessly copied.</li>
+<li>Provide the <code>--encrypt</code> switch to the profile.</li>
+</ol>
+<p>The <code>--encrypt persist</code> flag will make the encryption a one-time operation per boot. It will be locked on reboot, and on the first attempted execution will prompt for unlocking, then remain unlocked for the rest of the boot.</p>
+<p>You'll need to install <code>gocryptfs</code>, along with <code>kdialog</code>, otherwise you will be only able to run the profile from the command line.</p>
+<h1><a class="anchor" id="autotoc_md23"></a>
+Miscellaneous Switches</h1>
+<ul>
+<li><code>--dry (TF)</code>: Create the sandbox, but don't actually run the program.</li>
+<li><code>--env (L)</code>: Pass <code>KEY=VALUE</code> environment variables to the sandbox.</li>
+<li><code>--hardened-malloc (F)</code>: Enforce the use of <code>libhardened_malloc</code> within the sandbox, strengthening memory security at the cost of performance. You can either toggle the switch, or provide <code>--hardened-malloc light</code> to use the light variant.</li>
+<li><code>--help (TF)</code>: Get information about all the switches.</li>
+<li><code>--hostname (TF)</code> Provide the real host-name to the sandbox. You will likely not every need this.</li>
+<li><code>--include (TF)</code>: Provide <code>/usr/include</code>, for C/C++ headers (IE, for IDEs)</li>
+<li><code>--locale (TF)</code>: Provide the system locale to the sandbox. Most applications will default to the <code>C</code> locale, which may be all you need.</li>
+<li><code>--no-flags (TF)</code>. By default, SB will source any additional arguments to pass to the <em>application</em> in a file located at <code>$XDG_DATA_HOME/sb/program/flags.txt</code>. This mimics the <code>chromium-flags.conf</code> file that Chromium/Electron uses. If you have the file, but have a drop-in version that shouldn't use it, provide this switch.</li>
+<li><code>--post (C+M)</code>: Some applications, such as <code>yarr</code>, do not run as standalone programs, but instead act as services to which other programs, such as web browsers, interface with. <code>--post</code> can be used to run another program immediately after the sandboxed application, and to which the sandbox will close once the post application closes. The modifier can be used to pass arguments to the application, such as <code>--post chromium.desktop.sb:<a href="http://localhost:7070">http://localhost:7070</a></code></li>
+<li><code>--python (C)</code>: Provide Python in the sandbox, specifying the version, such as <code>--python 3.13</code></li>
+<li><code>--shell (D)</code> Can be used two-fold:<ul>
+<li><code>--shell=true</code> provides <code>/usr/bin/sh</code>, and creates a <code>/etc/passwd</code> file to make it the user's shell. This is needed for some programs, such as Zed, to resolve the environment.</li>
+<li><code>--shell=debug</code> does exactly what <code>--shell</code> does, but drops <em>into</em> that shell rather than launching the program, letting you look around the sandbox environment. This is very useful for debugging.</li>
 </ul>
 </li>
-<li><code>--verbose</code> toggles more information to be printed to the console<ul>
-<li><code>log</code> prints logging information</li>
-<li><code>debug</code> prints a lot of debugging information, like every command run.</li>
-<li><code>error</code> runs the program under <code>strace</code>, but only filters errors.</li>
-<li><code>strace</code> runs the program under <code>strace</code>, errors and all.</li>
+<li><code>--spelling (F)</code> provides spellchecking support, including:<ul>
+<li><code>--spelling hunspell</code> for Hunspell.</li>
+<li><code>--spelling enchant</code> for enchant.</li>
 </ul>
 </li>
-<li><code>--xdg-open</code> provides the <code>sb-open</code> script so that programs can open links with the default file handler outside the sandbox, such as opening a link in your web browser. <b>Don't use <code>--binaries xdg-open</code></b> </li>
+<li><code>--version (TF)</code> prints the SB version. </li>
 </ul>
 </div></div><!-- contents -->
 </div><!-- PageDoc -->

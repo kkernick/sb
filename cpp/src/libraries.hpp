@@ -31,7 +31,7 @@ namespace libraries {
    * @param library: The path to the library.
    * @param directory: The sub-directory within /usr/lib. Used internally.
    * @returns: A set of all shared libraries used by the program and its dependencies.
-   * @info library can be any executable file, such as binaries in /usr/bin, but only
+   * @note library can be any executable file, such as binaries in /usr/bin, but only
    * shared-libraries in /usr/lib will be included in the return.
    */
    void get(lib_t& libraries, const std::string_view& library, std::string directory = "");
@@ -50,7 +50,7 @@ namespace libraries {
     * @brief Add symlink commands.
     * @param command: The command to append to
     * @param application: The running application.
-    * @info This function symlinks /lib /lib64 and /usr/lib64 to /usr/lib, where
+    * @note This function symlinks /lib /lib64 and /usr/lib64 to /usr/lib, where
     * the SOF is mounted
     */
   void symlink(shared::vector& command);

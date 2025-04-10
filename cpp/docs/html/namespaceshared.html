@@ -136,6 +136,9 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>emplace</b> (std::vec
 <tr class="memitem:a2f7cb04abbe01ba7193f2d2a6d520355"><td class="memTemplItemLeft" align="right" valign="top">std::string&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="#a2f7cb04abbe01ba7193f2d2a6d520355">join</a> (const T &amp;list, const char &amp;joiner=' ')</td></tr>
 <tr class="memdesc:a2f7cb04abbe01ba7193f2d2a6d520355"><td class="mdescLeft">&#160;</td><td class="mdescRight">Join a vector into a string.  <br /></td></tr>
 <tr class="separator:a2f7cb04abbe01ba7193f2d2a6d520355"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afbcc0a24bf7f964818efdd184235bebb" id="r_afbcc0a24bf7f964818efdd184235bebb"><td class="memItemLeft" align="right" valign="top"><a id="afbcc0a24bf7f964818efdd184235bebb" name="afbcc0a24bf7f964818efdd184235bebb"></a>
+template std::string&#160;</td><td class="memItemRight" valign="bottom"><b>join</b> (const list &amp;, const char &amp;)</td></tr>
+<tr class="separator:afbcc0a24bf7f964818efdd184235bebb"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a963e2e8a000b0c59d572a971cb58c31a" id="r_a963e2e8a000b0c59d572a971cb58c31a"><td class="memItemLeft" align="right" valign="top"><a id="a963e2e8a000b0c59d572a971cb58c31a" name="a963e2e8a000b0c59d572a971cb58c31a"></a>
 template std::string&#160;</td><td class="memItemRight" valign="bottom"><b>join</b> (const vector &amp;, const char &amp;)</td></tr>
 <tr class="separator:a963e2e8a000b0c59d572a971cb58c31a"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -461,10 +464,11 @@ template&lt;class T&gt; </div>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">command</td><td>The command to append to. </td></tr>
-    <tr><td class="paramname">env</td><td>The environment variable to add. @info: The value of the variable is the actual value. </td></tr>
+    <tr><td class="paramname">env</td><td>The environment variable to add. </td></tr>
   </table>
   </dd>
 </dl>
+<dl class="section note"><dt>Note</dt><dd>: The value of the variable is the actual value. </dd></dl>
 <div id="dynsection-3" onclick="return dynsection.toggleVisibility(this)" class="dynheader closed" style="cursor:pointer;">
   <img id="dynsection-3-trigger" src="closed.png" alt="+"/> Here is the call graph for this function:</div>
 <div id="dynsection-3-summary" class="dynsummary" style="display:block;">
@@ -622,7 +626,7 @@ template&lt;class T&gt; </div>
 <div id="dynsection-7-summary" class="dynsummary" style="display:block;">
 </div>
 <div id="dynsection-7-content" class="dyncontent" style="display:none;">
-<div class="center"><div class="zoom"><iframe scrolling="no" frameborder="0" src="namespaceshared_a99724c73af55fa92ae29fee700152917_icgraph.svg" width="100%" height="598"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div></div>
+<div class="center"><div class="zoom"><iframe scrolling="no" frameborder="0" src="namespaceshared_a99724c73af55fa92ae29fee700152917_icgraph.svg" width="100%" height="600"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div></div>
 </div>
 
 </div>
@@ -650,10 +654,11 @@ template&lt;class T&gt; </div>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">command</td><td>The set to be extended. </td></tr>
-    <tr><td class="paramname">path</td><td>The set to merge into the first. @info This function exists because C++ cannot deduce bracket initializers. </td></tr>
+    <tr><td class="paramname">path</td><td>The set to merge into the first. </td></tr>
   </table>
   </dd>
 </dl>
+<dl class="section note"><dt>Note</dt><dd>This function exists because C++ cannot deduce bracket initializers. </dd></dl>
 
 </div>
 </div>
@@ -836,7 +841,8 @@ template&lt;typename T&gt; </div>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>The trimmed string. @info trim only removes from the front and end, stopping after encountered a non-to_strip character, whereas strip removes all instances regardless. </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>The trimmed string. </dd></dl>
+<dl class="section note"><dt>Note</dt><dd>trim only removes from the front and end, stopping after encountered a non-to_strip character, whereas strip removes all instances regardless. </dd></dl>
 <div id="dynsection-12" onclick="return dynsection.toggleVisibility(this)" class="dynheader closed" style="cursor:pointer;">
   <img id="dynsection-12-trigger" src="closed.png" alt="+"/> Here is the caller graph for this function:</div>
 <div id="dynsection-12-summary" class="dynsummary" style="display:block;">

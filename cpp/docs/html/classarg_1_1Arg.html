@@ -115,9 +115,8 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:af2111fcb064aca3efb8642f09d9d5c2f" id="r_af2111fcb064aca3efb8642f09d9d5c2f"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#af2111fcb064aca3efb8642f09d9d5c2f">digest</a> (const shared::vector &amp;args, uint_fast8_t &amp;x)</td></tr>
 <tr class="memdesc:af2111fcb064aca3efb8642f09d9d5c2f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Digest arguments.  <br /></td></tr>
 <tr class="separator:af2111fcb064aca3efb8642f09d9d5c2f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a02786be8c27ddd983b18ba299f11ef65" id="r_a02786be8c27ddd983b18ba299f11ef65"><td class="memItemLeft" align="right" valign="top"><a id="a02786be8c27ddd983b18ba299f11ef65" name="a02786be8c27ddd983b18ba299f11ef65"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>update</b> ()</td></tr>
-<tr class="memdesc:a02786be8c27ddd983b18ba299f11ef65"><td class="mdescLeft">&#160;</td><td class="mdescRight">Update configurations. @info This function is used for arguments that depend on the value of other arguments. <br /></td></tr>
+<tr class="memitem:a02786be8c27ddd983b18ba299f11ef65" id="r_a02786be8c27ddd983b18ba299f11ef65"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a02786be8c27ddd983b18ba299f11ef65">update</a> ()</td></tr>
+<tr class="memdesc:a02786be8c27ddd983b18ba299f11ef65"><td class="mdescLeft">&#160;</td><td class="mdescRight">Update configurations.  <br /></td></tr>
 <tr class="separator:a02786be8c27ddd983b18ba299f11ef65"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1f80ee832a3d4a47f21a6ca326c3b9ab" id="r_a1f80ee832a3d4a47f21a6ca326c3b9ab"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a1f80ee832a3d4a47f21a6ca326c3b9ab">get_help</a> () const</td></tr>
 <tr class="memdesc:a1f80ee832a3d4a47f21a6ca326c3b9ab"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get the help text for the argument.  <br /></td></tr>
@@ -284,10 +283,11 @@ const bool &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>updates_s
 </dl>
 <dl class="exception"><dt>Exceptions</dt><dd>
   <table class="exception">
-    <tr><td class="paramname">std::runtime_error</td><td>if the valid is invalid. @info For single value arguments, this overwrites the stored value. For lists, it emplaces to the back of the list if its valid. </td></tr>
+    <tr><td class="paramname">std::runtime_error</td><td>if the valid is invalid. </td></tr>
   </table>
   </dd>
 </dl>
+<dl class="section note"><dt>Note</dt><dd>For single value arguments, this overwrites the stored value. For lists, it emplaces to the back of the list if its valid. </dd></dl>
 <dl class="section warning"><dt>Warning</dt><dd>This function uses the same parsing logic as initial argument parsing, which means invalid values will throw exceptions. </dd></dl>
 <div id="dynsection-1" onclick="return dynsection.toggleVisibility(this)" class="dynheader closed" style="cursor:pointer;">
   <img id="dynsection-1-trigger" src="closed.png" alt="+"/> Here is the caller graph for this function:</div>
@@ -579,7 +579,8 @@ const bool &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>updates_s
 </div><div class="memdoc">
 
 <p>Get a mutable reference to the stored modifier. </p>
-<dl class="section return"><dt>Returns</dt><dd>The modifier. @info This function returns an empty string if a modifier does not exist or is allowed. </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>The modifier. </dd></dl>
+<dl class="section note"><dt>Note</dt><dd>This function returns an empty string if a modifier does not exist or is allowed. </dd></dl>
 
 </div>
 </div>
@@ -732,6 +733,34 @@ const bool &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>updates_s
 <div id="dynsection-7-content" class="dyncontent" style="display:none;">
 <div class="center"><iframe scrolling="no" frameborder="0" src="classarg_1_1Arg_abb5234d5f8e0226e181e483d5a1bc39e_icgraph.svg" width="291" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
+
+</div>
+</div>
+<a id="a02786be8c27ddd983b18ba299f11ef65" name="a02786be8c27ddd983b18ba299f11ef65"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a02786be8c27ddd983b18ba299f11ef65">&#9670;&#160;</a></span>update()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void arg::Arg::update </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Update configurations. </p>
+<dl class="section note"><dt>Note</dt><dd>This function is used for arguments that depend on the value of other arguments. </dd></dl>
 
 </div>
 </div>

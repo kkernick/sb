@@ -11,8 +11,12 @@ generate \- Generator functions\&. This header contains generator functions, eit
 
 .in +1c
 .ti -1c
+.RI "std::pair< std::string, int > \fBxorg\fP ()"
+.br
+.ti -1c
 .RI "void \fBencrypted\fP (const std::string_view &program)"
 .br
+.RI "Handle an encrypted FS Sandbox\&. "
 .ti -1c
 .RI "void \fBscript\fP (const std::string &binary)"
 .br
@@ -55,7 +59,12 @@ Generate the bulk of the main program command\&.
 .PP
 \fBReturns\fP
 .RS 4
-The generated command\&. @info Parts of the command that should be computed at runtime, like environment variables, should be done outside this function\&. 
+The generated command\&. 
+.RE
+.PP
+\fBNote\fP
+.RS 4
+Parts of the command that should be computed at runtime, like environment variables, should be done outside this function\&. 
 .RE
 .PP
 
@@ -67,6 +76,17 @@ Generate a desktop file for the sandbox\&.
 \fBParameters\fP
 .RS 4
 \fIpath\fP The desktop name\&. 
+.RE
+.PP
+
+.SS "void generate::encrypted (const std::string_view & program)"
+
+.PP
+Handle an encrypted FS Sandbox\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIprogram\fP The program 
 .RE
 .PP
 
@@ -92,7 +112,12 @@ Setup the Proxy's SOF\&.
 .PP
 \fBReturns\fP
 .RS 4
-The path to the Proxy's SOF, and a future to wait for the path to be populated\&. @info We run this on --dry, such that the Proxy SOF gets generated along with all the others\&. 
+The path to the Proxy's SOF, and a future to wait for the path to be populated\&. 
+.RE
+.PP
+\fBNote\fP
+.RS 4
+We run this on --dry, such that the Proxy SOF gets generated along with all the others\&. 
 .RE
 .PP
 

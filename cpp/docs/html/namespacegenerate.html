@@ -96,8 +96,11 @@ $(function(){ initResizable(false); });
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:a856a8762019042bef78ae7778e85bca1" id="r_a856a8762019042bef78ae7778e85bca1"><td class="memItemLeft" align="right" valign="top"><a id="a856a8762019042bef78ae7778e85bca1" name="a856a8762019042bef78ae7778e85bca1"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>encrypted</b> (const std::string_view &amp;program)</td></tr>
+<tr class="memitem:ab48d37e7a571787af0f5f2ca74e8e4b4" id="r_ab48d37e7a571787af0f5f2ca74e8e4b4"><td class="memItemLeft" align="right" valign="top"><a id="ab48d37e7a571787af0f5f2ca74e8e4b4" name="ab48d37e7a571787af0f5f2ca74e8e4b4"></a>
+std::pair&lt; std::string, int &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>xorg</b> ()</td></tr>
+<tr class="separator:ab48d37e7a571787af0f5f2ca74e8e4b4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a856a8762019042bef78ae7778e85bca1" id="r_a856a8762019042bef78ae7778e85bca1"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a856a8762019042bef78ae7778e85bca1">encrypted</a> (const std::string_view &amp;program)</td></tr>
+<tr class="memdesc:a856a8762019042bef78ae7778e85bca1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Handle an encrypted FS Sandbox.  <br /></td></tr>
 <tr class="separator:a856a8762019042bef78ae7778e85bca1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a67b94cdd53f264ff45e467ce97cd44d4" id="r_a67b94cdd53f264ff45e467ce97cd44d4"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a67b94cdd53f264ff45e467ce97cd44d4">script</a> (const std::string &amp;binary)</td></tr>
 <tr class="memdesc:a67b94cdd53f264ff45e467ce97cd44d4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Generate a script for the sandbox.  <br /></td></tr>
@@ -143,7 +146,8 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>encrypted</b> (const 
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>The generated command. @info Parts of the command that should be computed at runtime, like environment variables, should be done outside this function. </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>The generated command. </dd></dl>
+<dl class="section note"><dt>Note</dt><dd>Parts of the command that should be computed at runtime, like environment variables, should be done outside this function. </dd></dl>
 <div id="dynsection-0" onclick="return dynsection.toggleVisibility(this)" class="dynheader closed" style="cursor:pointer;">
   <img id="dynsection-0-trigger" src="closed.png" alt="+"/> Here is the call graph for this function:</div>
 <div id="dynsection-0-summary" class="dynsummary" style="display:block;">
@@ -186,6 +190,38 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>encrypted</b> (const 
 
 </div>
 </div>
+<a id="a856a8762019042bef78ae7778e85bca1" name="a856a8762019042bef78ae7778e85bca1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a856a8762019042bef78ae7778e85bca1">&#9670;&#160;</a></span>encrypted()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void generate::encrypted </td>
+          <td>(</td>
+          <td class="paramtype">const std::string_view &amp;</td>          <td class="paramname"><span class="paramname"><em>program</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Handle an encrypted FS Sandbox. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">program</td><td>The program </td></tr>
+  </table>
+  </dd>
+</dl>
+<div id="dynsection-2" onclick="return dynsection.toggleVisibility(this)" class="dynheader closed" style="cursor:pointer;">
+  <img id="dynsection-2-trigger" src="closed.png" alt="+"/> Here is the call graph for this function:</div>
+<div id="dynsection-2-summary" class="dynsummary" style="display:block;">
+</div>
+<div id="dynsection-2-content" class="dyncontent" style="display:none;">
+<div class="center"><iframe scrolling="no" frameborder="0" src="namespacegenerate_a856a8762019042bef78ae7778e85bca1_cgraph.svg" width="280" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
 <a id="a06d09480d1b42592ffc0654698d15b6d" name="a06d09480d1b42592ffc0654698d15b6d"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a06d09480d1b42592ffc0654698d15b6d">&#9670;&#160;</a></span>flatpak_info()</h2>
 
@@ -219,11 +255,11 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>encrypted</b> (const 
   </table>
   </dd>
 </dl>
-<div id="dynsection-2" onclick="return dynsection.toggleVisibility(this)" class="dynheader closed" style="cursor:pointer;">
-  <img id="dynsection-2-trigger" src="closed.png" alt="+"/> Here is the call graph for this function:</div>
-<div id="dynsection-2-summary" class="dynsummary" style="display:block;">
+<div id="dynsection-3" onclick="return dynsection.toggleVisibility(this)" class="dynheader closed" style="cursor:pointer;">
+  <img id="dynsection-3-trigger" src="closed.png" alt="+"/> Here is the call graph for this function:</div>
+<div id="dynsection-3-summary" class="dynsummary" style="display:block;">
 </div>
-<div id="dynsection-2-content" class="dyncontent" style="display:none;">
+<div id="dynsection-3-content" class="dyncontent" style="display:none;">
 <div class="center"><iframe scrolling="no" frameborder="0" src="namespacegenerate_a06d09480d1b42592ffc0654698d15b6d_cgraph.svg" width="416" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
@@ -245,19 +281,20 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>encrypted</b> (const 
 </div><div class="memdoc">
 
 <p>Setup the Proxy's SOF. </p>
-<dl class="section return"><dt>Returns</dt><dd>The path to the Proxy's SOF, and a future to wait for the path to be populated. @info We run this on &ndash;dry, such that the Proxy SOF gets generated along with all the others. </dd></dl>
-<div id="dynsection-3" onclick="return dynsection.toggleVisibility(this)" class="dynheader closed" style="cursor:pointer;">
-  <img id="dynsection-3-trigger" src="closed.png" alt="+"/> Here is the call graph for this function:</div>
-<div id="dynsection-3-summary" class="dynsummary" style="display:block;">
-</div>
-<div id="dynsection-3-content" class="dyncontent" style="display:none;">
-<div class="center"><div class="zoom"><iframe scrolling="no" frameborder="0" src="namespacegenerate_a17cf0da8addab269d21c2c8074d85c4e_cgraph.svg" width="100%" height="518"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div></div>
-</div>
+<dl class="section return"><dt>Returns</dt><dd>The path to the Proxy's SOF, and a future to wait for the path to be populated. </dd></dl>
+<dl class="section note"><dt>Note</dt><dd>We run this on &ndash;dry, such that the Proxy SOF gets generated along with all the others. </dd></dl>
 <div id="dynsection-4" onclick="return dynsection.toggleVisibility(this)" class="dynheader closed" style="cursor:pointer;">
-  <img id="dynsection-4-trigger" src="closed.png" alt="+"/> Here is the caller graph for this function:</div>
+  <img id="dynsection-4-trigger" src="closed.png" alt="+"/> Here is the call graph for this function:</div>
 <div id="dynsection-4-summary" class="dynsummary" style="display:block;">
 </div>
 <div id="dynsection-4-content" class="dyncontent" style="display:none;">
+<div class="center"><div class="zoom"><iframe scrolling="no" frameborder="0" src="namespacegenerate_a17cf0da8addab269d21c2c8074d85c4e_cgraph.svg" width="100%" height="518"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div></div>
+</div>
+<div id="dynsection-5" onclick="return dynsection.toggleVisibility(this)" class="dynheader closed" style="cursor:pointer;">
+  <img id="dynsection-5-trigger" src="closed.png" alt="+"/> Here is the caller graph for this function:</div>
+<div id="dynsection-5-summary" class="dynsummary" style="display:block;">
+</div>
+<div id="dynsection-5-content" class="dyncontent" style="display:none;">
 <div class="center"><iframe scrolling="no" frameborder="0" src="namespacegenerate_a17cf0da8addab269d21c2c8074d85c4e_icgraph.svg" width="326" height="54"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
@@ -285,18 +322,18 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>encrypted</b> (const 
   </table>
   </dd>
 </dl>
-<div id="dynsection-5" onclick="return dynsection.toggleVisibility(this)" class="dynheader closed" style="cursor:pointer;">
-  <img id="dynsection-5-trigger" src="closed.png" alt="+"/> Here is the call graph for this function:</div>
-<div id="dynsection-5-summary" class="dynsummary" style="display:block;">
-</div>
-<div id="dynsection-5-content" class="dyncontent" style="display:none;">
-<div class="center"><iframe scrolling="no" frameborder="0" src="namespacegenerate_a67b94cdd53f264ff45e467ce97cd44d4_cgraph.svg" width="259" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
 <div id="dynsection-6" onclick="return dynsection.toggleVisibility(this)" class="dynheader closed" style="cursor:pointer;">
-  <img id="dynsection-6-trigger" src="closed.png" alt="+"/> Here is the caller graph for this function:</div>
+  <img id="dynsection-6-trigger" src="closed.png" alt="+"/> Here is the call graph for this function:</div>
 <div id="dynsection-6-summary" class="dynsummary" style="display:block;">
 </div>
 <div id="dynsection-6-content" class="dyncontent" style="display:none;">
+<div class="center"><iframe scrolling="no" frameborder="0" src="namespacegenerate_a67b94cdd53f264ff45e467ce97cd44d4_cgraph.svg" width="259" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+<div id="dynsection-7" onclick="return dynsection.toggleVisibility(this)" class="dynheader closed" style="cursor:pointer;">
+  <img id="dynsection-7-trigger" src="closed.png" alt="+"/> Here is the caller graph for this function:</div>
+<div id="dynsection-7-summary" class="dynsummary" style="display:block;">
+</div>
+<div id="dynsection-7-content" class="dyncontent" style="display:none;">
 <div class="center"><iframe scrolling="no" frameborder="0" src="namespacegenerate_a67b94cdd53f264ff45e467ce97cd44d4_icgraph.svg" width="332" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
@@ -330,11 +367,11 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>encrypted</b> (const 
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>A pair, including the wd to wait for the bus, and a future to return the pid of the proxy. </dd></dl>
-<div id="dynsection-7" onclick="return dynsection.toggleVisibility(this)" class="dynheader closed" style="cursor:pointer;">
-  <img id="dynsection-7-trigger" src="closed.png" alt="+"/> Here is the call graph for this function:</div>
-<div id="dynsection-7-summary" class="dynsummary" style="display:block;">
+<div id="dynsection-8" onclick="return dynsection.toggleVisibility(this)" class="dynheader closed" style="cursor:pointer;">
+  <img id="dynsection-8-trigger" src="closed.png" alt="+"/> Here is the call graph for this function:</div>
+<div id="dynsection-8-summary" class="dynsummary" style="display:block;">
 </div>
-<div id="dynsection-7-content" class="dyncontent" style="display:none;">
+<div id="dynsection-8-content" class="dyncontent" style="display:none;">
 <div class="center"><div class="zoom"><iframe scrolling="no" frameborder="0" src="namespacegenerate_a5c0026523dd30f942c55ad25f1b607b4_cgraph.svg" width="100%" height="600"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div></div>
 </div>
 

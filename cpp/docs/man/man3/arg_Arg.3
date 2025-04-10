@@ -23,7 +23,7 @@ arg::Arg \- A command-line argument\&.
 .ti -1c
 .RI "void \fBupdate\fP ()"
 .br
-.RI "Update configurations\&. @info This function is used for arguments that depend on the value of other arguments\&. "
+.RI "Update configurations\&. "
 .ti -1c
 .RI "std::string \fBget_help\fP () const"
 .br
@@ -136,7 +136,12 @@ Emplace a value\&.
 .PP
 \fBExceptions\fP
 .RS 4
-\fIstd::runtime_error\fP if the valid is invalid\&. @info For single value arguments, this overwrites the stored value\&. For lists, it emplaces to the back of the list if its valid\&. 
+\fIstd::runtime_error\fP if the valid is invalid\&. 
+.RE
+.PP
+\fBNote\fP
+.RS 4
+For single value arguments, this overwrites the stored value\&. For lists, it emplaces to the back of the list if its valid\&. 
 .RE
 .PP
 \fBWarning\fP
@@ -255,7 +260,12 @@ Get a mutable reference to the stored modifier\&.
 .PP
 \fBReturns\fP
 .RS 4
-The modifier\&. @info This function returns an empty string if a modifier does not exist or is allowed\&. 
+The modifier\&. 
+.RE
+.PP
+\fBNote\fP
+.RS 4
+This function returns an empty string if a modifier does not exist or is allowed\&. 
 .RE
 .PP
 
@@ -310,6 +320,17 @@ Return the position of the argument\&.
 \fBReturns\fP
 .RS 4
 The mandatory level\&. 
+.RE
+.PP
+
+.SS "void arg::Arg::update ()\fR [inline]\fP"
+
+.PP
+Update configurations\&. 
+.PP
+\fBNote\fP
+.RS 4
+This function is used for arguments that depend on the value of other arguments\&. 
 .RE
 .PP
 

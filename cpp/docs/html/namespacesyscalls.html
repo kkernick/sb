@@ -169,10 +169,11 @@ Functions</h2></td></tr>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">application</td><td>The name of the application, to locate the syscalls.txt </td></tr>
-    <tr><td class="paramname">strace</td><td>The output of an straced-run. @info This function subsumes sb-seccomp in a far better way. Rather than parsing the Audit logs (Requiring root permission), we just call &ndash;seccomp=strace which will run the program with strace, capture STDERR (The channel strace logs to), and then parse that output to update the file. </td></tr>
+    <tr><td class="paramname">strace</td><td>The output of an straced-run. </td></tr>
   </table>
   </dd>
 </dl>
+<dl class="section note"><dt>Note</dt><dd>This function subsumes sb-seccomp in a far better way. Rather than parsing the Audit logs (Requiring root permission), we just call &ndash;seccomp=strace which will run the program with strace, capture STDERR (The channel strace logs to), and then parse that output to update the file. </dd></dl>
 <div id="dynsection-2" onclick="return dynsection.toggleVisibility(this)" class="dynheader closed" style="cursor:pointer;">
   <img id="dynsection-2-trigger" src="closed.png" alt="+"/> Here is the call graph for this function:</div>
 <div id="dynsection-2-summary" class="dynsummary" style="display:block;">

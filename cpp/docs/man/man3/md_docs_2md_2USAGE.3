@@ -7,264 +7,516 @@ md_docs_2md_2USAGE \- Usage
 
 
 .PP
-SB++ and Python-SB are generally similar, but the former has combined many features, removed others, and introduced some new functionality on top\&. Profiles created for one will likely not work for the other, but they are very similar and can be easily translated\&. See the examples folders in both implementations to see identical applications confined within both\&.
-
 .PP
-See Python-SB's \fRUsage Guide\fP for a description of the more general points; this document outlines SB++ libraries and major deviations from the former\&.
-.SH "Command Line Reference"
-.PP
-As mentioned in the \fBREADME\fP, SB++ has a new argument handler that is more powerful than Python-SB\&. In essence, all arguments are treated as strings\&. For example, the verbose flag can either be:
-.IP "\(bu" 2
-Toggled with a long name: \fR--verbose\fP
-.IP "\(bu" 2
-Toggled with a short name: \fR-v\fP
-.IP "\(bu" 2
-Given an explicit value: \fR--verbose=debug\fP or \fR--verbose strace\fP
-.IP "\(bu" 2
-Incremented: \fR-vv\fP, which corresponds to the \fIthird\fP value in the switches valid list (IE \fRdebug\fP for \fR--verbose\fP)\&. The first value, typically \fRfalse\fP, is when the flag has not been provided, so \fR-v\fP will increment it to the second\&.
-.IP "\(bu" 2
-Repeated, either to increment the value such as \fR--verbose --verbose\fP yielding \fRdebug\fP, or to override older values such as \fR--verbose=false --verbose=error\fP yielding \fRerror\fP\&. This is particularly useful for running a \fR\&.sb\fP profile from the command line, allowing you to change defined settings without modifying the script itself or the \fRsb\&.conf\fP file\&.
-.IP "\(bu" 2
-Reset to the default value with \fR!\fP: \fR--verbose=!\fP
+.nf
+sb program
+.fi
 .PP
 
 .PP
-For lists, such as defining libraries:
+Unless your program is simple, this likely won't work by itself\&. SB++ subscribers to a whitelisting approach where the sandbox is populated with nothing, and it is on the profile to explicitly provide files and configurations\&.
+
+.PP
+>[!tip] >AppArmor and SB++ work very well together, and provides defense-in-depth\&.
+.SH "Switch Semantics"
+.PP
+SB uses a custom argument handler for its command line switches\&. It is very powerful, but bears a brief aside to explain its grammar\&.
+
+.PP
+Switches can be one of seven discrete classes:
 .IP "\(bu" 2
-Values can be collected in a single invocation: \fR--libraries lib1\&.so lib2\&.so\fP or \fR--libraries lib1\&.so,lib2\&.so\fP
+True/False, such as \fR--pipewire\fP which is either on or off\&.
 .IP "\(bu" 2
-Collected from multiple invocations: \fR--libraries lib1\&.so libraries lib2\&.so\fP
+Discrete, such as \fR--sof\fP which is either \fRusr\fP, \fRtmp\fP, \fRdata\fP, or \fRzram\fP\&.
 .IP "\(bu" 2
-Some lists, such as \fRlibraries\fP, supports wildcard semantics: \fR--libraries lib*\&.so\fP\&.
+Custom, such as \fR--script\fP take a single, arbitrary value\&.
 .IP "\(bu" 2
-Some lists, such as \fRlibraries\fP, support modifier semantics: \fR--libraries lib1\&.so:x\fP would exclude that library from being provided in the sandbox, regardless of dependency resolution\&.
+Optional, such as \fR--electron\fP is treated as TF, but can be provided an optional, arbitrary value\&.
+.IP "\(bu" 2
+Lists, such as \fR--libraries\fP which can accept multiple arbitrary values\&.
+.IP "\(bu" 2
+Flags, which is a List with explicit values, such as \fR--qt\fP, which takes multiple values, but only those of \fRfalse\fP, \fR5\fP, \fR6\fP, or \fRkf6\fP\&.
+.IP "\(bu" 2
+Modifiers, which takes a key-pair separated by a \fR:\fP, such as \fR--fs\fP, which is a Discrete switch taking either \fRfalse\fP, \fRpersist\fP, or \fRcache\fP, but which can optionally be modified, such as \fR--fs persist:md\fP to specify a folder to use as the filesystem backing\&. Modifiers can also be Lists, such as \fR--files\fP accepting multiple arbitrary values, to which each can be modified\&.
 .PP
 
 .PP
+>[!note] >This document will specify the type of switch via \fRTF\fP, \fRD\fP, \fRO\fP, \fRL\fP, \fRF\fP, \fR+M\fP when they appear in the documentation\&.
+
+.PP
+Internally, all switches are either strings, or lists\&. It does this via two novel designs:
+.IP "\(bu" 2
+\fRfalse\fP is an explicit value, and the default for most switches\&.
+.IP "\(bu" 2
+Switches increment through their valid values\&.
 .PP
 
 .PP
+This means that a True/False switch can be toggled in two different ways:
 .IP "\(bu" 2
-\fR--cmd/-C\fP specifies the program to run, and must be the first argument to which the switch can be omitted, such as \fRsb program\fP\&. You can use the switch to override the program, particularly for inherited profiles\&.
+\fR--pipewire\fP, which \fIincrements\fP the PipeWire flag from \fRfalse\fP to \fRtrue\fP
 .IP "\(bu" 2
-\fR--app-dirs\fP specifies program folders to be provided to the sandbox:
-.IP "  \(bu" 4
-\fRetc\fP provides \fR/etc/app\fP
-.IP "  \(bu" 4
-\fRlib\fP provides \fR/usr/lib/app\fP
-.IP "  \(bu" 4
-\fRshare\fP provides \fR/usr/share/app\fP
-.IP "  \(bu" 4
-\fRopt\fP provides \fR/opt/app\fP
-.PP
-
-.IP "\(bu" 2
-\fR--binaries\fP provides a list of additional binaries to provide in the sandbox
-.IP "\(bu" 2
-\fR--destkop-entry/-D\fP creates a desktop entry for the application\&. If needed, you can provide a desktop file explicitly in case it deviates from the program name, such as \fR--destkop-entry application\&.desktop\fP\&.
-.IP "\(bu" 2
-\fR--devices\fP provides a list of devices to add to the sandbox
-.IP "\(bu" 2
-\fR--dry\fP will create the sandbox, but not run the application, useful to warm the SOF\&.
-.IP "\(bu" 2
-\fR--dry-startup\fP marks a profile as eligible to run by \fRsb\&.service\fP, which allows its SOF to be populated immediately\&. This remove the cold start penalty\&.
-.IP "\(bu" 2
-\fR--electron\fP specifies the application as an Electron app, giving it access to GTK and NSS libraries, the ability to create user namespaces, and more\&. It can be provided with an explicit version if the app uses a system electron, such as \fR--electron 33 *\fP--env\fRprovides a list of\fPKEY=VAL\fRenvironment variables to pass into the sandbox\&. *\fP--file-passthrough\fRdefines the default mode for files passed into the sandbox, either as unknown arguments (particularly when attached to a desktop file), or provided via\fP--files\fR: *\fPro\fRmounts the files as read-only *\fPrw\fRmounts the files as read-write\&. Note that files are attached via bind-mounts, which means that the file cannot be moved or deleted\&. Some KDE applications update configuration files by creating a copy, then moving it into the original\&. If you use\fP--fs\fRinstead of attaching host configurations, this isn't a problem\&. *\fPdiscard\fRonly applies to directories, and uses an overlay to allow seamless, real read-write to the directory and its files, but to which writes are actually done to a temporary copy that is discarded upon program termination\&. *\fP--files\fRprovides a list of files to provide in the sandbox at\fP/enclave/path\fR\&. Modifier semantics allows for granular control over permissions, defaulting to the value of\fP--file-passthrough\fR(Which defaults to\fPfalse\fR, hence if\fP--file-passthrough\fRis not defined all files will need an explicit policy) such as\fP--files test\&.txt:ro test\&.csv:rw dir:discard\fR\&. You can also provide the unique modifiers\fPdo\fRand\fPdw` for Direct Read-Only and Direct Read-Write, which will be exposed in the sandbox in the exact same path they appear on the host\&.
+\fR--pipewire=true\fP or \fR--pipewire true\fP, which explicitly sets the value to one of the two valid selections, being \fRfalse\fP or \fRtrue\fP\&.
 .PP
 
 .PP
-\fBNote\fP
-.RS 4
-This system has superseded \fR--ro\fP and \fR--rw\fP
-.RE
-.PP
-.IP "\(bu" 2
-\fR--fs\fP provides the sandbox with a persistent root folder at \fR$XDG_DATA_HOME/sb/app/fs\fP, which is mounted onto the sandbox root\&. This allows for the additional of configuration files at \fR/etc\fP, binaries in \fR/usr/bin\fP (Which are dependency checked), and files in \fR/home\fP\&. A modifier can be used to change the location of the \fRfs\fP, which is useful to have multiple profiles of an application, such as \fR--fs persist:b\fP for a \fRfs\fP at \fR$XDG_DATA_HOME/sb/app/b\fP
-.IP "  \(bu" 4
-\fRcache\fP will mount the \fRfs\fP as temporary overlay\&. The sandbox can modify everything within, but changes will not be propagated to the \fRfs\fP on the host system\&.
-.IP "  \(bu" 4
-\fRpersist\fP will mount the \fRfs\fP read-write, allowing changes in the \fRfs\fP to persist across sessions\&.
-.PP
+This further means that every switch can be increments, moving it from valid values\&. \fR--verbose\fP's valid values (As seen in \fR--help\fP) are ordered as \fR{false, log, debug, error, strace}\fP\&. That means, if \fR--verbose/-v\fP is not provided, it is set as \fRfalse\fP\&. However, if you pass \fR-vv\fP, it will step to \fRdebug\fP, and \fR-vvvv\fP will set it to \fRstrace\fP\&.
 
+.PP
+One of the most powerful features of the argument handler is that it can override earlier invocations of a switch\&. For example, if a profile specifies \fR--fs=cache\fP in its script, but you need to set it to \fRpersist\fP temporarily, rather than having to modify the script, you can just pass \fRprofile\&.sb\&.desktop --fs=persist\fP to override it\&.
+
+.PP
+For lists, which by default append values together a la \fR--libraries A --libraries B\fP, you can provide \fR!\fP to set it to the default, clear value\&. This works for \fIany\fP switch, and sets it to its default\&.
+
+.PP
+The above functionality works together for \fIdrop-ins\fP, where you can have a SB script call \fIanother\fP SB script as its program, which will merely adopt the callee's settings\&. For example:
+.IP "\(bu" 2
+If you already have a profile for Chromium, but want a \fIsecond\fP profile that doesn't have a home folder, you can create a second profile that merely looks like \fRsb chromium\&.desktop\&.sb --fs=false\fP\&.
+.IP "\(bu" 2
+If you want to create multiple instances of an application, each using their own home, you can merely create a single, main script, and then create specialized ones via \fRsb profile\&.desktop\&.sb --fs=cache:instance\fP, where \fIinstance\fP is the home folder for that particular copy\&.
 .PP
 
 .PP
 \fBNote\fP
 .RS 4
-Applications like Chromium using Singletons to ensure only a single instance of the program is running\&. Using \fRpersist\fP will mandate this requirement as all instance will share the \fRfs\fP, where \fRcache\fP will create a "copy" for each\&.
+All switches that pass files to them, such as \fR--libraries\fP or \fR--files\fP, will check if the file exists, and won't tear down \fRbwrap\fP if it doesn't\&. This means conditionally available files will either be passed if they exist, or ignored if they don't\&.
 .RE
 .PP
-.IP "\(bu" 2
-\fR--gtk\fP provides GTK configurations to the sandbox, and sets \fR--gui\fP\&.
-.IP "\(bu" 2
-\fR--gui\fP provides the Wayland socket, DRI device for graphics access, and fonts, themes, and other configurations needed for graphical applications\&.
-.IP "\(bu" 2
-\fR--hardened-malloc\fP enforces the use of \fRlibhardenedmalloc\&.so\fP within the sandbox; all processed, including the proxy, will use it\&.
-.IP "\(bu" 2
-\fR--help\fP will print help information\&.
-.IP "\(bu" 2
-\fR--include\fP provides system C/C++ headers for IDEs\&.
-.IP "\(bu" 2
-\fR--libraries\fP provides a list of libraries to add to the sandbox, with dependencies recursively determined:
-.IP "  \(bu" 4
-Libraries can outline a name: \fRliba\&.so\fP
-.IP "  \(bu" 4
-Libraries can outline a path: \fR/usr/lib/liba\&.so\fP
-.IP "  \(bu" 4
-Libraries can utilize wildcards: \fR/liba\&.so\&.*\fP
-.IP "  \(bu" 4
-Libraries can be excluded with the \fRx\fP modifier: \fRliba\&.so:x\fP
+.SH "Debugging"
 .PP
-
+The \fR--verbose (L)\fP flag is absolutely essential for constructing a profile, as it provides invaluable information about how the program runs within the sandbox:
 .IP "\(bu" 2
-\fR--locale\fP provides the system locale, timezone, language to the sandbox\&.
+\fR--verbose debug\fP will print\fRxdg-dbus-proxy\fP output to the console, allowing you to see what busses the program attempts to connect to\&. It also prints what SB is doing, what it adds, and every command run\&.
 .IP "\(bu" 2
-\fR--own\fP specifies portals that the application can \fIown\fP, or create new interfaces\&.
+\fR--verbose error\fP will run the program under \fRstrace\fP, capturing all errors the program runs into, such as attempts to access files that don't exist\&.
 .IP "\(bu" 2
-\fR--pipewire\fP provides the Pipewire socket for audio/screen-sharing/video (Mediated via \fR--portals\fP)
-.IP "\(bu" 2
-\fR--portals\fP provides a list of \fRorg\&.freedesktop\&.portal\&.X\fP busses to provide to the sandbox including but not limited to:
-.IP "  \(bu" 4
-\fRDesktop\fP is essential, and provides theme, font, and other settings\&.
-.IP "  \(bu" 4
-\fRFileChooser\fP allows the program to select files from the host, which are provided to the sandbox via the interface, and is far more secure than explicitly provides \fR--files\fP since it doesn't require changing the script\&.
-.IP "  \(bu" 4
-\fRDocuments\fP is like \fRFileChooser\fP, but for folders, and allows it to keep a handle on the folder between sessions, such as saving your music folder for a music player between sessions\&. This "handle" is eventually dropped\&.
-.PP
-
-.IP "\(bu" 2
-\fR--post\fP specifies a command to run \fIafter\fP the sandbox, and to which the sandbox will remain until the program dies\&. For example, services like \fRyarr\fP can launch a web browser pointing to itself, \fR--post chromium\&.desktop\&.sb:https://localhost:7070\fP, and when the Chromium instance closes, so does the sandbox\&. You can use the modifier as seen above to provide arguments to the command; wrap it in quotes to pass more than one\&.
-.IP "\(bu" 2
-\fR--qt\fP provides Qt libraries and widgets to the sandbox:
-.IP "  \(bu" 4
-\fR5\fP is for Qt 5 applications\&.
-.IP "  \(bu" 4
-\fR6\fP is for Qt 6 applications
-.IP "  \(bu" 4
-\fRkf6\fP is a super-set of \fR6\fP that provides KDE framework libraries as well\&. All settings, however, will pass KDE settings such as theme and fonts\&.
-.PP
-
-.IP "\(bu" 2
-\fR--script\fP will create a \fR\&.sb\fP script for the program, but not a desktop entry\&.
-.IP "\(bu" 2
-\fR--seccomp\fP defines behavior of the SECCOMP Filter:
-.IP "  \(bu" 4
-\fRfalse\fP will not use SECCOMP Filters to restrict syscalls\&.
-.IP "  \(bu" 4
-\fRpermissive\fP will create a blank filter if it does not exist at \fR$XDG_DATA_HOME/sb/app/filter\&.bpf\fP, or use the filter in a permissive mode where violations will be logged\&. You can use \fRsb-seccomp\fP to generate a filter in this mode, or just parse \fR/var/log/audit/audit\&.log\fP directly\&. Place permitted syscalls in the \fR$XDG_DATA_HOME/sb/app/syscalls\&.txt\fP file, but ensure the first line remains unchanged so that the hash can be used to regenerate when needed\&.
-.IP "  \(bu" 4
-\fRenforcing\fP will enforce the BPF Filter, and syscalls not outlined will fail with \fREPERM\fP\&. Most programs don't know how to handle a failed syscall, and will likely just crash\&.
-.IP "  \(bu" 4
-\fRstrace\fP will set \fR--verbose=strace\fP and collect the output from \fRstrace\fP to determine syscalls and update the filter directly\&. You will likely still need to use \fRsb-seccomp\fP, as \fRstrace\fP is not exhaustive, but this will create a good starting filter\&.
+\fR--verbose strace\fP will run the program under \fRstrace\fP, capturing \fIall\fP syscalls from the program, errors and otherwise\&.
 .PP
 
 .PP
+\fR--shell debug (D)\fP will construct the sandbox exactly as if the switch was not provided, but instead of running the actual program, will instead drop into a debug shell\&. This will allow you to navigate the sandbox and find issues\&.
 
 .PP
->[!tip] 
+>[!tip] >Use \fR--binaries (L)\fP to bring in command line utilities, such as \fRcat\fP, \fRless\fP, and \fRls\fP
+
+.PP
+The \fR--update (D+M)\fP flag is used to invalidate caches used by the program, useful when you are iteratively building a profile\&. The following values are supported:
+.IP "\(bu" 2
+\fR--update libraries\fP will update library caches\&.
+.IP "\(bu" 2
+\fR--update cache\fP will update library and binary caches\&.
+.IP "\(bu" 2
+\fR--update all\fP will update everything cached\&.
+.IP "\(bu" 2
+\fR--update clean\fP will update everything cached, and delete any old configurations\&.
+.PP
+
+.PP
+>[!note] >SB automatically silos separate configurations of the program, so you likely don't need to manually invalidate caches\&. However, this will create multiple instances in the SOF, so \fR--update clean\fP is a good idea to remove old, unused versions\&.
+.SH "GUI"
+.PP
+You're likely try to run a graphical application within SB++, and as such you'll want to use one of the switches dedicated for those kinds of applications\&.
+.IP "\(bu" 2
+\fR--electron (O)\fP is for Electron/Chromium apps, such as Chrome and Obsidian\&. You can optionally provide an electron version, if your application uses the system electron, such as \fR--electron 28\fP\&. It also enables \fR--gtk 3\fP\&.
+.IP "\(bu" 2
+\fR--qt (F)\fP is for Qt applications, such as KDE programs\&. There are three flags for the switch:
+.IP "  \(bu" 4
+\fR--qt 5\fP is for Qt 5 applications\&.
+.IP "  \(bu" 4
+\fR--qt 6\fP is for Qt 6 applications\&.
+.IP "  \(bu" 4
+\fR--qt kf6\fP is a super-set of \fR--qt 6\fP, providing KDE Framework libraries that are needed by some KDE programs\&.
+.PP
+
+.IP "\(bu" 2
+\fR--gtk (F)\fP is for GTK applications\&. It's a \fIflag\fP switch, meaning you can provide multiple discrete flags that will add functionality, such as \fR--gtk 3 4 gdk\fP\&. Valid options include:
+.IP "  \(bu" 4
+\fR3\fP for GTK3
+.IP "  \(bu" 4
+\fR4\fP for GTK4
+.IP "  \(bu" 4
+\fRgdk\fP for the Pixel Buffer, which is needed for some apps to draw icons\&.
+.IP "  \(bu" 4
+\fRsourceview\fP for the GTK Source View, required by some text editors\&.
+.IP "  \(bu" 4
+\fRadwaita\fP for \fRlibadwaita\fP applications
+.IP "  \(bu" 4
+\fRgir\fP for the GIR Repository\&.
+.IP "  \(bu" 4
+\fRwebkit\fP for WebKit
+.IP "  \(bu" 4
+\fRgst\fP for GStreamer\&.
+.PP
+
+.IP "\(bu" 2
+\fR--gui (F)\fP is for any application that doesn't fall into the above switches\&. Note that all above flags already enable \fR--gui\fP if it isn't set, but as a \fIflag\fP switch you can pass further values, which includes:
+.IP "  \(bu" 4
+\fRvulkan\fP for Vulkan support
+.IP "  \(bu" 4
+\fRvaapi\fP for hardware accelerated video decoding/encoding\&.
+.PP
+
+.PP
+
+.PP
+The \fR--desktop-entry (O)\fP switch can be used to shadow the system \fR\&.desktop\fP file used to launch the application, ensuring that your Window Manager launches the application sandboxed\&. It creates a script file in \fR~/\&.local/bin\fP, and places the override in \fR$XDG_DATA_HOME/applications\fP\&. If the desktop file does not match the program name, you'll need to provide the desktop file name (In \fR/usr/share/applications\fP), such as \fR--desktop-entry org\&.kde\&.okular\&.desktop\fP\&.
+
+.PP
+If your program doesn't have a desktop file, you can use \fR--script (C)\fP to create the script file in \fR~/\&.local/bin\fP\&.
+
+.PP
+All the above flags assume the program is run under Wayland, which is a far more secure protocol than Xorg\&. Providing the Xorg socket into the sandbox is such as easy escape that you might as well not bother with SB\&. However, if you have \fRxorg-server-xephyr\fP installed, SB can run an isolated Xorg server specifically for that application, via the \fR--xorg (F)\fP switch\&.
+
+.PP
+\fBNote\fP
+.RS 4
+While \fR--xorg\fP \fIcreates\fP the server and corresponding \fRDISPLAY\fP environment variable, it doesn't provide any graphical libraries, and as such you'll need to include something like\fR--gui\fP or \fR--electron\fP depending on the app\&.
+.RE
+.PP
+>[!tip] >Wayland will \fIalways\fP be available within the sandbox, so long as \fR--gui\fP is directly or indirectly provided\&. Therefore, if your program runs under both, and defaults to Wayland, you'll need to somehow tell it to use X11, such as \fR--ozone-platform=x11\fP for Chromium/Electron
+
+.PP
+\fR--xorg\fP accepts the following flags:
+.IP "\(bu" 2
+\fR--xorg resize\fP allows the Xorg window to be resized (This is \fInot\fP the application window, but the \fIserver's\fP)
+.IP "\(bu" 2
+\fR--xorg fullscreen\fP makes the Xorg window fullscreen\&.
+.IP "\(bu" 2
+\fR--xorg gl\fP provides OpenGL extensions and support\&. YMML on Hardware Acceleration\&.
+.PP
+
+.PP
+You can also use the \fR--xsize (C)\fP switch to provide a \fRwidth X height\fP argument, such as \fR--xsize 1000x1000\fP\&. This takes precedent over \fR--fullscreen\fP\&. 
+.SH "Portals"
+.PP
+If you have \fRxdg-dbus-proxy\fP installed, you can provide Portals and Busses that the application can communicate to the host over\&. There are four such switches exposed:
+.IP "\(bu" 2
+\fR--portals (L)\fP Is for FreeDesktop Portals, such as:
+.IP "  \(bu" 4
+\fRDesktop\fP: For system settings (Like theme, fonts, etc)\&.
+.IP "  \(bu" 4
+\fRFileChooser\fP: To select a file on the host, and pass is into the sandbox\&.
+.IP "  \(bu" 4
+\fRDocuments\fP: A more persistent \fRFileChooser\fP
+.IP "  \(bu" 4
+\fRCamera\fP: To provide the Camera via Pipewire\&.
+.IP "  \(bu" 4
+\fRNotifications\fP: For system notifications\&.
+.PP
+
+.IP "\(bu" 2
+\fR--own (L)\fP is for busses that the program \fIowns\fP, which is most frequently needed for GTK applications, such as \fR--own io\&.bassi\&.Amberol\fP, or Media Notifications such as \fR--own org\&.mpris\&.MediaPlayer2\&.chromium\&.instance2\fP
+.IP "\(bu" 2
+\fR--talk (L)\fP is for busses that the program can talk to\&.
+.IP "\(bu" 2
+\fR--see (L)\fP is for busses the program can see, but can't interact with\&.
+.PP
+
+.PP
+To open files outside of the sandbox, and in the host's default application, use \fR--xdg-open (TF)\fP\&. 
+.SH "Sound"
+.PP
+Use \fR--pipewire (TF)\fP For sound support\&. If your program uses GStreamer, use \fR--gtk gst\fP\&.
+.SH "Libraries"
+.PP
+Usually, SB will automatically find all needed libraries used by the program, but if it can't, you have two options:
+.IP "\(bu" 2
+Use \fR--libraries (L+M)\fP to pass them to the sandbox\&. It accepts three formats:
+.IP "  \(bu" 4
+Wildcards: \fR--libraries libSDL3*\fP
+.IP "  \(bu" 4
+Directories: \fR--libraries /usr/lib/chromium\fP
+.IP "  \(bu" 4
+Files: \fR--libraries /usr/lib/libSDL3\&.so\fP\&. As a list switch, you can pass multiple such values, either in one invocation, like \fR--libraries A B\fP, or multiple, such as \fR--libraries A --libraries B\fP\&.
+.PP
+
+.IP "\(bu" 2
+Use \fR--sys-dirs lib\fP to pass \fR/usr/lib\fP into the sandbox\&. Don't do this unless you have no choice\&.
+.PP
+
+.PP
+\fBRemarks\fP
+.RS 4
+Use \fR--verbose=error\fP to find libraries the program tried to access, but didn't exist!
+.RE
+.PP
+.SS "SOF"
+Rather than providing the entire \fR/usr/lib\fP folder, SB recursively finds all libraries needed to run the program, and stores them into a per-application \fISOF\fP folder, which is then provided as the sandbox's \fR/usr/lib\fP\&. Unless you provide \fR--sys-dirs lib\fP, which you \fBshouldn't\fP, this algorithm will:
+.IP "\(bu" 2
+Use \fRldd\fP to find all libraries used by the program, including its dependencies\&.
+.IP "\(bu" 2
+Parse shell scripts to determine all binaries used within it\&.
+.PP
+
+.PP
+You can use the \fR--sof\fP switch to specify where this folder will be stored on disk:
+.IP "\(bu" 2
+\fR--sof usr\fP is the \fIRecommended\fP option, as it is the fastest (There is no copying) and most space efficient (0 overhead, as it merely makes hard-links to the system libraries), stored at \fR/usr/share/sb/program\fP\&. \fIHowever\fP if you have protected hard-links enabled, this will not work, but all other options are so bad comparatively you should probably just use \fRsysfs fs\&.protected_hardlinks=0\fP and use it\&.
+.IP "\(bu" 2
+\fR--sof tmp\fP will place the SOF in \fR/tmp/sb/program\fP\&. Backing onto ram, it will be fast to setup, and will use a shared folder to share libraries between other profiles, but there will be a space overhead equal to all libraries used by all profiles without duplication\&. However, because it is stored on RAM, it will be cleared on reboot, and hence there will be a cold-boot penalty that can be somewhat remedied via the startup service\&.
+.IP "\(bu" 2
+\fR--sof data\fP will place the SOF in \fR$XDG_DATA_HOME/sb/program\fP\&. It backs onto disk, which means it will be slower to setup, but there will be no cold-boot penalty on startup\&. It uses the same shared library as \fRtmp\fP, and as such the same space requirement\&.
+.IP "\(bu" 2
+\fR--sof zram\fP is only available if the zram configuration is enabled and \fRzram-generator\fP is installed, backing to \fR/run/sb\fP\&. Being stored on a compressed ram disk, it is faster and more space efficient than either \fRtmp\fP or \fRdata\fP, but suffers a cold-boot penalty as with \fRtmp\fP as it backs to RAM\&. If you cannot use \fRusr\fP, and have \fRzram-generator\fP, this backing method is the preferred one\&.
+.PP
+
+.PP
+The following table summarizes each option:
+
+.PP
+Backing   Backing Medium   Space Cost   Startup Cost   Compatability    \fRdata\fP   Disk   Shared   No   All    \fRtmp\fP   RAM   Shared   Yes   All    \fRzram\fP   RAM   Shared   Yes   \fRzram-generator\fP    \fRusr\fP   Disk   0   No   \fRfs\&.protected_hardlinks=0\fP   For a more quantifiable example, consider the following benchmark using \fRexamples/chromium\&.desktop\&.sb\fP (\fR\&./benchmark\&.sh cpp main chromium\&.desktop\&.sb "" --sof=data\fP)
+
+.PP
+Backing   Cold   Hot   Libraries   Cache   Space Overhead    \fRdata\fP   248320\&.4   4578\&.8   11515\&.7   258139\&.1   378\&.3MB    \fRtmp\fP   236653\&.2   4215\&.3   10965\&.7   253466\&.1   378\&.3MB (RAM)    \fRzram\fP   232735\&.7   4184\&.4   11024\&.5   251254\&.3   183\&.0MB (RAM)    \fRusr\fP   238148\&.9   3317\&.5   10119\&.9   246266\&.4   0   
+.PP
+\fBNote\fP
+.RS 4
+\fICold\fP in this case involves deleting the folder before each run\&. This simulates \fR--update all\fP, but note that \fRdata\fP and \fRusr\fP will launch at \fIHot\fP at every invocation, whereas \fRtmp\fP and \fRzram\fP will launch at \fICold\fP once after reboot, then \fIHot\fP\&. If the numbers did not make this obvious, you should use the Dry Startup service if you use either of the RAM backed SOFs\&. 
+.br
+
+.br
+.RE
+.PP
+>[!warning] >YMML on speed between RAM and Disk backings depending on your own RAM and Disk/Filesystem\&. These tests were conducted on ZFS, which effectively makes RAM/Disk the same speed 
+.SS "Dry Start"
+If your SOF is backed to RAM, you may want to consider the Dry Startup, which runs on user login and populates the SOF of all profiles in \fR~/\&.local/bin\fP with the \fR--dry-startup\fP switch\&. Unless you have limited RAM, it's recommended to simply put \fRDRY_STARTUP\fP in \fR$XDG_CONFIG_HOME/sb\&.conf\fP to populate all profiles on boot\&.
+
+.PP
+You'll need to install the \fRsb\&.service\fP, and enable it via \fRsystemctl enable --user sb\fP\&. 
+.SH "Binaries"
+.PP
+If you need to add binaries to the sandbox, You can either use:
+.IP "\(bu" 2
+\fR--binaries (L)\fP, which will use \fRwhich\fP to resolve the location
+.IP "\(bu" 2
+\fR--sys-dirs bin\fP, which you shouldn't use\&.
+.PP
+
+.PP
+This is useful if you're in a debug shell, such as \fRsb program --shell debug --binaries ls cat\fP
+.SH "File Passthrough"
+.PP
+There are several switches dedicated to passing arbitrary files into the sandbox\&.
+
+.PP
+Firstly, \fIDevices\fP can be provided via \fR--devices (L)\fP, such as \fR--devices /dev/tty\fP\&. You can also use \fR--sys-dirs dev\fP, but you shouldn't\&.
+
+.PP
+For regular files, there two ways to pass files through:
+.IP "\(bu" 2
+With the \fR--files (L+M)\fP switch
+.IP "\(bu" 2
+Simply passing the file through without a switch\&. This mode is mostly for Desktop Files, as it allows you to open files the sandboxed program supports with your file manager or other applications\&.
+.PP
+
+.PP
+For both of these methods, you must specify a pass through mode\&. This is done via \fR--file-passthrough (D)\fP, which, if not set, ignores both means of passing files through\&. Valid options are:
+.IP "\(bu" 2
+\fR--file-passthrough ro\fP to pass files Read Only
+.IP "\(bu" 2
+\fR--file-passthrough rw\fP to pass files Read+Write\&.
+.IP "\(bu" 2
+\fR--file-passthrough discard\fP, only applicable if passing directories, where the sandbox overlays the directories with a temporary overlay, such that the program has \fRrw\fP access, but that such changes don't actually appear on the host\&.
+.PP
+
+.PP
+When using \fR--files (L+M)\fP, you can modify each file via a modifier, to which you have four options:
+.IP "\(bu" 2
+\fR--files file\&.txt:ro\fP to pass the file Read Only
+.IP "\(bu" 2
+\fR--files file\&.txt:rw\fP to pass the file Read+Write
+.IP "\(bu" 2
+\fR--files file\&.txt:do\fP to pass the file Direct Read-Only
+.IP "\(bu" 2
+\fR--files file\&.txt:dw\fP to pass the file Direct Read-Write\&.
+.PP
+
+.PP
+By default, and to make AppArmor profile generation easier, all passed files are actually exposed in a \fR/enclave\fP folder in the sandbox, such that profiles can just have \fR/enclave/{,**} rw,\fP in their AppArmor profiles\&. However, if you need the path to exist as it does on the host, such as passing something from \fR/etc\fP or \fR/var\fP, you can provide the \fRdo/dw\fP modifier accordingly\&.
+
+.PP
+If no modifier is provided, it defaults to whatever \fR--file-passthrough\fP is, so you can have something like: \fR--file-passthrough ro --files text\&.txt text\&.csv:rw /etc/hosts:do\fP\&.
+.SH "Directory Passthrough"
+.PP
+While you can use the above \fR--files\fP mechanism to pass folders to the sandbox, there are some special flags dedicated to special folders
+
+.PP
+\fR--app-dirs (F)\fP Allows you to specify folders that are owned by the program, and thus share the same name as the program, to save typing it out\&. For example, with the program \fRchromium\fP:
+.IP "\(bu" 2
+\fR--app-dirs etc\fP provides \fR/etc/chromium\fP
+.IP "\(bu" 2
+\fR--app-dirs lib\fP provides \fR/usr/lib/chromium\fP and resolves libraries within as if it were provided via \fR--libraries\fP
+.IP "\(bu" 2
+\fR--app-dirs share\fP provides \fR/usr/share/chromium\fP\&.
+.IP "\(bu" 2
+\fR--app-dirs opt\fP provides \fR/opt/chromium\fP, and resolves libraries within as if it were provided via \fR--libraries\fP\&.
+.PP
+
+.PP
+\fR--sys-dirs (F)\fP Allows you to specify system directories, some of which may need to be mounted in ways \fR--files\fP cannot accommodate:
+
+.PP
+>[!warning] >Many of the options to \fR--sys-dirs\fP open tremendous attack surface to the sandbox, and should \fBonly\fP be used for debugging and sandbox generation\&. Use \fR--files\fP!
+
+.PP
+.IP "\(bu" 2
+\fR--sys-dirs dev\fP mounts \fR/dev\fP as a \fRDevFS\fP\&. This shares all devices with the system\&. Don't use it\&.
+.IP "\(bu" 2
+\fR--sys-dirs proc\fP mounts \fR/proc\fP as a \fRProcFS\fP
+.PP
+
 .PP
 .RS 4
-You will never need to scour logs or manually enter syscalls into \fRsyscalls\&.txt\fP\&. \fRsb-seccomp\fP and \fR--seccomp=strace\fP are all you need to create a filter for \fIany\fP application, which will harden the security of the sandbox\&. It takes 30 seconds\&. 
+[!note] Providing \fR--sys-dirs proc\fP provides the sandbox with a \fR/proc\fP folder, but it is \fInot\fP the system\&. The sandbox will never be able to access the processes of programs running on the host\&. 
 .RE
 .PP
 
 .PP
 .IP "\(bu" 2
-\fR--see\fP specifies busses that the sandbox can \fIsee\fP, but not interact with\&.
+\fR--sys-dirs lib\fP mounts \fR/usr/lib\fP\&. Don't use it\&.
 .IP "\(bu" 2
-\fR--share\fP specifies a list of \fInamespaces\fP that should be shared in the sandbox:
-.IP "  \(bu" 4
-\fRnone\fP shares nothing\&. Use this unless you have good reason to use another one\&.
-.IP "  \(bu" 4
-\fRuser\fP shares the user namespace, which is needed for Electron applications that create their own sub-sandboxes\&. It does \fInot\fP leak your username or home folder\&. \fR--electron\fP already adds this, so you don't need to explicitly specify it\&.
-.IP "  \(bu" 4
-\fRipc\fP shared the IPC namespace, which allows for consenting programs to communicate between the host/sandbox\&. It's largely unnecessary\&.
-.IP "  \(bu" 4
-\fRpid\fP shares the PID namespace, such that new PIDs in the sandbox will not conflict with the host\&. It's largely unnecessary\&.
-.IP "  \(bu" 4
-\fRnet\fP shares the network namespace, which is required to connect to the internet and the local network\&. SB will add other essential networking configurations, such as \fR/etc/hosts\fP and SSL/TLS configuration and certificates\&.
-.IP "  \(bu" 4
-\fRcgroup\fP shares the cgroup, allowing for regulation of memory and CPU consumption\&.
-.IP "  \(bu" 4
-\fRall\fP shares all namespace\&. \fIDon't\&.\fP
-.PP
-
+\fR--sys-dirs bin\fP mounts \fR/usr/bin\fP\&. Don't use it\&.
 .IP "\(bu" 2
-\fR--shell\fP provides \fR/usr/bin/sh\fP in the sandbox, and tells applications that it's the default shell for the user\&.
-.IP "  \(bu" 4
-\fRtrue\fP merely provides the shell
-.IP "  \(bu" 4
-\fRdebug\fP will drop you \fIinto\fP the shell, rather than running the app, so you can look around the sandbox for troubleshooting\&.
-.PP
-
+\fR--sys-dirs etc\fP mounts \fR/etc\fP\&. Don't use it\&.
 .IP "\(bu" 2
-\fR--sof\fP specifies the location for the SOF folder that contains libraries mounted to \fR/usr/lib\fP within the sandbox\&.
+\fR--sys-dirs share\fP mounts \fR/usr/share\fP\&. Don't use it\&.
+.IP "\(bu" 2
+\fR--sys-dirs var\fP mounts \fR/var\fP Don't use it\&.
+.PP
+.SS "Local Filesystem"
+Passing your home folder into the sandbox is a terrible idea\&. \fBNever\fP use \fR--files /home\fP, and \fI\fBespecially\fP\fP not \fR--files /home:rw\fP\&. Like providing the global Xorg socket, you might as well save the effort and run the program unconfined\&. However, applications store their configuration files in the home, and unless you want a clean slate every launch, you still need a way to store them\&.
+
+.PP
+The \fR--fs\fP switch will create an isolated directory in \fR$XDG_DATA_HOME/sb/program\fP that is overlain on the \fIroot\fP of the sandbox\&. This allows for:
+.IP "\(bu" 2
+The storage of configurations within the \fRFS/home/sb\fP (The user name within the sandbox is obscured)
+.IP "\(bu" 2
+Passing of any file that may be too encumbering to provide via \fR--files\fP especially if the file doesn't actually exist at the path you want it to\&. For example:
 .IP "  \(bu" 4
-\fRtmp\fP will create the SOF at \fR/tmp/sb/app\fP, which is backed by ram\&.
+Place a binary in \fRFS/usr/bin\fP
 .IP "  \(bu" 4
-\fRdata\fP will create the SOF at \fR$XDG_DATA_HOME/sb/app/lib\fP\&. The libraries are persistent on disk, which means you'll need to occasional refresh it\&. However, since the SOF is self contained, this also allows you to run different versions of an app, irrespective of the hosts files\&.
+Place libraries in \fRFS/usr/lib\fP
 .IP "  \(bu" 4
-\fRzram\fP will create the SOF at \fR/run/sb\fP, which should be a \fRzram\fP device mounted by the \fRsb\&.conf\fP zram generator service\&. This uses less RAM than \fRtmp\fP, and has comparable or better performance
-.IP "  \(bu" 4
-\fRusr\fP will create the SOF at \fR/usr/share/sb\fP, which--being on the same file system as the host library folder, allows for direct hard-linking and thus zero storage overhead for storing the SOF\&. Additionally, this avoid the need to copy files to another system, which can dramatically increase cold boot speed:
+Place files in \fRFS/tmp\fP\&.
 .PP
 
 .PP
 
 .PP
-Profile (ms/MB)   \fRdata\fP   \fRtmp\fP   \fRzram\fP   \fRusr\fP    Chromium Cold   184\&.8   191\&.3   183\&.5   169\&.6    Chromium Hot   3\&.2   2\&.9   3\&.0   3\&.1    Chromium Update   180\&.8   176\&.5   173\&.5   176\&.2    Storage Usage   373   373   172   0M    Backing   Disk   RAM   RAM   Disk   
+In essence treat the \fRfs\fP folder as access to the root of the sandbox (Although not that files bound to the sandbox at runtime will not be there)\&.
+
+.PP
+There are two values that can be passed to \fR--fs\fP:
+.IP "\(bu" 2
+\fR--fs persist\fP will provide the folder Read+Write, and any changes made during program execution will persist\&.
+.IP "\(bu" 2
+\fR--fs cache\fP will provide the folder, but won't save any changes made during program execution\&.
+.PP
 
 .PP
 \fBWarning\fP
 .RS 4
-Race conditions can occur between the \fRsb\&.service\fP that populates the SOF on start, and other startup services\&. If you run a service confined by SB on startup, such as \fRsyncthing\fP, either delay the service until \fIafter\fP \fRsb\&.service\fP has run (Add \fRAfter=sb\&.service\fP to the service), or use \fR--sof=data\fP\&.
+You will need to provide the home with \fRpersist\fP at least once so that configuration files will actually be saved on disk\&. Once you have the program configured, and don't need any future changes to be saved, you can switch it to \fRcache\fP\&.
 .RE
 .PP
+The switch also accepts a modifier, which changes the default path of \fR$XDG_DATA_HOME/sb/program/fs\fP to anything you want within that directory\&. This allows multiple silos of the app to exist at the same time\&. For example \fR--fs=persist:1\fP will use \fR$XDG_DATA_HOME/sb/program/1\fP instead\&. 
+.SH "Namespaces + Networking"
+.PP
+By default, the user namespace created by \fRbwrap\fP is completely separate from the host's namespaces, following the whitelisting approach mentioned prior\&. However, you may need some of these namespaces enabled, especially for networking\&.
+
+.PP
+The \fR--share (F)\fP switch controls the sharing of the following namespaces:
 .IP "\(bu" 2
-\fR--startup\fP Don't use it\&.
+\fR--share none\fP shares nothing, and is the default\&.
 .IP "\(bu" 2
-\fR--sys-dirs\fP System directories to mount into the sandbox:
+\fR--share user\fP shares the user namespace, which is needed for Chromium/Electron to make their sandbox (This is automatically enabled with \fR--electron\fP)
+.IP "\(bu" 2
+\fR--share ipc\fP shares the IPC namespace\&.
+.IP "\(bu" 2
+\fR--share pid\fP shares the PID namespace\&.
+.IP "\(bu" 2
+\fR--share net\fP shares the Network namespace, and allows the program use the network\&.
+.IP "\(bu" 2
+\fR--share cgroup\fP shares the CGroup namespace\&.
+.IP "\(bu" 2
+\fR--share all\fP shares all namespaces\&.
+.PP
+
+.PP
+>[!warning] >You will likely only ever need to use \fR--share net\fP to give the sandbox internet access\&. \fR--share user\fP may be necessary if your program uses its own sandbox, but is already set with both \fR--electron\fP and \fR--gtk webkit\fP, so you likely do not need to ever enable it\&. Don't enable any of the other namespaces, \fBespecially\fP \fRall\fP, unless you know what you're doing\&.
+.SH "SECCOMP"
+.PP
+\fRbwrap\fP provides the feature to pass a BPF SECCOMP filter that will be enforced within the sandbox\&. This can strengthen the sandbox by reducing the syscalls that the program can use, and all its children\&. SB+SECCOMP+AppArmor can significantly reduce the risk of Zero Day attacks by preventing malicious exploits moving horizontally\&. SB reduces what files the program can see, SECCOMP reduces what syscalls it can use to act on those files, and AppArmor can mitigate sandbox escape by enforcing only the access of those files\&.
+
+.PP
+If you don't happen to know every single syscall your program ever uses, SB can fortunately automate the process:
+.IP "1." 4
+Firstly, run the program with \fR--seccomp=strace\fP\&. This will run the program under \fRstrace\fP, and setup a filter\&. This will not be able to exhaustively report all syscalls, however\&.
+.IP "2." 4
+Secondly, use \fRsb-seccomp\fP, providing the \fRsb\fP script as the first argument, and the name of the local data folder of the program (It should be located within \fR$XDG_DATA_HOME/sb\fP\&. For example, \fRsb-seccomp chromium\&.desktop\&.sb chromium\fP, or \fRsb-seccomp org\&.kde\&.okular\&.desktop\&.sb okular\fP\&. This will require root access to read the \fRaudit\fP log, which you'll also need installed and running, but will capture all used syscalls\&. Run this multiple times, using all the parts of the program you plan to use\&.
+.IP "3." 4
+Finally, set \fR--seccomp=enforcing\fP\&. From this point on, only those syscalls captured will be allowed, with all other syscalls failing with \fREPERM\fP\&. Most programs don't know how to handle a failed syscalls, and will just die\&. If your program randomly crashes, you might have missed a syscall, or it did something it wasn't supposed to\&.
+.PP
+
+.PP
+\fBWarning\fP
+.RS 4
+If you're running an x86 computer, you may encounter an error that the \fRpread\fP or \fRpwrite\fP syscall is not recognized\&. Audit reports the syscall with those names, but they are actually architecture-specific, and hence you'll want to to modify the \fR$XDG_DATA_HOME/sb/program/syscalls\&.txt\fP, find those two names, and change them to \fRpread64\fP and \fRpwrite64\fP respectively
+.RE
+.PP
+.SH "Encryption"
+.PP
+If your program contains sensitive information, you may want to secure it by encrypting it\&. The \fR--encrypt (F)\fP switch can encrypt the configuration and FS using \fRgocryptfs\fP\&. To setup:
+.IP "1." 4
+Run the program with \fR--encrypt init\fP\&. This will create a new encrypted root for the program's configuration at \fR$XDG_DATA_HOME/sb/enc\fP\&. The cache for the program, and its FS will be encrypted within the root\&. If there's an existing configuration, it will be seamlessly copied\&.
+.IP "2." 4
+Provide the \fR--encrypt\fP switch to the profile\&.
+.PP
+
+.PP
+The \fR--encrypt persist\fP flag will make the encryption a one-time operation per boot\&. It will be locked on reboot, and on the first attempted execution will prompt for unlocking, then remain unlocked for the rest of the boot\&.
+
+.PP
+You'll need to install \fRgocryptfs\fP, along with \fRkdialog\fP, otherwise you will be only able to run the profile from the command line\&.
+.SH "Miscellaneous Switches"
+.PP
+.IP "\(bu" 2
+\fR--dry (TF)\fP: Create the sandbox, but don't actually run the program\&.
+.IP "\(bu" 2
+\fR--env (L)\fP: Pass \fRKEY=VALUE\fP environment variables to the sandbox\&.
+.IP "\(bu" 2
+\fR--hardened-malloc (F)\fP: Enforce the use of \fRlibhardened_malloc\fP within the sandbox, strengthening memory security at the cost of performance\&. You can either toggle the switch, or provide \fR--hardened-malloc light\fP to use the light variant\&.
+.IP "\(bu" 2
+\fR--help (TF)\fP: Get information about all the switches\&.
+.IP "\(bu" 2
+\fR--hostname (TF)\fP Provide the real host-name to the sandbox\&. You will likely not every need this\&.
+.IP "\(bu" 2
+\fR--include (TF)\fP: Provide \fR/usr/include\fP, for C/C++ headers (IE, for IDEs)
+.IP "\(bu" 2
+\fR--locale (TF)\fP: Provide the system locale to the sandbox\&. Most applications will default to the \fRC\fP locale, which may be all you need\&.
+.IP "\(bu" 2
+\fR--no-flags (TF)\fP\&. By default, SB will source any additional arguments to pass to the \fIapplication\fP in a file located at \fR$XDG_DATA_HOME/sb/program/flags\&.txt\fP\&. This mimics the \fRchromium-flags\&.conf\fP file that Chromium/Electron uses\&. If you have the file, but have a drop-in version that shouldn't use it, provide this switch\&.
+.IP "\(bu" 2
+\fR--post (C+M)\fP: Some applications, such as \fRyarr\fP, do not run as standalone programs, but instead act as services to which other programs, such as web browsers, interface with\&. \fR--post\fP can be used to run another program immediately after the sandboxed application, and to which the sandbox will close once the post application closes\&. The modifier can be used to pass arguments to the application, such as \fR--post chromium\&.desktop\&.sb:http://localhost:7070\fP
+.IP "\(bu" 2
+\fR--python (C)\fP: Provide Python in the sandbox, specifying the version, such as \fR--python 3\&.13\fP
+.IP "\(bu" 2
+\fR--shell (D)\fP Can be used two-fold:
 .IP "  \(bu" 4
-\fRdev\fP binds \fR/dev\fP
+\fR--shell=true\fP provides \fR/usr/bin/sh\fP, and creates a \fR/etc/passwd\fP file to make it the user's shell\&. This is needed for some programs, such as Zed, to resolve the environment\&.
 .IP "  \(bu" 4
-\fRproc\fP binds \fR/proc\fP, but processes from outside the sandbox are invisible\&. If you don't enable \fR--share pid\fP the PID values will be different, too\&.
-.IP "  \(bu" 4
-\fRlib\fP binds \fR/usr/lib\fP\&. You almost certainly don't need to do this unless you have a very stubborn application\&.
-.IP "  \(bu" 4
-\fRbin\fP binds \fR/usr/bin\fP, see \fRlib\fP
-.IP "  \(bu" 4
-\fRetc\fP binds \fR/etc\fP
-.IP "  \(bu" 4
-\fRshare\fP binds \fR/usr/share\fP
-.IP "  \(bu" 4
-\fRvar\fP binds \fR/var\fP
+\fR--shell=debug\fP does exactly what \fR--shell\fP does, but drops \fIinto\fP that shell rather than launching the program, letting you look around the sandbox environment\&. This is very useful for debugging\&.
 .PP
 
 .IP "\(bu" 2
-\fR--talk\fP specifies busses that the sandbox can communicate over\&.
-.IP "\(bu" 2
-\fR--update\fP specifies actions SB should take on sandbox generation\&.
+\fR--spelling (F)\fP provides spellchecking support, including:
 .IP "  \(bu" 4
-\fRlibraries\fP updates \fRlib\&.cache\fP, which is useful on updates\&.
+\fR--spelling hunspell\fP for Hunspell\&.
 .IP "  \(bu" 4
-\fRcache\fP updates binary and library caches in \fR$XDG_DATA_HOME/sb/cache\fP
-.IP "  \(bu" 4
-\fRall\fP updates both
+\fR--spelling enchant\fP for enchant\&.
 .PP
 
 .IP "\(bu" 2
-\fR--verbose\fP toggles more information to be printed to the console
-.IP "  \(bu" 4
-\fRlog\fP prints logging information
-.IP "  \(bu" 4
-\fRdebug\fP prints a lot of debugging information, like every command run\&.
-.IP "  \(bu" 4
-\fRerror\fP runs the program under \fRstrace\fP, but only filters errors\&.
-.IP "  \(bu" 4
-\fRstrace\fP runs the program under \fRstrace\fP, errors and all\&.
-.PP
-
-.IP "\(bu" 2
-\fR--xdg-open\fP provides the \fRsb-open\fP script so that programs can open links with the default file handler outside the sandbox, such as opening a link in your web browser\&. \fBDon't use \fR--binaries xdg-open\fP\fP 
+\fR--version (TF)\fP prints the SB version\&. 
 .PP
 

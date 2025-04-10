@@ -88,9 +88,9 @@ $(function(){ initResizable(false); });
   <div class="headertitle"><div class="title">SB++</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md2"></a></p>
+<div class="textblock"><p><a class="anchor" id="autotoc_md1"></a></p>
 <p><code>sb++</code> is a C++ implementation of SB. It's faster, easier to use, and more functional than the original Python implementation.</p>
-<h1><a class="anchor" id="autotoc_md4"></a>
+<h1><a class="anchor" id="autotoc_md3"></a>
 Building</h1>
 <p>Run <code>make</code> in this directory (<code>cpp</code>) to build a native-optimized binary of SB, created at <code>sb</code>. You can also choose between more or less optimized recipes, including:</p>
 <ol type="1">
@@ -120,6 +120,8 @@ Building</h1>
 <li><code>findutils</code></li>
 <li><code>which</code></li>
 <li><code>bubblewrap</code></li>
+<li><code>libb2</code></li>
+<li><code>libseccomp</code></li>
 </ol>
 <p>There are also optional runtime dependencies, guarded behind switches, that can add additional functionality:</p>
 <ol type="1">
@@ -127,34 +129,36 @@ Building</h1>
 <li><code>hardened_malloc</code>: To enable the <code>--hardened-malloc</code> flag, which hardens both the application and proxy sandbox.</li>
 <li><code>zram-generator</code>: To enable <code>--fs=zram</code> to use a compressed ram drive as the backing for profile SOFs, reducing memory usage over <code>--fs=tmp</code> and improving performance.</li>
 <li><code>xdg-dbus-proxy</code>: To enable Flatpak emulation and Portals supports.</li>
-<li><code>libseccomp</code>: To enable <code>--seccomp</code> to further harden the sandbox by permitting what syscalls are allowed to be run.</li>
+<li><code>gocryptfs</code> for <code>--encrypt</code></li>
+<li><code>kdialog</code> for graphical dialogs</li>
+<li><code>xorg-server-xephyr</code> for <code>--xorg</code>.</li>
 </ol>
-<h1><a class="anchor" id="autotoc_md5"></a>
+<h1><a class="anchor" id="autotoc_md4"></a>
 Installation</h1>
-<p>If you're running an Arch-Based Distribution, you can use the PKGBUILD in this repo. Just run <code>makepkg -si</code>.</p>
-<h1><a class="anchor" id="autotoc_md6"></a>
+<p>If you're running an Arch-Based Distribution, you can use the PKGBUILD in this repo. Just run <code>makepkg -si</code>. Otherwise, ensure all of the above run-time dependencies are met, and additionally install the following build-time dependencies:</p>
+<ol type="1">
+<li><code>lld</code> For linking.</li>
+<li><code>clang</code> For compiling.</li>
+<li><code>llvm</code> If you want <code>llvm-bolt</code> profiling.</li>
+<li><code>doxygen</code> If you want documentation.</li>
+</ol>
+<p>Initialize the third-party submodules via <code>git submodule init</code> and <code>git submodule fetch</code>. Then, you can either choose to dynamically link against <code>libexec</code>, or compile it in with the third-party submodule. If you have <code>libexec</code> installed, run <code>make link</code>, otherwise <code>make cpp</code>. The resulting binary can then be used/installed.</p>
+<h1><a class="anchor" id="autotoc_md5"></a>
 Scripts and Services</h1>
-<p>The following files are located at the root of the repo, and are shared between both implementations:</p>
 <ol type="1">
 <li><code>sb.conf</code> is a zram configuration. If you have <code>zram-generator</code> installed and want <code>sb</code> to use zram as an SOF backing, copy it to <code>/usr/lib/systemd/zram-generator.conf.d</code></li>
 <li><code>sb.service</code> is a user systemd service that dry runs applications tagged with <code>--dry-startup</code>. To use, copy it to <code>/usr/lib/systemd/user/</code>, copy <code>sb-startup</code> to the path, and enable the service.</li>
-<li><code>sb-open</code> is a slimmed down version of <code>xdg-open</code>, and is used with the <code>--xdg-open</code> switch. Your mileage may vary using the real <code>xdg-open</code>.</li>
-</ol>
-<p>The following files are specific to SB++</p>
-<ol type="1">
 <li><code>sb-refresh</code>: Refresh all profile caches. Run after an update.</li>
 <li><code>sb-seccomp</code>: Append new syscalls to a SECCOMP filter. Use in conjunction with <code>--seccomp=strace</code>.</li>
-<li><code>sb-startup</code>: The startup worker.</li>
+<li><code>sb-open</code> is a slimmed down version of <code>xdg-open</code>, and is used with the <code>--xdg-open</code> switch. Your mileage may vary using the real <code>xdg-open</code>. </li>
 </ol>
-<h1><a class="anchor" id="autotoc_md7"></a>
+<h1><a class="anchor" id="autotoc_md6"></a>
 Licenses and Third-Party Libraries</h1>
 <ul>
 <li>SB++ uses the <a href="https://github.com/bshoshany/thread-pool">BS::ThreadPool</a> library, which is licensed under the MIT. Without a native thread pool library to compete against Python, SB++ would not be competitive in speed, and such this project would not exist without this library. </li>
 </ul>
-<h1><a class="anchor" id="autotoc_md8"></a>
+<h1><a class="anchor" id="autotoc_md7"></a>
 Why?</h1>
-<h2><a class="anchor" id="autotoc_md9"></a>
-Speed</h2>
 <p>Speed was the principal reason for implementing SB in C++, and the results are to be expected from moving from Python to C++ (via <code>benchmark.sh</code>):</p>
 <table class="markdownTable">
 <tr class="markdownTableHead">
@@ -183,67 +187,7 @@ Speed</h2>
 <ul>
 <li>Cold Launch is an important metric if the startup service isn't be used, as it determines how long a program will take to launch for the first time after booting. Applications can benefit from the loading of other applications (One Qt application will populate the shared SOF for other Qt applications, letting it launch "warm").</li>
 <li>Hot Launch is the most important metric for SB. It defines how fast the program can launch with a warm SOF and both a <code>lib.cache</code> and <code>cmd.cache</code>. It effectively measures how quickly SB can read the <code>cmd.cache</code> and launch <code>bwrap</code>. The ideal is for this value to be zero, which would be equivalent to launching the application directly.</li>
-<li>Update Libraries/Caches are important metrics for when the caches needs to be updated, particularly after an update.</li>
-</ul>
-<p>Besides the improvements inherent in the change of language, SB++ implements many improvements to the underlying algorithms, yielding further performance gains:</p><ul>
-<li>Cold Launch has been massively improved through two key improvements:<ol type="1">
-<li>Rather than reading files as binary and writing them to the SOF, SB++ uses <code>std::filesystem::copy_file</code> to use internal copying mechanisms that are far faster.</li>
-<li>Copying to the SOF is threaded; rather than copying files sequentially they are processed by a pool.</li>
-</ol>
-</li>
-<li>Hot Launch has been improved by using <code>fork/dup2/exec</code> directly, foregoing the need to launch a shell.</li>
-<li>Library Updates fix a bug in the Python implementation, where <code>ldd</code> was assumed to not recursively determine dependencies. It does. This speed up allows for a far more reliable parser, mentioned below.</li>
-<li>Cache Updates no longer using a thread-mediated <code>searched</code> list, to which mutex access significantly slowed access down. Instead, we just cache <code>ldd</code> results, and return the pre-computed results immediately. You may think that returning libraries instead of just an empty list would slow things down, but the performance gain is tremendous, and come with the benefit in that it is more accurate, as the prior implementation had a bug where caches would not be complete if one of their libraries/binaries were already check prior in the sandbox construction.</li>
-</ul>
-<h2><a class="anchor" id="autotoc_md10"></a>
-Functionality and Usability</h2>
-<p>New functionality and usability improvements were also a major consideration, with many improvements infeasible or impossible within the confines of Python. Such improvements include:</p><ul>
-<li>A custom, flexible argument handler:<ul>
-<li>Rather than <code>--electron --electron-version 33</code>, you can combine them into <code>--electron 33</code>. The old argument handler could not support a flag that is either on/off and one that can be given a value.</li>
-<li>Rather than <code>--fs=cache --fs-location=md</code>, you can again combine them using a modifier <code>--fs=cache:md</code>.</li>
-<li>Arguments are consumed first-come, first-serve, and unless an argument has been explicitly defined as only being set once, you can replace previously defined values. This allows for:<ul>
-<li>Overriding configuration. If you have a <code>.sb</code> file that defines <code>--fs=cache</code>, and want to temporarily make it persist, you can simply call <code>profile.sb --fs=persist</code> and the earlier definition will be ignored. This does not affect list behavior, and you can chain them like <code>--binaries cat --binaries ls</code></li>
-<li>Inherited profiles. If a <code>.sb</code> profile calls another <code>.sb</code> program, SB++ will source the called script for arguments and then apply the newly defined changes atop it. Specifically, you can create <em>clean</em> profiles, such as by defining a script that calls <code>sb app.sb --fs=none</code>, particularly useful for applications like Chromium.</li>
-<li>Combined Flag and Keypair semantics. The Python argument handler had <code>store_true</code> and <code>store_false</code> values, which allowed for values like <code>--hardened-malloc</code>. However, these semantics made it impossible to retroactively <em>disable</em> such flags. If a configuration was defined in <code>$XDG_CONFIG_HOME/sb.conf</code>, it could <em>not</em> be disabled since the flag was a <code>store_true</code>. Now, <em>all</em> values can either be explicitly set or toggled. This allows for:<ul>
-<li>Using <code>--hardened-malloc</code> like a flag, or explicitly setting it via <code>--hardened-malloc=true</code> or <code>--hardened-malloc=false</code>.</li>
-<li>Defining named levels for incrementing switches. <code>--verbose</code> can be used as a counter flag, such as <code>-vvv</code>, but you can also define the level (Which is outlined in <code>--help</code>), such as <code>--verbose=error</code>.</li>
-</ul>
-</li>
-<li>Modifier values can be used to extend values by using a <code>:</code> as a delimiter. This allows for:<ul>
-<li><em>Excluding</em> libraries by using <code>:x</code>. Our new library parser is now <em>too</em> good, and draws in <code>libQt6Core*</code> from Chromium's shims, which then complains because the corresponding Wayland libraries do not exist. We can use <code>--libraries libQt6:x</code> to exclude them from the sandbox.</li>
-<li>Specify explicit permissions for <code>--files</code>, such as <code>--files file.txt:ro file.csv:rw</code>.</li>
-</ul>
-</li>
-</ul>
-</li>
-<li>Values can be reset to the default using <code>!</code>. This is particularly useful for:<ul>
-<li>Resetting a list. If we want to create a clean profile using inheritance semantics that does not have access to portals, we need to reset the <code>--portals</code> flag. Our profile is as easy as <code>sb profile.sb --profiles !</code> to drop all values in <code>--portals</code>.</li>
-<li>Defaulting a flag. While you can always explicitly provide a value, it can be useful to default earlier flags without caring about the underlying default value. Such resets will ignore <code>sb.conf</code> overrides.</li>
-</ul>
-</li>
-</ul>
-</li>
-<li>Combined functionality:<ul>
-<li><code>--sockets</code> was a useless flag; <code>--sockets wayland</code> would never not be combined with <code>--dri</code> or a super-set, to which <code>--dri</code> quickly outgrew its original name. Now, both flags have been combined into <code>--gui</code>, which still exists as a base for <code>--qt</code> and <code>--gtk</code>.</li>
-<li><code>--qt --qt5 --kde</code> were similar in function, and it wasn't entirely clear when to use one over another. The distinction between vanilla Qt applications and those using KDE's Frameworks is a good distinction since the former wouldn't need the latter libraries, but these could be more easily combined thanks to our new argument parser via <code>--qt 5/6/kf6</code>.</li>
-<li><code>--strace</code> has been combined into <code>--verbose</code>, since it's a means of logging. There's no <code>--verbose=error</code>, which will use <code>strace</code> to only report errors, whereas <code>--verbose=strace</code> will dump everything.</li>
-<li><code>--seccomp-log</code> has been removed in favor of an SELinux style flag via <code>--seccomp permissive/enforcing/strace</code>. The latter option captures <code>strace</code> output to parse syscalls, which will not exhaustive and still requires <code>sb-seccomp</code>, provides a base and doesn't require root.</li>
-<li><code>--update-libraries</code> and <code>--update-cache</code> have been combined into <code>--update false/libraries/cache/all</code>, and are much faster thanks to faster algorithms.</li>
-<li><code>--post</code> now uses a modifier so you can specify command and argument in one flag, such as <code>--post chromium.desktop.sb:"https://localhost:7070"</code></li>
-</ul>
-</li>
-<li>Faster algorithms:<ul>
-<li>The <code>exec</code> handler now doesn't invoke a shell, and uses <code>fork/dup2/execv</code> rather than <code>popen</code> to hasten execution.</li>
-<li>Writing the SOF is threaded to tremendous boost cold start speed.</li>
-<li>The Library parser relies on <code>ldd</code>'s recursive functionality, the speed up allowing it to be far more exhaustive and complete than the Python implementation. <em>So exhaustive</em> that profiles like Chromium needed to <em>exclude</em> libraries from the search (Not because they were erroneous, but because the shim does indeed pull Qt). The result of this is less manual calls to <code>--libraries</code> and less time using <code>strace</code></li>
-<li>The Binary parser is far more advanced. It parser variables to resolve them latter in the script, and use the shell itself to interpret lines. This allows for electron scripts to resolve the <code>/usr/lib/${electron_version}/electron</code> calls and actually pulls in the library.</li>
-</ul>
-</li>
-<li>New Functionality<ul>
-<li>The Proxy can now use hardened malloc.</li>
-<li>By using <code>inotify</code> and <code>libseccomp</code> directly, we remove all runtime libraries besides those that add more functionality. </li>
-</ul>
-</li>
+<li>Update Libraries/Caches are important metrics for when the caches needs to be updated, particularly after an update. </li>
 </ul>
 </div></div><!-- contents -->
 </div><!-- PageDoc -->
