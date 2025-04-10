@@ -105,7 +105,7 @@ namespace syscalls {
     if (arg::at("stats")) {
       // x86 Syscalls
       float start = 335.0f, final = syscalls.size();
-      std::cout << "Reduced Total Syscalls By: " << ((start - final) / abs(start)) * 100.0f << "%"
+      std::cout << "Reduced Total Syscalls By: " << ((start - final) / fabs(start)) * 100.0f << "%"
                 << " (" << start << " to " << final << ")" << std::endl;
     }
 

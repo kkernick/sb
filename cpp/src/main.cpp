@@ -127,6 +127,10 @@ int main(int argc, char* argv[]) {
   };
   profile("Argument Parser", parse_args);
 
+  if (!arg::at("cmd")) {
+    warning({"No program provided!"});
+  }
+
   auto program = fs::path(arg::get("cmd")).filename().string();
   auto lib_cache = libraries::hash_cache(program, arg::hash);
   auto lib_sof = libraries::hash_sof(program, arg::hash);
@@ -471,7 +475,7 @@ int main(int argc, char* argv[]) {
       auto files = execute<vector>(command, vectorize, {.cap = STDOUT, .verbose = arg::at("verbose") >= "debug"});
       auto total = execute<vector>({"fd", ".", "/", "-E", "run", "-H"}, vectorize, {.cap = STDOUT, .verbose = arg::at("verbose") >= "debug"});
       double start = total.size(), final = files.size();
-      std::cout << "Reduced Files By: " << ((start - final) / abs(start)) * 100.0f << "%"
+      std::cout << "Reduced Files By: " << ((start - final) / fabs(start)) * 100.0f << "%"
                  << " (" << start << " to " << final << ")" << std::endl;
     }
 
