@@ -82,7 +82,7 @@ namespace generate {
 
       }, one_line, {.cap = STDOUT, .verbose = arg::at("verbose") >= "debug"});
 
-      execute<void>({"gocryptfs", "-init", enc_root.string()}, wait_for, {.in = pass, .verbose = arg::at("verbose") >= "debug"});
+      execute<void>({"gocryptfs", "-init", enc_dir.string()}, wait_for, {.in = pass, .verbose = arg::at("verbose") >= "debug"});
       for (auto& c : pass) c = '\0';
     }
 

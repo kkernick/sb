@@ -59,7 +59,7 @@ static void cleanup(int sig) {
     std::string stderr;
     do {
       stderr = execute<std::string>({"fusermount", "-u", app_data.string()}, dump, {.cap = STDERR, .verbose = arg::at("verbose") >= "debug"});
-    } while (!stderr.empty());
+    } while (!stderr.empty() && !stderr.contains("not found"));
   }
 }
 
