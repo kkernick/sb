@@ -270,10 +270,11 @@ int main(int argc, char* argv[]) {
     else extend(command, {"--bind", arg::mod("fs"), "/"});
 
     if (fs::is_directory(path + "/tmp")) extend(command, {"--overlay-src", arg::mod("fs") + "/tmp", "--tmp-overlay", "/tmp"});
-    else extend(command, {"--tmpfs", "/tmp"});
+    else if (!arg::list("no-tmpfs").contains("tmp")) extend(command, {"--tmpfs", "/tmp"});
   }
-  else extend(command, {"--tmpfs", "/tmp"});
-  extend(command, {"--tmpfs", "/home/sb/.cache"});
+  else if (!arg::list("no-tmpfs").contains("tmp")) extend(command, {"--tmpfs", "/tmp"});
+
+  if (!arg::list("no-tmpfs").contains("cache")) extend(command, {"--tmpfs", "/home/sb/.cache"});
 
   // Mount *AFTER* the root file system has been overlain to prevent it being hidden.
   if (std::get<0>(proxy_pair) != -1) {

@@ -230,6 +230,13 @@ namespace arg {
       .help="For gtk applications. Implies --gui",
       .updates_sof = true
     }},
+    {"no-tmpfs", arg::config{
+      .l_name="--no-tmpfs", .s_name="",
+      .valid = {"tmp", "cache"},
+      .list=true,
+      .help="Keep temporary files",
+      .updates_sof = true
+    }},
 
     // Portals.
     {"portals", arg::config{
