@@ -426,6 +426,15 @@ namespace generate {
 
     if (arg::at("nvidia")) {
       sys_dirs.emplace("dev");
+      extend(devices, {
+        "/dev/nvidia-modeset",
+        "/dev/nvidia-uvm",
+        "/dev/nvidia-uvm-tools",
+        "/dev/nvidia0",
+        "/dev/nvidiactl",
+        "/dev/udmabuf",
+      });
+
       batch(share, command, {
         "/usr/share/nvidia",
         "/usr/share/glvnd",
@@ -646,7 +655,7 @@ namespace generate {
 
     // Parse system directories.
     if (sys_dirs.contains("dev")) extend(command, {"--dev", "/dev"});
-    else {
+    if (!devices.empty()) {
       batch(share, command, devices, "dev-bind");
       stats("/dev", devices.size());
     }
