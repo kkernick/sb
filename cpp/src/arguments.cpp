@@ -110,6 +110,12 @@ namespace arg {
       .help="Compute sandbox statistics.",
       .updates_sof = true
     }},
+    {"nvidia", arg::config{
+      .l_name="--nvidia", .s_name="",
+      .valid={"false", "true"},
+      .help="Give the sandbox access to NVIDIA devices",
+      .updates_sof = true
+    }},
 
     // Discrete, Single-Value Switches.
     {"update", arg::config{

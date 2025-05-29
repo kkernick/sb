@@ -424,6 +424,28 @@ namespace generate {
       }
     }
 
+    if (arg::at("nvidia")) {
+      sys_dirs.emplace("dev");
+      batch(share, command, {
+        "/usr/share/nvidia",
+        "/usr/share/glvnd",
+      }, "ro-bind");
+
+      extend(libraries::directories, {
+        "/usr/lib/vdpau",
+        "/usr/lib/nvidia",
+      });
+
+
+      if (update_sof) {
+        batch(libraries::get, libraries, {
+          "libcuda*", "libnvidia*", "libnvc*", "libnvoptix*"
+        }, "");
+      }
+
+      arg::emplace("gui", "true");
+    }
+
     if (arg::at("electron")) {
       log({"Adding Electron"});
       extend(devices, {"/dev/null", "/dev/urandom", "/dev/shm"});
