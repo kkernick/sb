@@ -438,6 +438,8 @@ namespace generate {
       batch(share, command, {
         "/usr/share/nvidia",
         "/usr/share/glvnd",
+        "/usr/share/egl/",
+        "/usr/share/wayland-eglstream/",
       }, "ro-bind");
 
       extend(libraries::directories, {
@@ -448,7 +450,7 @@ namespace generate {
 
       if (update_sof) {
         batch(libraries::get, libraries, {
-          "libcuda*", "libnvidia*", "libnvc*", "libnvoptix*"
+          "libcuda*", "libnvidia*", "libnvc*", "libnvoptix*",
         }, "");
       }
 
@@ -575,7 +577,9 @@ namespace generate {
 
     if (arg::at("gui")) {
       log({"Adding GUI"});
-      devices.emplace("/dev/dri");
+      extend(devices, wildcard("render*", "/dev/dri"));
+      extend(devices, wildcard("card*", "/dev/dri"));
+
       batch(share, command, {
         "/sys/devices/pci0000:00",
         "/sys/dev/char",
